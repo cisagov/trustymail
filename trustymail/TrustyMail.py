@@ -4,8 +4,9 @@ import logging
 import dns.resolver
 import requests
 import spf
-from Domain import Domain
 from dns import reversename
+
+from trustymail.Domain import Domain
 
 CSV_HEADERS = [
     "Domain", "Sends Mail",

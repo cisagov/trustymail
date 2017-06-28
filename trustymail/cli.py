@@ -24,9 +24,11 @@ Notes:
   If no scan types are specified then all are ran against given domains.
 """
 
-import docopt
-import TrustyMail
 import logging
+
+import docopt
+
+from trustymail import TrustyMail
 
 
 def main():
