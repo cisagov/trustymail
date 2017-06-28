@@ -1,4 +1,4 @@
-## Trustworthy Mail  :lock:
+## Trustworthy Mail
 `TrustyMail` is a tool that evaluates SPF/DMARC DNS record configurations to recommend best practices for the records. It saves its results to a CSV.
 
 #### Usage and examples
