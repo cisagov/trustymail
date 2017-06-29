@@ -137,17 +137,16 @@ def dmarc_scan(domain):
             # We can split this up into a easily manipulatable
             tag_dict = {}
             for options in record_text.split(";"):
+                if '=' not in options:
+                    continue
                 tag = options.split("=")[0].strip()
                 value = options.split("=")[1].strip()
                 tag_dict[tag] = value
 
             for tag in [tag.split("=") for tag in record_text.split(";") if tag]:
                 if tag not in ["v", "mailto", "rf", "p", "sp", "adkim", "aspf", "fo", "pct", "ri", "rua", "ruf"]:
-                    pass
-                    # It's fine, nothing to see here.
-                else:
-                    pass
-                    # Mechanic doesn't exist, RFC says to ignore it, so is this an issue?
+                    logging.debug("Warning: Unknown DMARC mechanism {0}".format(tag))
+                    domain.valid_dmarc = False
 
     except (dns.resolver.NoAnswer, dns.exception.Timeout, dns.resolver.NXDOMAIN) as error:
         domain.errors.append(str(error))
