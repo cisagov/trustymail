@@ -143,9 +143,9 @@ def dmarc_scan(domain):
                 value = options.split("=")[1].strip()
                 tag_dict[tag] = value
 
-            for tag in [tag.split("=") for tag in record_text.split(";") if tag]:
+            for tag in tag_dict:
                 if tag not in ["v", "mailto", "rf", "p", "sp", "adkim", "aspf", "fo", "pct", "ri", "rua", "ruf"]:
-                    logging.debug("Warning: Unknown DMARC mechanism {0}".format(tag))
+                    logging.debug("\tWarning: Unknown DMARC mechanism {0}".format(tag))
                     domain.valid_dmarc = False
 
     except (dns.resolver.NoAnswer, dns.exception.Timeout, dns.resolver.NXDOMAIN) as error:
