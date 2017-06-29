@@ -32,7 +32,7 @@ def domain_list_from_csv(csv_file):
 
         # Check the headers for the word domain - use that row.
 
-        domain_column = 0;
+        domain_column = 0
 
         for i in range(0, len(domain_list[0])):
             header = domain_list[0][i]
@@ -87,7 +87,7 @@ def spf_scan(domain):
                 result = "neutral"
 
             try:
-                query = spf.query('127.0.0.1', "email_wizard@" + domain.domain_name, domain.domain_name, strict=2)
+                query = spf.query("127.0.0.1", "email_wizard@" + domain.domain_name, domain.domain_name, strict=2)
                 response = query.check()
             except spf.AmbiguityWarning as error:
                 logging.debug("\t" + error.msg)
