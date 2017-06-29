@@ -9,11 +9,11 @@ from dns import reversename
 from trustymail.Domain import Domain
 
 CSV_HEADERS = [
-    "Domain", "Sends Mail",
+    "Domain", "Base Domain",
+    "Sends Mail", "Mail Servers",
     "SPF Record", "DMARC Record",
     "DMARC Results", "SPF Results",
     "Valid SPF", "Valid DMARC",
-    "Mail Servers",
     "Syntax Errors"
 ]
 

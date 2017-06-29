@@ -1,7 +1,13 @@
+from publicsuffix import PublicSuffixList
+
+public_list = PublicSuffixList()
+
+
 class Domain:
 
     def __init__(self, domain_name):
         self.domain_name = domain_name
+        self.base_domain = public_list.get_public_suffix(domain_name)
 
         # Keep entire record for potential future use.
         self.mx_records = []
@@ -38,26 +44,29 @@ class Domain:
 
     def add_mx_record(self, record):
         self.mx_records.append(record)
+
         # Record in format "pref mail_server." Grab only address and remove trailing period.
         self.mail_servers.append(record.split(" ")[1][:-1])
 
     def generate_results(self):
         results = {
                         "Domain": self.domain_name,
+                        "Base Domain": self.base_domain,
 
                         "Sends Mail": self.has_mail(),
+                        "Mail Servers": self.format_list(self.mail_servers),
+
                         "SPF Record": self.has_spf(),
                         "DMARC Record": self.has_dmarc(),
 
                         "SPF Results": self.format_list(self.spf),
                         "DMARC Results": self.format_list(self.dmarc),
-                        "Mail Servers": self.format_list(self.mail_servers),
+
 
                         "Valid SPF": self.valid_spf,
                         "Valid DMARC": self.valid_dmarc,
 
                         "Syntax Errors": self.format_list(self.syntax_errors)
-                        # "Error Messages": self.format_list(self.errors)
 
                   }
 
