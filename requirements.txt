@@ -2,4 +2,4 @@ requests
 docopt
 dnspython
 publicsuffix
-pyspf>=2.0.12t
+pyspf>=2.0.12
