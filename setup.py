@@ -23,7 +23,7 @@ setup(
             'docopt',
             'py3dns',
             'dnspython',
-            'pyspf>=2.0.12',
+            'pyspf==2.0.10',
             'publicsuffix'
         ],
 
