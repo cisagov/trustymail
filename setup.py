@@ -22,8 +22,7 @@ setup(
             'requests',
             'docopt',
             'py3dns',
-            'dnspython',
-            'pyspf==2.0.10',
+            'pyspf==2.0.11',
             'publicsuffix'
         ],
 

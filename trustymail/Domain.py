@@ -46,7 +46,7 @@ class Domain:
         self.mx_records.append(record)
 
         # Record in format "pref mail_server." Grab only address and remove trailing period.
-        self.mail_servers.append(record.split(" ")[1][:-1])
+        self.mail_servers.append(record[1][:-1])
 
     def generate_results(self):
         results = {

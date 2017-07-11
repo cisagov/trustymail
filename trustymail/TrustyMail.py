@@ -1,11 +1,11 @@
 import csv
 import logging
-
-import dns.resolver
 import requests
 import spf
-from dns import reversename
 
+from DNS import dnslookup
+from DNS import DNSError
+import DNS
 from trustymail.Domain import Domain
 
 CSV_HEADERS = [
@@ -51,21 +51,20 @@ def domain_list_from_csv(csv_file):
 
 def mx_scan(domain):
     try:
-        for record in resolver.query(domain.domain_name, 'MX'):
-            domain.add_mx_record(record.to_text())
-
-    except (dns.resolver.NoAnswer, dns.exception.Timeout, dns.resolver.NXDOMAIN) as error:
-            domain.errors.append(str(error))
-
+        for record in dnslookup(domain.domain_name, 'MX'):
+            domain.add_mx_record(record)
+    except DNSError as error:
+        domain.errors.append(str(error))
 
 def spf_scan(domain):
     try:
-        for record in resolver.query(domain.domain_name, 'TXT'):
-            # Sometimes .to_text() with give '"record_info"' so need to remove excess quotes
-            if record.to_text().startswith("\""):
-                record_text = record.to_text()[1:-1]
-            else:
-                record_text = record.to_text()
+        # for record in resolver.query(domain.domain_name, 'TXT'):
+        for record in dnslookup(domain.domain_name, 'TXT'):
+
+            record_text = record_to_str(record)
+
+            if record_text.startswith("\""):
+                record_text = record_text[1:-1]
 
             if not record_text.startswith("v=spf1"):
                 # Not an spf record, ignore it.
@@ -110,7 +109,8 @@ def spf_scan(domain):
                 domain.valid_spf = False
                 logging.debug("\tResult Differs: Expected [{0}] - Actual [{1}]".format(result, response[0]))
 
-    except (dns.resolver.NoAnswer, dns.exception.Timeout, dns.resolver.NXDOMAIN) as error:
+    # except (dns.resolver.NoAnswer, dns.exception.Timeout, dns.resolver.NXDOMAIN) as error:
+    except DNSError as error:
         logging.debug("\tError: {0}".format(str(error)))
         domain.errors.append(str(error))
 
@@ -119,12 +119,14 @@ def dmarc_scan(domain):
     # dmarc records are kept in TXT records for _dmarc.domain_name.
     try:
         dmarc_domain = '_dmarc.%s' % domain.domain_name
-        for record in resolver.query(dmarc_domain, 'TXT'):
+        # for record in resolver.query(dmarc_domain, 'TXT'):
+        for record in dnslookup(dmarc_domain, 'TXT'):
+            # Record is a list.
 
-            if record.to_text().startswith("\""):
-                record_text = record.to_text()[1:-1]
-            else:
-                record_text = record.to_text()
+            record_text = record_to_str(record)
+
+            if record_text.startswith("\""):
+                record_text = record[1:-1]
 
             # Ensure the record is a DMARC record. Some domains that redirect will cause an SPF record to show.
             if record_text.startswith("v=DMARC1"):
@@ -148,12 +150,14 @@ def dmarc_scan(domain):
                     logging.debug("\tWarning: Unknown DMARC mechanism {0}".format(tag))
                     domain.valid_dmarc = False
 
-    except (dns.resolver.NoAnswer, dns.exception.Timeout, dns.resolver.NXDOMAIN) as error:
+    # except (dns.resolver.NoAnswer, dns.exception.Timeout, dns.resolver.NXDOMAIN) as error:
+    except DNSError as error:
         domain.errors.append(str(error))
 
 
 def find_host_from_ip(ip_addr):
-    return str(resolver.query(reversename.from_address(ip_addr), "PTR")[0])
+    return DNS.revlookup(ip_addr)
+    # return str(resolver.query(reversename.from_address(ip_addr), "PTR")[0])
 
 
 def scan(domain_name, timeout, scan_types):
@@ -161,7 +165,7 @@ def scan(domain_name, timeout, scan_types):
 
     logging.debug("[{0}]".format(domain_name))
 
-    resolver.timeout = resolver.lifetime = timeout
+    # resolver.timeout = resolver.lifetime = timeout
 
     if scan_types["mx"]:
         mx_scan(domain)
@@ -179,6 +183,15 @@ def scan(domain_name, timeout, scan_types):
         dmarc_scan(domain)
 
     return domain
+
+def record_to_str(record):
+    if isinstance(record, list):
+        record = record[0]
+
+    if isinstance(record, bytes):
+        record = record.decode('utf-8')
+
+    return record
 
 
 def generate_csv(domains, file_name):
@@ -198,7 +211,3 @@ def generate_csv(domains, file_name):
         writer.writerow(row)
 
     output.close()
-
-
-# Default resolver settings
-resolver = dns.resolver.Resolver()
