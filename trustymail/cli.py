@@ -25,11 +25,11 @@ Notes:
 """
 
 import logging
-
 import docopt
 
 from trustymail import TrustyMail
 
+base_domains = {}
 
 def main():
     args = docopt.docopt(__doc__, version='v0.0.1')

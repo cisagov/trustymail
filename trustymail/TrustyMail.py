@@ -9,11 +9,11 @@ import DNS
 from trustymail.Domain import Domain
 
 CSV_HEADERS = [
-    "Domain", "Base Domain",
+    "Domain", "Base Domain", "Live",
     "Sends Mail", "Mail Servers",
-    "SPF Record", "DMARC Record",
-    "DMARC Results", "SPF Results",
-    "Valid SPF", "Valid DMARC",
+    "SPF Record", "Valid SPF", "SPF Results",
+    "DMARC Record", "Valid DMARC", "DMARC Results",
+    "DMARC Record on Base Domain", "Valid DMARC Record on Base Domain", "DMARC Results on Base Domain",
     "Syntax Errors"
 ]
 
@@ -54,7 +54,11 @@ def mx_scan(domain):
         for record in dnslookup(domain.domain_name, 'MX'):
             domain.add_mx_record(record)
     except DNSError as error:
-        domain.errors.append(str(error))
+        if "NXDOMAIN" in error.message:
+            domain.is_live = False
+        domain.errors.append(error.message)
+        logging.debug("\tError: {0}".format(error.message))
+
 
 def spf_scan(domain):
     try:
@@ -108,20 +112,20 @@ def spf_scan(domain):
             else:
                 domain.valid_spf = False
                 logging.debug("\tResult Differs: Expected [{0}] - Actual [{1}]".format(result, response[0]))
+                domain.errors.append("Result Differs: Expected [{0}] - Actual [{1}]".format(result, response[0]))
 
-    # except (dns.resolver.NoAnswer, dns.exception.Timeout, dns.resolver.NXDOMAIN) as error:
     except DNSError as error:
-        logging.debug("\tError: {0}".format(str(error)))
-        domain.errors.append(str(error))
+        if "NXDOMAIN" in error.message:
+            domain.is_live = False
+        logging.debug("\tError: {0}".format(error.message))
+        domain.errors.append(error.message)
 
 
 def dmarc_scan(domain):
     # dmarc records are kept in TXT records for _dmarc.domain_name.
     try:
         dmarc_domain = '_dmarc.%s' % domain.domain_name
-        # for record in resolver.query(dmarc_domain, 'TXT'):
         for record in dnslookup(dmarc_domain, 'TXT'):
-            # Record is a list.
 
             record_text = record_to_str(record)
 
@@ -150,14 +154,14 @@ def dmarc_scan(domain):
                     logging.debug("\tWarning: Unknown DMARC mechanism {0}".format(tag))
                     domain.valid_dmarc = False
 
-    # except (dns.resolver.NoAnswer, dns.exception.Timeout, dns.resolver.NXDOMAIN) as error:
     except DNSError as error:
-        domain.errors.append(str(error))
+        if "NXDOMAIN" in error.message:
+            domain.is_live = False
+        domain.errors.append(error.message)
 
 
 def find_host_from_ip(ip_addr):
     return DNS.revlookup(ip_addr)
-    # return str(resolver.query(reversename.from_address(ip_addr), "PTR")[0])
 
 
 def scan(domain_name, timeout, scan_types):
@@ -165,15 +169,14 @@ def scan(domain_name, timeout, scan_types):
 
     logging.debug("[{0}]".format(domain_name))
 
-    # resolver.timeout = resolver.lifetime = timeout
 
-    if scan_types["mx"]:
+    if scan_types["mx"] and domain.is_live:
         mx_scan(domain)
 
-    if scan_types["spf"]:
+    if scan_types["spf"] and domain.is_live:
         spf_scan(domain)
 
-    if scan_types["dmarc"]:
+    if scan_types["dmarc"] and domain.is_live:
         dmarc_scan(domain)
 
     # If the user didn't specify any scans then run a full scan.
@@ -183,6 +186,7 @@ def scan(domain_name, timeout, scan_types):
         dmarc_scan(domain)
 
     return domain
+
 
 def record_to_str(record):
     if isinstance(record, list):
