@@ -6,6 +6,7 @@ import spf
 from DNS import dnslookup
 from DNS import DNSError
 import DNS
+
 from trustymail.domain import Domain
 
 CSV_HEADERS = [
@@ -52,12 +53,15 @@ def domain_list_from_csv(csv_file):
 def mx_scan(domain):
     try:
         for record in dnslookup(domain.domain_name, 'MX'):
-            domain.add_mx_record(record)
+            # Redirects will be presented as str of the redirect.
+            if isinstance(record, tuple):
+                domain.add_mx_record(record)
     except DNSError as error:
-        if "NXDOMAIN" in error.message:
-            domain.is_live = False
         domain.errors.append(error.message)
         logging.debug("\tError: {0}".format(error.message))
+        if "NXDOMAIN" in error.message:
+            domain.is_live = False
+            return
 
 
 def spf_scan(domain):
