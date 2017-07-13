@@ -6,7 +6,7 @@ import spf
 from DNS import dnslookup
 from DNS import DNSError
 import DNS
-from trustymail.Domain import Domain
+from trustymail.domain import Domain
 
 CSV_HEADERS = [
     "Domain", "Base Domain", "Live",

@@ -27,7 +27,7 @@ Notes:
 import logging
 import docopt
 
-from trustymail import TrustyMail
+from trustymail import trustymail
 
 base_domains = {}
 
@@ -39,7 +39,7 @@ def main():
 
     # Allow for user to input a csv for many domain names.
     if args["INPUT"][0].endswith(".csv"):
-        domains = TrustyMail.domain_list_from_csv(open(args["INPUT"][0]))
+        domains = trustymail.domain_list_from_csv(open(args["INPUT"][0]))
     else:
         domains = args["INPUT"]
 
@@ -57,7 +57,7 @@ def main():
 
     domain_scans = []
     for domain_name in domains:
-        domain_scans.append(TrustyMail.scan(domain_name, timeout, scan_types))
+        domain_scans.append(trustymail.scan(domain_name, timeout, scan_types))
 
     # Default output file name is results.
     if args["--output"] is None:
@@ -74,7 +74,7 @@ def main():
     if args["--json"]:
         pass
     else:
-        TrustyMail.generate_csv(domain_scans, output_file_name)
+        trustymail.generate_csv(domain_scans, output_file_name)
 
 if __name__ == '__main__':
     main()

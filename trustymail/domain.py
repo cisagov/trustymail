@@ -1,6 +1,6 @@
 from publicsuffix import PublicSuffixList
 
-from trustymail import TrustyMail
+from trustymail import trustymail
 
 public_list = PublicSuffixList()
 
@@ -18,7 +18,7 @@ class Domain:
             if self.base_domain_name not in Domain.base_domains:
                 domain = Domain(self.base_domain_name)
                 # Populate DMARC for parent.
-                TrustyMail.dmarc_scan(domain)
+                trustymail.dmarc_scan(domain)
                 Domain.base_domains[self.base_domain_name] = domain
             self.base_domain = Domain.base_domains[self.base_domain_name]
         else:
