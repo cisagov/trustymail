@@ -44,7 +44,7 @@ def main():
         domains = args["INPUT"]
 
     if args["--timeout"] is not None:
-        timeout = args["--timeout"]
+        timeout = int(args["--timeout"])
     else:
         timeout = 5
 
