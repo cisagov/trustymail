@@ -57,11 +57,7 @@ def mx_scan(domain):
             if isinstance(record, tuple):
                 domain.add_mx_record(record)
     except DNSError as error:
-        domain.errors.append(error.message)
-        logging.debug("\tError: {0}".format(error.message))
-        if "NXDOMAIN" in error.message:
-            domain.is_live = False
-            return
+        handle_error(domain, error)
 
 
 def spf_scan(domain):
@@ -119,10 +115,7 @@ def spf_scan(domain):
                 domain.errors.append("Result Differs: Expected [{0}] - Actual [{1}]".format(result, response[0]))
 
     except DNSError as error:
-        if "NXDOMAIN" in error.message:
-            domain.is_live = False
-        logging.debug("\tError: {0}".format(error.message))
-        domain.errors.append(error.message)
+        handle_error(domain, error)
 
 
 def dmarc_scan(domain):
@@ -159,9 +152,7 @@ def dmarc_scan(domain):
                     domain.valid_dmarc = False
 
     except DNSError as error:
-        if "NXDOMAIN" in error.message:
-            domain.is_live = False
-        domain.errors.append(error.message)
+        handle_error(domain, error)
 
 
 def find_host_from_ip(ip_addr):
@@ -202,15 +193,27 @@ def record_to_str(record):
     return record
 
 
+def handle_error(domain, error):
+    if hasattr(error, "message"):
+        if "NXDOMAIN" in error.message:
+            domain.is_live = False
+        domain.errors.append(error.message)
+    else:
+        domain.errors.append(str(error))
+
+
 def generate_csv(domains, file_name):
     output = open(file_name, 'w')
     writer = csv.writer(output)
 
+    # First row should always be the headers
     writer.writerow(CSV_HEADERS)
 
     for domain in domains:
         row = []
 
+        # Grab the dictionary for each row.
+        # Keys for the dict are the column headers.
         results = domain.generate_results()
 
         for column in CSV_HEADERS:

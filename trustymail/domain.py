@@ -85,11 +85,11 @@ class Domain:
                         "SPF Results": self.format_list(self.spf),
 
                         "DMARC Record": self.has_dmarc(),
-                        "Valid DMARC": self.valid_dmarc,
+                        "Valid DMARC": self.has_dmarc() and self.valid_dmarc,
                         "DMARC Results": self.format_list(self.dmarc),
 
                         "DMARC Record on Base Domain": self.parent_has_dmarc(),
-                        "Valid DMARC Record on Base Domain": self.parent_valid_dmarc(),
+                        "Valid DMARC Record on Base Domain": self.parent_has_dmarc() and self.parent_valid_dmarc(),
                         "DMARC Results on Base Domain": self.parent_dmarc_results(),
 
                         "Syntax Errors": self.format_list(self.syntax_errors)
