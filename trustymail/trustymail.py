@@ -57,7 +57,7 @@ def mx_scan(domain):
             if isinstance(record, tuple):
                 domain.add_mx_record(record)
     except DNSError as error:
-        handle_error(domain, error)
+        handle_error("[MX]", domain, error)
 
 
 def spf_scan(domain):
@@ -115,7 +115,7 @@ def spf_scan(domain):
                 domain.errors.append("Result Differs: Expected [{0}] - Actual [{1}]".format(result, response[0]))
 
     except DNSError as error:
-        handle_error(domain, error)
+        handle_error("[SPF]", domain, error)
 
 
 def dmarc_scan(domain):
@@ -152,7 +152,7 @@ def dmarc_scan(domain):
                     domain.valid_dmarc = False
 
     except DNSError as error:
-        handle_error(domain, error)
+        handle_error("[DMARC]", domain, error)
 
 
 def find_host_from_ip(ip_addr):
@@ -163,6 +163,9 @@ def scan(domain_name, timeout, scan_types):
     domain = Domain(domain_name)
 
     logging.debug("[{0}]".format(domain_name))
+
+    DNS.defaults['server'] = ['8.8.8.8', '8.8.4.4']
+    DNS.defaults['timeout'] = timeout
 
 
     if scan_types["mx"] and domain.is_live:
@@ -193,13 +196,15 @@ def record_to_str(record):
     return record
 
 
-def handle_error(domain, error):
+def handle_error(prefix, domain, error):
     if hasattr(error, "message"):
         if "NXDOMAIN" in error.message:
             domain.is_live = False
         domain.errors.append(error.message)
+        logging.debug("  {0} {1}".format(prefix, error.message))
     else:
         domain.errors.append(str(error))
+        logging.debug("  {0} {1}".format(prefix, str(error)))
 
 
 def generate_csv(domains, file_name):
