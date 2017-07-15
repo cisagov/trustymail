@@ -2,6 +2,8 @@ import csv
 import logging
 import requests
 import spf
+import datetime
+import json
 
 from DNS import dnslookup
 from DNS import DNSError
@@ -164,9 +166,7 @@ def scan(domain_name, timeout, scan_types):
 
     logging.debug("[{0}]".format(domain_name))
 
-    DNS.defaults['server'] = ['8.8.8.8', '8.8.4.4']
     DNS.defaults['timeout'] = timeout
-
 
     if scan_types["mx"] and domain.is_live:
         mx_scan(domain)
@@ -227,3 +227,22 @@ def generate_csv(domains, file_name):
         writer.writerow(row)
 
     output.close()
+
+
+def generate_json(domains):
+    output = []
+    for domain in domains:
+        output.append(domain.generate_results())
+
+    return json.dumps(output, sort_keys=True,
+                      indent=2, default=format_datetime)
+
+
+# Taken from pshtt to keep formatting similar
+def format_datetime(obj):
+    if isinstance(obj, datetime.date):
+        return obj.isoformat()
+    elif isinstance(obj, str):
+        return obj
+    else:
+        return None

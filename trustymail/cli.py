@@ -1,7 +1,7 @@
 """TrustyMail A tool for scanning DNS mail records for evaluating security.
 Usage:
   trustymail (INPUT ...) [options]
-  trustymail (INPUT ...) [--output=OUTFILE] [--timeout=TIMEOUT] [--mx] [--spf] [--dmarc] [--debug]
+  trustymail (INPUT ...) [--output=OUTFILE] [--timeout=TIMEOUT] [--mx] [--spf] [--dmarc] [--debug] [--json]
   trustymail (-h | --help)
 Options:
   -h --help                   Show this message.
@@ -26,10 +26,13 @@ Notes:
 
 import logging
 import docopt
+import os
+import errno
 
 from trustymail import trustymail
 
 base_domains = {}
+
 
 def main():
     args = docopt.docopt(__doc__, version='v0.0.1')
@@ -72,9 +75,36 @@ def main():
         output_file_name += ".csv"
 
     if args["--json"]:
-        pass
+        json_out = trustymail.generate_json(domain_scans)
+        if args["--output"] is None:
+            print(json_out)
+        else:
+            write(json_out, output_file_name)
+            logging.warn("Wrote results to %s." % output_file_name)
     else:
         trustymail.generate_csv(domain_scans, output_file_name)
+
+
+def write(content, out_file):
+    parent = os.path.dirname(out_file)
+    if parent is not "":
+        mkdir_p(parent)
+
+    f = open(out_file, 'w')  # no utf-8 in python 2
+    f.write(content)
+    f.close()
+
+
+# mkdir -p in python, from:
+# http://stackoverflow.com/questions/600268/mkdir-p-functionality-in-python
+def mkdir_p(path):
+    try:
+        os.makedirs(path)
+    except OSError as exc:  # Python >2.5
+        if exc.errno == errno.EEXIST:
+            pass
+        else:
+            raise
 
 if __name__ == '__main__':
     main()
