@@ -31,6 +31,7 @@ class Domain:
         self.mx_records = []
         self.spf = []
         self.dmarc = []
+        self.dmarc_policy = None
 
         # Syntax validity - default spf to false as the lack of an SPF is a bad thing.
         self.valid_spf = False
@@ -71,6 +72,16 @@ class Domain:
             return None
         return self.format_list(self.base_domain.dmarc)
 
+    def get_dmarc_policy(self):
+        # If the policy was never set, or isn't in the list of valid policies, check the parents.
+        if self.dmarc_policy is None or self.dmarc_policy.lower() not in ["quarentine", "reject", "none"]:
+            if self.base_domain is None:
+                return "empty"
+            else:
+                return self.base_domain.get_dmarc_policy()
+        return self.dmarc_policy
+
+
     def generate_results(self):
         results = {
                         "Domain": self.domain_name,
@@ -91,6 +102,7 @@ class Domain:
                         "DMARC Record on Base Domain": self.parent_has_dmarc(),
                         "Valid DMARC Record on Base Domain": self.parent_has_dmarc() and self.parent_valid_dmarc(),
                         "DMARC Results on Base Domain": self.parent_dmarc_results(),
+                        "DMARC Policy": self.get_dmarc_policy(),
 
                         "Syntax Errors": self.format_list(self.syntax_errors)
 

@@ -16,7 +16,7 @@ CSV_HEADERS = [
     "Sends Mail", "Mail Servers",
     "SPF Record", "Valid SPF", "SPF Results",
     "DMARC Record", "Valid DMARC", "DMARC Results",
-    "DMARC Record on Base Domain", "Valid DMARC Record on Base Domain", "DMARC Results on Base Domain",
+    "DMARC Record on Base Domain", "Valid DMARC Record on Base Domain", "DMARC Results on Base Domain", "DMARC Policy",
     "Syntax Errors"
 ]
 
@@ -152,6 +152,8 @@ def dmarc_scan(domain):
                 if tag not in ["v", "mailto", "rf", "p", "sp", "adkim", "aspf", "fo", "pct", "ri", "rua", "ruf"]:
                     logging.debug("\tWarning: Unknown DMARC mechanism {0}".format(tag))
                     domain.valid_dmarc = False
+                elif tag == "p":
+                    domain.dmarc_policy = tag_dict[tag]
 
     except DNSError as error:
         handle_error("[DMARC]", domain, error)
@@ -198,7 +200,7 @@ def record_to_str(record):
 
 def handle_error(prefix, domain, error):
     if hasattr(error, "message"):
-        if "NXDOMAIN" in error.message:
+        if "NXDOMAIN" in error.message and prefix != "[DMARC]":
             domain.is_live = False
         domain.errors.append(error.message)
         logging.debug("  {0} {1}".format(prefix, error.message))
