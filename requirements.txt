@@ -1,0 +1,4 @@
+requests
+docopt
+publicsuffix
+pyspf==2.0.11
