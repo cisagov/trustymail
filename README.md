@@ -37,7 +37,7 @@ The following values are returned in `results.csv`:
 #### Domain and redirect info
 
 * `Domain` - The domain you're scanning!
-* `Base Domain` - The base domain of `Domain`. For example, for a Domain of `sub.example.gov`, the Base Domain will be `example.gov`. Usually this is the second-level domain, but `pshtt` will download and factor in the [Public Suffix List](https://publicsuffix.org) when calculating the base domain.
+* `Base Domain` - The base domain of `Domain`. For example, for a Domain of `sub.example.gov`, the Base Domain will be `example.gov`. Usually this is the second-level domain, but `trustymail` will download and factor in the [Public Suffix List](https://publicsuffix.org) when calculating the base domain.
 * `Live` - The domain is actually published in the DNS.
 
 #### Mail sending
