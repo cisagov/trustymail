@@ -42,7 +42,7 @@ The following values are returned in `results.csv`:
 
 #### Mail sending
 
-* `Sends Mail` - If an MX record was found that contains at least a single mail server.
+* `MX Record` - If an MX record was found that contains at least a single mail server.
 * `Mail Servers` - The list of hosts found in the MX record.
 
 #### SPF
