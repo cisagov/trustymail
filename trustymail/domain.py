@@ -88,7 +88,7 @@ class Domain:
                         "Base Domain": self.base_domain_name,
                         "Live": self.is_live,
 
-                        "Sends Mail": self.has_mail(),
+                        "MX Record": self.has_mail(),
                         "Mail Servers": self.format_list(self.mail_servers),
 
                         "SPF Record": self.has_spf(),
