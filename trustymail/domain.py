@@ -74,9 +74,9 @@ class Domain:
 
     def get_dmarc_policy(self):
         # If the policy was never set, or isn't in the list of valid policies, check the parents.
-        if self.dmarc_policy is None or self.dmarc_policy.lower() not in ["quarentine", "reject", "none"]:
+        if self.dmarc_policy is None or self.dmarc_policy.lower() not in ["quarantine", "reject", "none"]:
             if self.base_domain is None:
-                return "empty"
+                return ""
             else:
                 return self.base_domain.get_dmarc_policy()
         return self.dmarc_policy
