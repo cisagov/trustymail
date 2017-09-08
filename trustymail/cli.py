@@ -14,14 +14,7 @@ Options:
   --debug                     Output should include error messages.
 
 Notes:
-  If the first INPUT ends with .csv domains will be read from the csv at
-  the given location.
-
-  Output is default written to stdout unless an output is provided. When
-  using the agency flag the public 18F csv will be used to determine
-  which domains to scan.
-
-  If no scan types are specified then all are ran against given domains.
+   If no scan type options are specified, all are run against a given domain/input.
 """
 
 import logging
