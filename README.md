@@ -1,5 +1,5 @@
 ## Trustworthy Mail
-`trustymail` is a tool that evaluates SPF/DMARC records set in a domain's DNS. It saves its results to CSV or JSON.
+`trustymail` is a tool that evaluates SPF/DMARC records set in a domain's DNS. It also checks the mail servers listed in a domain's MX records for STARTTLS support. It saves its results to CSV or JSON.
 
 #### Installation
 Clone the repo, then
@@ -22,15 +22,16 @@ Note: if INPUT ends with `.csv`, domains will be read from CSV. CSV output will 
 ```bash
   -h --help                   Show this message.
   -o --output=OUTFILE         Name of output file. (Default results)
-  -t --timeout=TIMEOUT        Override timeout of DNS lookup in seconds. (Default 5)
+  -t --timeout=TIMEOUT        The DNS lookup and SMTP connection timeout in seconds. (Default is 5.)
   --mx                        Only check mx records
+  --starttls                  Only check mx records and STARTTLS support.  (Implies --mx.)
   --spf                       Only check spf records
   --dmarc                     Only check dmarc records
   --debug                     Output should include error messages.
 ```
 
 ## What's Checked?
-For a given domain, MX records, SPF records (TXT), and DMARC (TXT, at \_dmarc.<domain>) are checked.
+For a given domain, MX records, SPF records (TXT), DMARC (TXT, at \_dmarc.<domain>), and support for STARTTLS are checked.
 
 The following values are returned in `results.csv`:
 
@@ -44,6 +45,8 @@ The following values are returned in `results.csv`:
 
 * `MX Record` - If an MX record was found that contains at least a single mail server.
 * `Mail Servers` - The list of hosts found in the MX record.
+* `Sends Mail` - If the mail servers are actually SMTP servers.
+* `Supports STARTTLS` - If the mail servers support STARTTLS.
 
 #### SPF
 * `SPF Record` - Whether or not a SPF record was found.
@@ -58,7 +61,7 @@ The following values are returned in `results.csv`:
 * `DMARC Policy` - An adjudication, based on any policies found in `DMARC Results` and `DMARC Results on Base Domain`, of the relevant DMARC policy that applies.
 
 #### etc.
-* `Syntax Errors` - A list of syntax errors that were detected when scanning either DMARC or SPF records.
+* `Syntax Errors` - A list of syntax errors that were detected when scanning DMARC or SPF records, or checking for STARTTLS support.
 
 ## Public domain
 

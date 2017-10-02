@@ -41,11 +41,33 @@ class Domain:
         # Mail Info
         self.mail_servers = []
 
+        # A string for each port for each entry in mail_servers indicating
+        # whether or not the server sends mail
+        self.sends_mail = []
+
+        # A string for each port for each entry in mail_servers indicating
+        # whether or not the server supports STARTTLS
+        self.starttls = []
+
         # A list of any errors that occurred while scanning records.
         self.errors = []
 
     def has_mail(self):
         return len(self.mail_servers) > 0
+
+    def has_sends_mail(self):
+        """
+        Returns True if information about whether mail servers send
+        mail is present and otherwise returns False.
+        """
+        return len(self.starttls) > 0
+
+    def has_starttls(self):
+        """
+        Returns True if STARTTLS information is present and otherwise
+        returns False.
+        """
+        return len(self.starttls) > 0
 
     def has_spf(self):
         return len(self.spf) > 0
@@ -90,6 +112,8 @@ class Domain:
 
                         "MX Record": self.has_mail(),
                         "Mail Servers": self.format_list(self.mail_servers),
+                        "Sends Mail": self.format_list(self.sends_mail),
+                        "Supports STARTTLS": self.format_list(self.starttls),
 
                         "SPF Record": self.has_spf(),
                         "Valid SPF": self.valid_spf,

@@ -1,13 +1,14 @@
 """TrustyMail A tool for scanning DNS mail records for evaluating security.
 Usage:
   trustymail (INPUT ...) [options]
-  trustymail (INPUT ...) [--output=OUTFILE] [--timeout=TIMEOUT] [--mx] [--spf] [--dmarc] [--debug] [--json]
+  trustymail (INPUT ...) [--output=OUTFILE] [--timeout=TIMEOUT] [--mx] [--starttls] [--spf] [--dmarc] [--debug] [--json]
   trustymail (-h | --help)
 Options:
   -h --help                   Show this message.
   -o --output=OUTFILE         Name of output file. (Default results)
-  -t --timeout=TIMEOUT        Override timeout of DNS lookup in seconds. (Default 5)
+  -t --timeout=TIMEOUT        The DNS lookup and SMTP connection timeout in seconds. (Default is 5.)
   --mx                        Only check mx records
+  --starttls                  Only check mx records and STARTTLS support.  (Implies --mx.)
   --spf                       Only check spf records
   --dmarc                     Only check dmarc records
   --json                      Output is in json format (default csv)
@@ -44,9 +45,14 @@ def main():
     else:
         timeout = 5
 
+    # --starttls implies --mx
+    if args["--starttls"]:
+        args["--mx"] = True
+
     # User might not want every scan performed.
     scan_types = {
                     "mx": args["--mx"],
+                    "starttls": args["--starttls"],
                     "spf": args["--spf"],
                     "dmarc": args["--dmarc"]
                  }
