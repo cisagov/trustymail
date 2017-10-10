@@ -1,7 +1,7 @@
 """TrustyMail A tool for scanning DNS mail records for evaluating security.
 Usage:
   trustymail (INPUT ...) [options]
-  trustymail (INPUT ...) [--output=OUTFILE] [--timeout=TIMEOUT] [--smtp-timeout=TIMEOUT] [--smtp-localhost=HOSTNAME] [--mx] [--starttls] [--spf] [--dmarc] [--debug] [--json]
+  trustymail (INPUT ...) [--output=OUTFILE] [--timeout=TIMEOUT] [--smtp-timeout=TIMEOUT] [--smtp-localhost=HOSTNAME] [--smtp-ports=PORTS] [--no-smtp-cache] [--mx] [--starttls] [--spf] [--dmarc] [--debug] [--json]
   trustymail (-h | --help)
 Options:
   -h --help                   Show this message.
@@ -11,6 +11,11 @@ Options:
   --smtp-localhost=HOSTNAME   The hostname to use when connecting to SMTP 
                               servers.  (Default is the FQDN of the host from
                               which trustymail is being run.)
+  --smtp-ports=PORTS          A comma-delimited list of ports at which to look 
+                              for SMTP servers.  (Default is "25,465,587".)
+  --no-smtp-cache             Do not cache SMTP results during the run.  This 
+                              may results in slower scans due to testing the 
+                              same mail servers multiple times.
   --mx                        Only check mx records
   --starttls                  Only check mx records and STARTTLS support.  (Implies --mx.)
   --spf                       Only check spf records
@@ -30,6 +35,9 @@ import errno
 from trustymail import trustymail
 
 base_domains = {}
+
+# The default ports to be checked to see if an SMTP server is listening.
+_DEFAULT_SMTP_PORTS = [25, 465, 587]
 
 
 def main():
@@ -59,6 +67,11 @@ def main():
     else:
         smtp_localhost = None
 
+    if args["--smtp-ports"] is not None:
+        smtp_ports = list(map(lambda x:int(x), args["--smtp-ports"].split(',')))
+    else:
+        smtp_ports = _DEFAULT_SMTP_PORTS
+
     # --starttls implies --mx
     if args["--starttls"]:
         args["--mx"] = True
@@ -75,6 +88,7 @@ def main():
     for domain_name in domains:
         domain_scans.append(trustymail.scan(domain_name, timeout,
                                             smtp_timeout, smtp_localhost,
+                                            smtp_ports, not args["--no-smtp-cache"],
                                             scan_types))
 
     # Default output file name is results.

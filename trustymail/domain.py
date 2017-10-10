@@ -41,33 +41,37 @@ class Domain:
         # Mail Info
         self.mail_servers = []
 
-        # A string for each port for each entry in mail_servers indicating
-        # whether or not the server supports SMTP
-        self.supports_smtp = []
-
-        # A string for each port for each entry in mail_servers indicating
-        # whether or not the server supports STARTTLS
-        self.starttls = []
+        # A dictionary for each port for each entry in mail_servers.
+        # The dictionary's values indicate:
+        # 1. Whether or not the server is listening on the port
+        # 2. Whether or not the server supports SMTP
+        # 3. Whether or not the server supports STARTTLS
+        self.starttls_results = {}
 
         # A list of any errors that occurred while scanning records.
         self.errors = []
+
+        # A list of the ports tested for SMTP
+        self.ports_tested = []
 
     def has_mail(self):
         return len(self.mail_servers) > 0
 
     def has_supports_smtp(self):
         """
-        Returns True if information about whether servers support
-        SMTP is present and otherwise returns False.
+        Returns True if any of the mail servers associated with this
+        domain are listening and support SMTP.
         """
-        return len(self.supports_smtp) > 0
+        return len(filter(lambda x:self.starttls_results[x]["supports_smtp"],
+                          self.starttls_results.keys())) > 0
 
     def has_starttls(self):
         """
-        Returns True if STARTTLS information is present and otherwise
-        returns False.
+        Returns True if any of the mail servers associated with this
+        domain are listening and support STARTTLS.
         """
-        return len(self.starttls) > 0
+        return len(filter(lambda x:self.starttls_results[x]["starttls"],
+                          self.starttls_results.keys())) > 0
 
     def has_spf(self):
         return len(self.spf) > 0
@@ -112,8 +116,10 @@ class Domain:
 
                         "MX Record": self.has_mail(),
                         "Mail Servers": self.format_list(self.mail_servers),
-                        "Supports SMTP": self.format_list(self.supports_smtp),
-                        "Supports STARTTLS": self.format_list(self.starttls),
+                        "Mail Server Ports Tested": self.format_list(list(map(lambda x:str(x), self.ports_tested))),
+                        "Mail Server Is Listening": self.format_list(list(map(lambda x:x + ";" + str(self.starttls_results[x]["is_listening"]), self.starttls_results.keys()))),
+                        "Mail Server Supports SMTP": self.format_list(list(map(lambda x:x + ";" + str(self.starttls_results[x]["supports_smtp"]), self.starttls_results.keys()))),
+                        "Mail Server Supports STARTTLS": self.format_list(list(map(lambda x:x + ";" + str(self.starttls_results[x]["starttls"]), self.starttls_results.keys()))),
 
                         "SPF Record": self.has_spf(),
                         "Valid SPF": self.valid_spf,
