@@ -42,8 +42,8 @@ class Domain:
         self.mail_servers = []
 
         # A string for each port for each entry in mail_servers indicating
-        # whether or not the server sends mail
-        self.sends_mail = []
+        # whether or not the server supports SMTP
+        self.supports_smtp = []
 
         # A string for each port for each entry in mail_servers indicating
         # whether or not the server supports STARTTLS
@@ -55,12 +55,12 @@ class Domain:
     def has_mail(self):
         return len(self.mail_servers) > 0
 
-    def has_sends_mail(self):
+    def has_supports_smtp(self):
         """
-        Returns True if information about whether mail servers send
-        mail is present and otherwise returns False.
+        Returns True if information about whether servers support
+        SMTP is present and otherwise returns False.
         """
-        return len(self.starttls) > 0
+        return len(self.supports_smtp) > 0
 
     def has_starttls(self):
         """
@@ -112,7 +112,7 @@ class Domain:
 
                         "MX Record": self.has_mail(),
                         "Mail Servers": self.format_list(self.mail_servers),
-                        "Sends Mail": self.format_list(self.sends_mail),
+                        "Supports SMTP": self.format_list(self.supports_smtp),
                         "Supports STARTTLS": self.format_list(self.starttls),
 
                         "SPF Record": self.has_spf(),

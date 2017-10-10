@@ -15,7 +15,7 @@ from trustymail.domain import Domain
 
 CSV_HEADERS = [
     "Domain", "Base Domain", "Live",
-    "MX Record", "Mail Servers", "Sends Mail", "Supports STARTTLS",
+    "MX Record", "Mail Servers", "Supports SMTP", "Supports STARTTLS",
     "SPF Record", "Valid SPF", "SPF Results",
     "DMARC Record", "Valid DMARC", "DMARC Results",
     "DMARC Record on Base Domain", "Valid DMARC Record on Base Domain",
@@ -70,10 +70,10 @@ def mx_scan(domain):
 
 def starttls_scan(domain, smtp_timeout, smtp_localhost):
     """
-    Scan a domain to see if it sends mail and supports STARTTLS.
+    Scan a domain to see if it supports SMTP and supports STARTTLS.
 
-    Scan a domain to see if it sends mail.  If the domain does send
-    mail, a further check will be done to see if it supports STARTTLS.
+    Scan a domain to see if it supports SMTP.  If the domain does support
+    SMTP, a further check will be done to see if it supports STARTTLS.
     All results are stored inside the Domain object that is passed in
     as a parameter.
 
@@ -102,7 +102,7 @@ def starttls_scan(domain, smtp_timeout, smtp_localhost):
             except (socket.timeout, smtplib.SMTPConnectError, smtplib.SMTPServerDisconnected, ConnectionRefusedError, OSError) as error:
                 handle_error("[STARTTLS]", domain, error)
                 tmp = server_and_port + "-" + str(False)
-                domain.sends_mail.append(tmp)
+                domain.supports_smtp.append(tmp)
                 domain.starttls.append(tmp)
                 continue
 
@@ -113,7 +113,7 @@ def starttls_scan(domain, smtp_timeout, smtp_localhost):
             except (smtplib.SMTPHeloError, smtplib.SMTPServerDisconnected) as error:
                 handle_error("[STARTTLS]", domain, error)
                 tmp = server_and_port + "-" + str(False)
-                domain.sends_mail.append(tmp)
+                domain.supports_smtp.append(tmp)
                 domain.starttls.append(tmp)
                 # smtplib freaks out if you call quit on a non-open
                 # connection
@@ -125,9 +125,9 @@ def starttls_scan(domain, smtp_timeout, smtp_localhost):
                 continue
 
             # We were able to connect to the server and say hello, so
-            # it must send mail.
-            domain.sends_mail.append(server_and_port + "-" + str(True))
-            logging.debug("\t Sends mail")
+            # it must support SMTP.
+            domain.supports_smtp.append(server_and_port + "-" + str(True))
+            logging.debug("\t Supports SMTP")
 
             # Now check if the server supports STARTTLS.
             has_starttls = smtp_connection.has_extn("STARTTLS")
