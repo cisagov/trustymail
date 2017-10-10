@@ -68,7 +68,7 @@ def mx_scan(domain):
         handle_error("[MX]", domain, error)
 
 
-def starttls_scan(domain, timeout):
+def starttls_scan(domain, smtp_timeout, smtp_localhost):
     """
     Scan a domain to see if it sends mail and supports STARTTLS.
 
@@ -82,12 +82,17 @@ def starttls_scan(domain, timeout):
     domain : Domain
         The Domain to be tested.
         
-    timeout : int
+    smtp_timeout : int
         The SMTP connection timeout in seconds.  (Default is 5.)
+
+    smtp_localhost : string
+        The hostname to use when connecting to SMTP servers.  (Default
+        is the FQDN of the host from which trustymail is being run.)
     """
     for mail_server in domain.mail_servers:
         for port in SMTP_PORTS:
-            smtp_connection = smtplib.SMTP(timeout=timeout)
+            smtp_connection = smtplib.SMTP(timeout=smtp_timeout,
+                                           local_hostname=smtp_localhost)
             server_and_port = mail_server + ":" + str(port)
             logging.debug("Testing " + server_and_port + " for STARTTLS support")
             # Try to connect.  This will tell us if something is
@@ -239,7 +244,7 @@ def find_host_from_ip(ip_addr):
     return DNS.revlookup(ip_addr)
 
 
-def scan(domain_name, timeout, scan_types):
+def scan(domain_name, timeout, smtp_timeout, smtp_localhost, scan_types):
     domain = Domain(domain_name)
 
     logging.debug("[{0}]".format(domain_name))
@@ -250,7 +255,7 @@ def scan(domain_name, timeout, scan_types):
         mx_scan(domain)
 
     if scan_types["starttls"] and domain.is_live:
-        starttls_scan(domain, timeout)
+        starttls_scan(domain, smtp_timeout, smtp_localhost)
 
     if scan_types["spf"] and domain.is_live:
         spf_scan(domain)
@@ -261,7 +266,7 @@ def scan(domain_name, timeout, scan_types):
     # If the user didn't specify any scans then run a full scan.
     if not (scan_types["mx"] or scan_types["starttls"] or scan_types["spf"] or scan_types["dmarc"]):
         mx_scan(domain)
-        starttls_scan(domain, timeout)
+        starttls_scan(domain, smtp_timeout, smtp_localhost)
         spf_scan(domain)
         dmarc_scan(domain)
 

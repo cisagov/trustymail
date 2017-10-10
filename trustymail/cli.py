@@ -1,12 +1,16 @@
 """TrustyMail A tool for scanning DNS mail records for evaluating security.
 Usage:
   trustymail (INPUT ...) [options]
-  trustymail (INPUT ...) [--output=OUTFILE] [--timeout=TIMEOUT] [--mx] [--starttls] [--spf] [--dmarc] [--debug] [--json]
+  trustymail (INPUT ...) [--output=OUTFILE] [--timeout=TIMEOUT] [--smtp-timeout=TIMEOUT] [--smtp-localhost=HOSTNAME] [--mx] [--starttls] [--spf] [--dmarc] [--debug] [--json]
   trustymail (-h | --help)
 Options:
   -h --help                   Show this message.
   -o --output=OUTFILE         Name of output file. (Default results)
-  -t --timeout=TIMEOUT        The DNS lookup and SMTP connection timeout in seconds. (Default is 5.)
+  -t --timeout=TIMEOUT        The DNS lookup timeout in seconds. (Default is 5.)
+  --smtp-timeout=TIMEOUT      The SMTP connection timeout in seconds. (Default is 5.)
+  --smtp-localhost=HOSTNAME   The hostname to use when connecting to SMTP 
+                              servers.  (Default is the FQDN of the host from
+                              which trustymail is being run.)
   --mx                        Only check mx records
   --starttls                  Only check mx records and STARTTLS support.  (Implies --mx.)
   --spf                       Only check spf records
@@ -45,6 +49,16 @@ def main():
     else:
         timeout = 5
 
+    if args["--smtp-timeout"] is not None:
+        smtp_timeout = int(args["--smtp-timeout"])
+    else:
+        smtp_timeout = 5
+
+    if args["--smtp-localhost"] is not None:
+        smtp_localhost = args["--smtp-localhost"]
+    else:
+        smtp_localhost = None
+
     # --starttls implies --mx
     if args["--starttls"]:
         args["--mx"] = True
@@ -59,7 +73,9 @@ def main():
 
     domain_scans = []
     for domain_name in domains:
-        domain_scans.append(trustymail.scan(domain_name, timeout, scan_types))
+        domain_scans.append(trustymail.scan(domain_name, timeout,
+                                            smtp_timeout, smtp_localhost,
+                                            scan_types))
 
     # Default output file name is results.
     if args["--output"] is None:
