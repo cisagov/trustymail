@@ -22,7 +22,16 @@ Note: if INPUT ends with `.csv`, domains will be read from CSV. CSV output will 
 ```bash
   -h --help                   Show this message.
   -o --output=OUTFILE         Name of output file. (Default results)
-  -t --timeout=TIMEOUT        The DNS lookup and SMTP connection timeout in seconds. (Default is 5.)
+  -t --timeout=TIMEOUT        The DNS lookup timeout in seconds. (Default is 5.)
+  --smtp-timeout=TIMEOUT      The SMTP connection timeout in seconds. (Default is 5.)
+  --smtp-localhost=HOSTNAME   The hostname to use when connecting to SMTP 
+                              servers.  (Default is the FQDN of the host from
+                              which trustymail is being run.)
+  --smtp-ports=PORTS          A comma-delimited list of ports at which to look 
+                              for SMTP servers.  (Default is "25,465,587".)
+  --no-smtp-cache             Do not cache SMTP results during the run.  This 
+                              may results in slower scans due to testing the 
+                              same mail servers multiple times.
   --mx                        Only check mx records
   --starttls                  Only check mx records and STARTTLS support.  (Implies --mx.)
   --spf                       Only check spf records
@@ -45,8 +54,10 @@ The following values are returned in `results.csv`:
 
 * `MX Record` - If an MX record was found that contains at least a single mail server.
 * `Mail Servers` - The list of hosts found in the MX record.
-* `Sends Mail` - If the mail servers are actually SMTP servers.
-* `Supports STARTTLS` - If the mail servers support STARTTLS.
+* `Mail Server Ports Tested` - A list of the ports tested for SMTP and STARTTLS support.
+* `Mail Server Is Listening` - If the mail servers are actually listening on the tested ports.
+* `Mail Server Supports SMTP` - If the mail servers support SMTP.
+* `Mail Server Supports STARTTLS` - If the mail servers support STARTTLS.
 
 #### SPF
 * `SPF Record` - Whether or not a SPF record was found.
