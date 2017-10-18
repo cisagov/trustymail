@@ -4,7 +4,7 @@
 
 #### Installed as a module
 
-`pshtt` can be installed directly via pip:
+`trustymail` can be installed directly via pip:
 
 ```bash
 pip install trustymail
