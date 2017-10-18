@@ -1,11 +1,35 @@
 ## Trustworthy Mail
+
 `trustymail` is a tool that evaluates SPF/DMARC records set in a domain's DNS. It also checks the mail servers listed in a domain's MX records for STARTTLS support. It saves its results to CSV or JSON.
 
-#### Installation
-Clone the repo, then
+#### Installed as a module
+
+`trustymail` can be installed directly via pip:
+
 ```bash
-pip3 install -e .
+pip install trustymail
 ```
+
+It can then be run directly:
+
+```bash
+trustymail [options] example.com
+```
+
+#### Running directly
+
+To run the tool locally from the repository, without installing, first install the requirements:
+
+```bash
+pip install -r requirements.txt
+```
+
+Then run it as a module via `python -m`:
+
+```bash
+python -m trustymail.cli [options] example.com
+```
+
 
 #### Usage and examples
 
@@ -16,9 +40,11 @@ trustymail dhs.gov
 trustymail --output=homeland.csv --debug dhs.gov us-cert.gov usss.gov
 trustymail agencies.csv
 ```
+
 Note: if INPUT ends with `.csv`, domains will be read from CSV. CSV output will always be written to disk, defaulting to `results.csv`.
 
 #### Options
+
 ```bash
   -h --help                   Show this message.
   -o --output=OUTFILE         Name of output file. (Default results)
@@ -40,6 +66,7 @@ Note: if INPUT ends with `.csv`, domains will be read from CSV. CSV output will 
 ```
 
 ## What's Checked?
+
 For a given domain, MX records, SPF records (TXT), DMARC (TXT, at \_dmarc.<domain>), and support for STARTTLS are checked.
 
 The following values are returned in `results.csv`:
@@ -60,11 +87,13 @@ The following values are returned in `results.csv`:
 * `Mail Server Supports STARTTLS` - If the mail servers support STARTTLS.
 
 #### SPF
+
 * `SPF Record` - Whether or not a SPF record was found.
 * `Valid SPF` - Whether the SPF record found is syntactically correct, per RFC 4408 .
 * `SPF Results` -  The textual representation of any SPF record found for the domain.
 
 #### DMARC
+
 * `DMARC Record` - True/False whether or not a DMARC record was found.
 * `Valid DMARC` - Whether the DMARC record found is syntactically correct.
 * `DMARC Results` - The DMARC record that was discovered when querying DNS.
@@ -72,6 +101,7 @@ The following values are returned in `results.csv`:
 * `DMARC Policy` - An adjudication, based on any policies found in `DMARC Results` and `DMARC Results on Base Domain`, of the relevant DMARC policy that applies.
 
 #### etc.
+
 * `Syntax Errors` - A list of syntax errors that were detected when scanning DMARC or SPF records, or checking for STARTTLS support.
 
 ## Public domain
