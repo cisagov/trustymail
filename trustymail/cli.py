@@ -68,7 +68,7 @@ def main():
         smtp_localhost = None
 
     if args["--smtp-ports"] is not None:
-        smtp_ports = list(map(lambda x:int(x), args["--smtp-ports"].split(',')))
+        smtp_ports = [int(port) for port in args['--smtp-ports'].split(',')]
     else:
         smtp_ports = _DEFAULT_SMTP_PORTS
 
