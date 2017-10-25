@@ -191,7 +191,7 @@ def scan(domain_name, timeout, scan_types):
 
 def record_to_str(record):
     if isinstance(record, list):
-        record = record[0]
+        record = b''.join(record)
 
     if isinstance(record, bytes):
         record = record.decode('utf-8')
