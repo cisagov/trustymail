@@ -52,7 +52,7 @@ class Domain:
         self.errors = []
 
         # A list of the ports tested for SMTP
-        self.ports_tested = []
+        self.ports_tested = set()
 
     def has_mail(self):
         return len(self.mail_servers) > 0

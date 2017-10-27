@@ -98,9 +98,7 @@ def starttls_scan(domain, smtp_timeout, smtp_localhost, smtp_ports, smtp_cache):
     """
     for mail_server in domain.mail_servers:
         for port in smtp_ports:
-            if port not in domain.ports_tested:
-                domain.ports_tested.append(port)
-            
+            domain.ports_tested.add(port)
             server_and_port = mail_server + ":" + str(port)
 
             if not smtp_cache or (server_and_port not in _SMTP_CACHE):
