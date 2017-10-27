@@ -284,7 +284,8 @@ def scan(domain_name, timeout, smtp_timeout, smtp_localhost, smtp_ports, smtp_ca
         dmarc_scan(domain)
 
     # If the user didn't specify any scans then run a full scan.
-    if not (scan_types["mx"] or scan_types["starttls"] or scan_types["spf"] or scan_types["dmarc"]):
+    if domain.is_live and not (scan_types["mx"] or scan_types["starttls"]
+                                   or scan_types["spf"] or scan_types["dmarc"]):
         mx_scan(domain)
         starttls_scan(domain, smtp_timeout, smtp_localhost, smtp_ports, smtp_cache)
         spf_scan(domain)
