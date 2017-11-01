@@ -117,9 +117,9 @@ class Domain:
                         "MX Record": self.has_mail(),
                         "Mail Servers": self.format_list(self.mail_servers),
                         "Mail Server Ports Tested": self.format_list([str(port) for port in self.ports_tested]),
-                        "Mail Server Is Listening": self.format_list([x + ";" + str(self.starttls_results[x]["is_listening"]) for x in self.starttls_results.keys()]),
-                        "Mail Server Supports SMTP": self.format_list([x + ";" + str(self.starttls_results[x]["supports_smtp"]) for x in self.starttls_results.keys()]),
-                        "Mail Server Supports STARTTLS": self.format_list([x + ";" + str(self.starttls_results[x]["starttls"]) for x in self.starttls_results.keys()]),
+                        "Mail Server Is Listening": self.format_list([x for x in self.starttls_results.keys() if self.starttls_results[x]["is_listening"]]),
+                        "Mail Server Supports SMTP": self.format_list([x for x in self.starttls_results.keys() if self.starttls_results[x]["supports_smtp"]]),
+                        "Mail Server Supports STARTTLS": self.format_list([x for x in self.starttls_results.keys() if self.starttls_results[x]["starttls"]]),
 
                         "SPF Record": self.has_spf(),
                         "Valid SPF": self.valid_spf,
