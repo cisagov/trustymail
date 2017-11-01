@@ -117,7 +117,10 @@ def starttls_scan(domain, smtp_timeout, smtp_localhost, smtp_ports, smtp_cache):
                     domain.starttls_results[server_and_port]["is_listening"] = False
                     domain.starttls_results[server_and_port]["supports_smtp"] = False
                     domain.starttls_results[server_and_port]["starttls"] = False
-                    _SMTP_CACHE[server_and_port] = domain.starttls_results[server_and_port]
+
+                    if smtp_cache:
+                        _SMTP_CACHE[server_and_port] = domain.starttls_results[server_and_port]
+                    
                     continue
 
                 # Now try to say hello.  This will tell us if the
@@ -137,7 +140,9 @@ def starttls_scan(domain, smtp_timeout, smtp_localhost, smtp_ports, smtp_cache):
                     except smtplib.SMTPServerDisconnected as error2:
                         handle_error("[STARTTLS]", domain, error2)
                         
-                    _SMTP_CACHE[server_and_port] = domain.starttls_results[server_and_port]
+                    if smtp_cache:
+                        _SMTP_CACHE[server_and_port] = domain.starttls_results[server_and_port]
+                    
                     continue
 
                 # Now check if the server supports STARTTLS.
@@ -153,8 +158,9 @@ def starttls_scan(domain, smtp_timeout, smtp_localhost, smtp_ports, smtp_cache):
                 except smtplib.SMTPServerDisconnected as error:
                     handle_error("[STARTTLS]", domain, error)
 
-                # Copy the results into the cache
-                _SMTP_CACHE[server_and_port] = domain.starttls_results[server_and_port]
+                # Copy the results into the cache, if necessary
+                if smtp_cache:
+                    _SMTP_CACHE[server_and_port] = domain.starttls_results[server_and_port]
             else:
                 logging.debug("\tUsing cached results for " + server_and_port)
                 # Copy the cached results into the domain object
