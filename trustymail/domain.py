@@ -109,6 +109,10 @@ class Domain:
 
 
     def generate_results(self):
+        mail_servers_that_are_listening = [x for x in self.starttls_results.keys() if self.starttls_results[x]["is_listening"]]
+        mail_servers_that_support_smtp = [x for x in self.starttls_results.keys() if self.starttls_results[x]["supports_smtp"]]
+        mail_servers_that_support_starttls = [x for x in self.starttls_results.keys() if self.starttls_results[x]["starttls"]]
+        
         results = {
                         "Domain": self.domain_name,
                         "Base Domain": self.base_domain_name,
@@ -117,9 +121,12 @@ class Domain:
                         "MX Record": self.has_mail(),
                         "Mail Servers": self.format_list(self.mail_servers),
                         "Mail Server Ports Tested": self.format_list([str(port) for port in self.ports_tested]),
-                        "Mail Server Is Listening": self.format_list([x for x in self.starttls_results.keys() if self.starttls_results[x]["is_listening"]]),
-                        "Mail Server Supports SMTP": self.format_list([x for x in self.starttls_results.keys() if self.starttls_results[x]["supports_smtp"]]),
-                        "Mail Server Supports STARTTLS": self.format_list([x for x in self.starttls_results.keys() if self.starttls_results[x]["starttls"]]),
+                        "Mail Server Is Listening": self.format_list(mail_servers_that_are_listening),
+                        "Mail Server Supports SMTP": self.format_list(mail_servers_that_support_smtp),
+                        "Mail Server Supports STARTTLS": self.format_list(mail_servers_that_support_starttls),
+                        # True if all mail servers that support SMTP
+                        # also support STARTTLS, and otherwise false
+                        "Domain Supports STARTTLS": bool(mail_servers_that_support_smtp) and all([self.starttls_results[x]["starttls"] for x in mail_servers_that_support_smtp]),
 
                         "SPF Record": self.has_spf(),
                         "Valid SPF": self.valid_spf,

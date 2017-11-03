@@ -79,12 +79,18 @@ The following values are returned in `results.csv`:
 
 #### Mail sending
 
-* `MX Record` - If an MX record was found that contains at least a single mail server.
+* `MX Record` - If an MX record was found that contains at least a
+  single mail server.
 * `Mail Servers` - The list of hosts found in the MX record.
-* `Mail Server Ports Tested` - A list of the ports tested for SMTP and STARTTLS support.
-* `Mail Server Is Listening` - If the mail servers are actually listening on the tested ports.
+* `Mail Server Ports Tested` - A list of the ports tested for SMTP and
+  STARTTLS support.
+* `Mail Server Is Listening` - If the mail servers are actually
+  listening on the tested ports.
 * `Mail Server Supports SMTP` - If the mail servers support SMTP.
-* `Mail Server Supports STARTTLS` - If the mail servers support STARTTLS.
+* `Mail Server Supports STARTTLS` - If the mail servers support
+  STARTTLS.
+* `Domain Supports STARTTLS` - True if all mail servers that support
+  SMTP also support STARTTLS, and otherwise false.
 
 #### SPF
 
