@@ -16,8 +16,8 @@ from trustymail.domain import Domain
 CSV_HEADERS = [
     "Domain", "Base Domain", "Live",
     "MX Record", "Mail Servers", "Mail Server Ports Tested",
-    "Mail Server Is Listening", "Mail Server Supports SMTP",
-    "Mail Server Supports STARTTLS", "Domain Supports STARTTLS",
+    "Domain Supports SMTP Results", "Domain Supports SMTP",
+    "Domain Supports STARTTLS Results", "Domain Supports STARTTLS",
     "SPF Record", "Valid SPF", "SPF Results",
     "DMARC Record", "Valid DMARC", "DMARC Results",
     "DMARC Record on Base Domain", "Valid DMARC Record on Base Domain",
