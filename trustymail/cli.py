@@ -1,13 +1,23 @@
 """TrustyMail A tool for scanning DNS mail records for evaluating security.
 Usage:
   trustymail (INPUT ...) [options]
-  trustymail (INPUT ...) [--output=OUTFILE] [--timeout=TIMEOUT] [--mx] [--spf] [--dmarc] [--debug] [--json]
+  trustymail (INPUT ...) [--output=OUTFILE] [--timeout=TIMEOUT] [--smtp-timeout=TIMEOUT] [--smtp-localhost=HOSTNAME] [--smtp-ports=PORTS] [--no-smtp-cache] [--mx] [--starttls] [--spf] [--dmarc] [--debug] [--json]
   trustymail (-h | --help)
 Options:
   -h --help                   Show this message.
   -o --output=OUTFILE         Name of output file. (Default results)
-  -t --timeout=TIMEOUT        Override timeout of DNS lookup in seconds. (Default 5)
+  -t --timeout=TIMEOUT        The DNS lookup timeout in seconds. (Default is 5.)
+  --smtp-timeout=TIMEOUT      The SMTP connection timeout in seconds. (Default is 5.)
+  --smtp-localhost=HOSTNAME   The hostname to use when connecting to SMTP 
+                              servers.  (Default is the FQDN of the host from
+                              which trustymail is being run.)
+  --smtp-ports=PORTS          A comma-delimited list of ports at which to look 
+                              for SMTP servers.  (Default is "25,465,587".)
+  --no-smtp-cache             Do not cache SMTP results during the run.  This 
+                              may results in slower scans due to testing the 
+                              same mail servers multiple times.
   --mx                        Only check mx records
+  --starttls                  Only check mx records and STARTTLS support.  (Implies --mx.)
   --spf                       Only check spf records
   --dmarc                     Only check dmarc records
   --json                      Output is in json format (default csv)
@@ -25,6 +35,9 @@ import errno
 from trustymail import trustymail
 
 base_domains = {}
+
+# The default ports to be checked to see if an SMTP server is listening.
+_DEFAULT_SMTP_PORTS = {25, 465, 587}
 
 
 def main():
@@ -44,16 +57,39 @@ def main():
     else:
         timeout = 5
 
+    if args["--smtp-timeout"] is not None:
+        smtp_timeout = int(args["--smtp-timeout"])
+    else:
+        smtp_timeout = 5
+
+    if args["--smtp-localhost"] is not None:
+        smtp_localhost = args["--smtp-localhost"]
+    else:
+        smtp_localhost = None
+
+    if args["--smtp-ports"] is not None:
+        smtp_ports = {int(port) for port in args['--smtp-ports'].split(',')}
+    else:
+        smtp_ports = _DEFAULT_SMTP_PORTS
+
+    # --starttls implies --mx
+    if args["--starttls"]:
+        args["--mx"] = True
+
     # User might not want every scan performed.
     scan_types = {
                     "mx": args["--mx"],
+                    "starttls": args["--starttls"],
                     "spf": args["--spf"],
                     "dmarc": args["--dmarc"]
                  }
 
     domain_scans = []
     for domain_name in domains:
-        domain_scans.append(trustymail.scan(domain_name, timeout, scan_types))
+        domain_scans.append(trustymail.scan(domain_name, timeout,
+                                            smtp_timeout, smtp_localhost,
+                                            smtp_ports, not args["--no-smtp-cache"],
+                                            scan_types))
 
     # Default output file name is results.
     if args["--output"] is None:
