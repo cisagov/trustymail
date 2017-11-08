@@ -91,14 +91,14 @@ The following values are returned in `results.csv`:
 * `Mail Servers` - The list of hosts found in the MX record.
 * `Mail Server Ports Tested` - A list of the ports tested for SMTP and
   STARTTLS support.
-* `Domain Supports SMTP Results` - A list of the mail server and port
-  combinations that support SMTP.
 * `Domain Supports SMTP` - True if and only if __any__ mail servers
   specified in a MX record associated with the domain supports SMTP.
-* `Domain Supports STARTTLS Results` - A list of the mail server and
-  port combinations that support STARTTLS.
+* `Domain Supports SMTP Results` - A list of the mail server and port
+  combinations that support SMTP.
 * `Domain Supports STARTTLS` - True if and only if __all__ mail
   servers that support SMTP also support STARTTLS.
+* `Domain Supports STARTTLS Results` - A list of the mail server and
+  port combinations that support STARTTLS.
 
 #### SPF
 
