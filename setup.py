@@ -10,25 +10,25 @@ from setuptools import setup
 
 setup(
 
-        name='trustymail',
-        version='0.0.1',
-        description="Scan DNS records for best mail practices.",
+    name='trustymail',
+    version='0.0.1',
+    description="Scan DNS records for best mail practices.",
 
-        download_url="https://github.com/dhs-ncats/trustymail",
+    download_url="https://github.com/dhs-ncats/trustymail",
 
-        packages=['trustymail'],
+    packages=['trustymail'],
 
-        install_requires=[
-            'requests',
-            'docopt',
-            'py3dns',
-            'pyspf==2.0.11',
-            'publicsuffix'
-        ],
+    install_requires=[
+        'requests',
+        'docopt',
+        'py3dns',
+        'pyspf==2.0.11',
+        'publicsuffix'
+    ],
 
-        entry_points={
-            'console_scripts': [
-                'trustymail = trustymail.cli:main'
-            ]
-        }
+    entry_points={
+        'console_scripts': [
+            'trustymail = trustymail.cli:main'
+        ]
+    }
 )

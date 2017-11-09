@@ -8,13 +8,13 @@ Options:
   -o --output=OUTFILE         Name of output file. (Default results)
   -t --timeout=TIMEOUT        The DNS lookup timeout in seconds. (Default is 5.)
   --smtp-timeout=TIMEOUT      The SMTP connection timeout in seconds. (Default is 5.)
-  --smtp-localhost=HOSTNAME   The hostname to use when connecting to SMTP 
+  --smtp-localhost=HOSTNAME   The hostname to use when connecting to SMTP
                               servers.  (Default is the FQDN of the host from
                               which trustymail is being run.)
-  --smtp-ports=PORTS          A comma-delimited list of ports at which to look 
+  --smtp-ports=PORTS          A comma-delimited list of ports at which to look
                               for SMTP servers.  (Default is "25,465,587".)
-  --no-smtp-cache             Do not cache SMTP results during the run.  This 
-                              may results in slower scans due to testing the 
+  --no-smtp-cache             Do not cache SMTP results during the run.  This
+                              may results in slower scans due to testing the
                               same mail servers multiple times.
   --mx                        Only check mx records
   --starttls                  Only check mx records and STARTTLS support.  (Implies --mx.)
@@ -78,11 +78,11 @@ def main():
 
     # User might not want every scan performed.
     scan_types = {
-                    "mx": args["--mx"],
-                    "starttls": args["--starttls"],
-                    "spf": args["--spf"],
-                    "dmarc": args["--dmarc"]
-                 }
+        "mx": args["--mx"],
+        "starttls": args["--starttls"],
+        "spf": args["--spf"],
+        "dmarc": args["--dmarc"]
+    }
 
     domain_scans = []
     for domain_name in domains:
@@ -134,6 +134,7 @@ def mkdir_p(path):
             pass
         else:
             raise
+
 
 if __name__ == '__main__':
     main()

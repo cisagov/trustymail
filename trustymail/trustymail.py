@@ -83,7 +83,7 @@ def starttls_scan(domain, smtp_timeout, smtp_localhost, smtp_ports, smtp_cache):
     ----------
     domain : Domain
         The Domain to be tested.
-        
+
     smtp_timeout : int
         The SMTP connection timeout in seconds.
 
@@ -91,8 +91,8 @@ def starttls_scan(domain, smtp_timeout, smtp_localhost, smtp_ports, smtp_cache):
         The hostname to use when connecting to SMTP servers.
 
     smtp_ports : obj:`list` of :obj:`str`
-        A comma-delimited list of ports at which to look for SMTP servers.  
-        
+        A comma-delimited list of ports at which to look for SMTP servers.
+
     smtp_cache : bool
         Whether or not to cache SMTP results.
     """
@@ -103,7 +103,7 @@ def starttls_scan(domain, smtp_timeout, smtp_localhost, smtp_ports, smtp_cache):
 
             if not smtp_cache or (server_and_port not in _SMTP_CACHE):
                 domain.starttls_results[server_and_port] = {}
-                
+
                 smtp_connection = smtplib.SMTP(timeout=smtp_timeout,
                                                local_hostname=smtp_localhost)
                 logging.debug("Testing " + server_and_port + " for STARTTLS support")
@@ -120,7 +120,7 @@ def starttls_scan(domain, smtp_timeout, smtp_localhost, smtp_ports, smtp_cache):
 
                     if smtp_cache:
                         _SMTP_CACHE[server_and_port] = domain.starttls_results[server_and_port]
-                    
+
                     continue
 
                 # Now try to say hello.  This will tell us if the
@@ -139,10 +139,10 @@ def starttls_scan(domain, smtp_timeout, smtp_localhost, smtp_ports, smtp_cache):
                         smtp_connection.quit()
                     except smtplib.SMTPServerDisconnected as error2:
                         handle_error("[STARTTLS]", domain, error2)
-                        
+
                     if smtp_cache:
                         _SMTP_CACHE[server_and_port] = domain.starttls_results[server_and_port]
-                    
+
                     continue
 
                 # Now check if the server supports STARTTLS.
@@ -166,7 +166,7 @@ def starttls_scan(domain, smtp_timeout, smtp_localhost, smtp_ports, smtp_cache):
                 # Copy the cached results into the domain object
                 domain.starttls_results[server_and_port] = _SMTP_CACHE[server_and_port]
 
-            
+
 def spf_scan(domain):
     try:
         # for record in resolver.query(domain.domain_name, 'TXT'):
@@ -288,8 +288,7 @@ def scan(domain_name, timeout, smtp_timeout, smtp_localhost, smtp_ports, smtp_ca
         dmarc_scan(domain)
 
     # If the user didn't specify any scans then run a full scan.
-    if domain.is_live and not (scan_types["mx"] or scan_types["starttls"]
-                                   or scan_types["spf"] or scan_types["dmarc"]):
+    if domain.is_live and not (scan_types["mx"] or scan_types["starttls"] or scan_types["spf"] or scan_types["dmarc"]):
         mx_scan(domain)
         starttls_scan(domain, smtp_timeout, smtp_localhost, smtp_ports, smtp_cache)
         spf_scan(domain)

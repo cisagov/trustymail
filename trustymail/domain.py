@@ -62,7 +62,7 @@ class Domain:
         Returns True if any of the mail servers associated with this
         domain are listening and support SMTP.
         """
-        return len(filter(lambda x:self.starttls_results[x]["supports_smtp"],
+        return len(filter(lambda x: self.starttls_results[x]["supports_smtp"],
                           self.starttls_results.keys())) > 0
 
     def has_starttls(self):
@@ -70,7 +70,7 @@ class Domain:
         Returns True if any of the mail servers associated with this
         domain are listening and support STARTTLS.
         """
-        return len(filter(lambda x:self.starttls_results[x]["starttls"],
+        return len(filter(lambda x: self.starttls_results[x]["starttls"],
                           self.starttls_results.keys())) > 0
 
     def has_spf(self):
@@ -107,13 +107,12 @@ class Domain:
                 return self.base_domain.get_dmarc_policy()
         return self.dmarc_policy
 
-
     def generate_results(self):
-        mail_servers_that_are_listening = [x for x in self.starttls_results.keys() if self.starttls_results[x]["is_listening"]]
+        # mail_servers_that_are_listening = [x for x in self.starttls_results.keys() if self.starttls_results[x]["is_listening"]]
         mail_servers_that_support_smtp = [x for x in self.starttls_results.keys() if self.starttls_results[x]["supports_smtp"]]
         mail_servers_that_support_starttls = [x for x in self.starttls_results.keys() if self.starttls_results[x]["starttls"]]
         domain_supports_smtp = bool(mail_servers_that_support_starttls)
-        
+
         results = {
             "Domain": self.domain_name,
             "Base Domain": self.base_domain_name,
@@ -142,9 +141,9 @@ class Domain:
             "Valid DMARC Record on Base Domain": self.parent_has_dmarc() and self.parent_valid_dmarc(),
             "DMARC Results on Base Domain": self.parent_dmarc_results(),
             "DMARC Policy": self.get_dmarc_policy(),
-            
+
             "Syntax Errors": self.format_list(self.syntax_errors)
-            }
+        }
 
         return results
 
