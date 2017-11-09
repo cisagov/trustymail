@@ -109,7 +109,6 @@ class Domain:
 
 
     def generate_results(self):
-        mail_servers_that_are_listening = [x for x in self.starttls_results.keys() if self.starttls_results[x]["is_listening"]]
         mail_servers_that_support_smtp = [x for x in self.starttls_results.keys() if self.starttls_results[x]["supports_smtp"]]
         mail_servers_that_support_starttls = [x for x in self.starttls_results.keys() if self.starttls_results[x]["starttls"]]
         domain_supports_smtp = bool(mail_servers_that_support_starttls)
