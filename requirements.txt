@@ -3,3 +3,5 @@ docopt
 publicsuffix
 py3dns
 pyspf==2.0.11
+tox
+pytest
