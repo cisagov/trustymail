@@ -151,6 +151,6 @@ class Domain:
     def format_list(self, record_list):
 
         if not record_list:
-            return ""
+            return None
 
         return ", ".join(record_list)
