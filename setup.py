@@ -3,8 +3,7 @@ setup module for trustymail
 
 Based on:
 
-- https://packaging.python.org/distributing/
-- https://github.com/pypa/sampleproject/blob/master/setup.py
+- https://github.com/dhs-ncats/pshtt
 """
 
 from setuptools import setup
