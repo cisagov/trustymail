@@ -1,3 +1,5 @@
+from trustymail import __version__
+
 """
 Setup module for trustymail
 
