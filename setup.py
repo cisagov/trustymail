@@ -1,3 +1,5 @@
+from trustymail import __version__
+
 """
 setup module for trustymail
 
@@ -11,7 +13,6 @@ from trustymail import __version__
 
 setup(
     name='trustymail',
-
     version=__version__,
     description='Scan domains and return data based on trustworthy email best practices',
 
@@ -56,7 +57,7 @@ setup(
     install_requires=[
         'requests',
         'docopt',
-        'publicsuffix'
+        'publicsuffix',
         'py3dns',
         'pyspf==2.0.11',
     ],

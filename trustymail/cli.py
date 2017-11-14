@@ -1,4 +1,4 @@
-"""TrustyMail A tool for scanning DNS mail records for evaluating security.
+"""trustymail: A tool for scanning DNS mail records for evaluating security.
 Usage:
   trustymail (INPUT ...) [options]
   trustymail (INPUT ...) [--output=OUTFILE] [--timeout=TIMEOUT] [--smtp-timeout=TIMEOUT] [--smtp-localhost=HOSTNAME] [--smtp-ports=PORTS] [--no-smtp-cache] [--mx] [--starttls] [--spf] [--dmarc] [--debug] [--json]
@@ -8,13 +8,13 @@ Options:
   -o --output=OUTFILE         Name of output file. (Default results)
   -t --timeout=TIMEOUT        The DNS lookup timeout in seconds. (Default is 5.)
   --smtp-timeout=TIMEOUT      The SMTP connection timeout in seconds. (Default is 5.)
-  --smtp-localhost=HOSTNAME   The hostname to use when connecting to SMTP 
+  --smtp-localhost=HOSTNAME   The hostname to use when connecting to SMTP
                               servers.  (Default is the FQDN of the host from
                               which trustymail is being run.)
-  --smtp-ports=PORTS          A comma-delimited list of ports at which to look 
+  --smtp-ports=PORTS          A comma-delimited list of ports at which to look
                               for SMTP servers.  (Default is "25,465,587".)
-  --no-smtp-cache             Do not cache SMTP results during the run.  This 
-                              may results in slower scans due to testing the 
+  --no-smtp-cache             Do not cache SMTP results during the run.  This
+                              may results in slower scans due to testing the
                               same mail servers multiple times.
   --mx                        Only check mx records
   --starttls                  Only check mx records and STARTTLS support.  (Implies --mx.)
@@ -26,6 +26,7 @@ Options:
 Notes:
    If no scan type options are specified, all are run against a given domain/input.
 """
+from trustymail import __version__
 
 import logging
 import docopt
@@ -41,7 +42,7 @@ _DEFAULT_SMTP_PORTS = {25, 465, 587}
 
 
 def main():
-    args = docopt.docopt(__doc__, version='v0.0.1')
+    args = docopt.docopt(__doc__, version=__version__)
 
     if args["--debug"]:
         logging.basicConfig(format='%(message)s', level=logging.DEBUG)
