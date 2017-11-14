@@ -26,7 +26,7 @@ Options:
 Notes:
    If no scan type options are specified, all are run against a given domain/input.
 """
-from . import __version__
+from trustymail import __version__
 
 import logging
 import docopt
