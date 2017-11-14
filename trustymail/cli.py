@@ -1,4 +1,4 @@
-"""TrustyMail A tool for scanning DNS mail records for evaluating security.
+"""trustymail: A tool for scanning DNS mail records for evaluating security.
 Usage:
   trustymail (INPUT ...) [options]
   trustymail (INPUT ...) [--output=OUTFILE] [--timeout=TIMEOUT] [--smtp-timeout=TIMEOUT] [--smtp-localhost=HOSTNAME] [--smtp-ports=PORTS] [--no-smtp-cache] [--mx] [--starttls] [--spf] [--dmarc] [--debug] [--json]
@@ -26,6 +26,7 @@ Options:
 Notes:
    If no scan type options are specified, all are run against a given domain/input.
 """
+from trustymail import __version__
 
 import logging
 import docopt
@@ -41,7 +42,7 @@ _DEFAULT_SMTP_PORTS = {25, 465, 587}
 
 
 def main():
-    args = docopt.docopt(__doc__, version='v0.0.1')
+    args = docopt.docopt(__doc__, version=__version__)
 
     if args["--debug"]:
         logging.basicConfig(format='%(message)s', level=logging.DEBUG)
