@@ -1,3 +1,5 @@
+from trustymail import __version__
+
 """
 Setup module for trustymail
 
@@ -11,7 +13,7 @@ from setuptools import setup
 setup(
 
         name='trustymail',
-        version='0.0.1',
+        version=__version__,
         description="Scan DNS records for best mail practices.",
 
         download_url="https://github.com/dhs-ncats/trustymail",
