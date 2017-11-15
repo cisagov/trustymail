@@ -1,5 +1,3 @@
-from trustymail import __version__
-
 """
 setup module for trustymail
 
@@ -61,6 +59,14 @@ setup(
         'py3dns',
         'pyspf==2.0.11',
     ],
+
+    extras_require={
+        # 'dev': ['check-manifest'],
+        'test': [
+            'tox',
+            'pytest'
+        ],
+    },
 
     entry_points={
         'console_scripts': [
