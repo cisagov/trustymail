@@ -7,9 +7,7 @@ import datetime
 import json
 import socket
 
-from DNS import dnslookup
-from DNS import DNSError
-import DNS
+import dns.resolver
 
 from trustymail.domain import Domain
 
@@ -62,11 +60,9 @@ def domain_list_from_csv(csv_file):
 
 def mx_scan(domain):
     try:
-        for record in dnslookup(domain.domain_name, 'MX'):
-            # Redirects will be presented as str of the redirect.
-            if isinstance(record, tuple):
-                domain.add_mx_record(record)
-    except DNSError as error:
+        for record in dns.resolver.query(domain.domain_name, 'MX'):
+            domain.add_mx_record(record)
+    except (dns.resolver.NoAnswer, dns.exception.Timeout, dns.resolver.NXDOMAIN) as error:
         handle_error("[MX]", domain, error)
 
 
@@ -169,10 +165,8 @@ def starttls_scan(domain, smtp_timeout, smtp_localhost, smtp_ports, smtp_cache):
             
 def spf_scan(domain):
     try:
-        # for record in resolver.query(domain.domain_name, 'TXT'):
-        for record in dnslookup(domain.domain_name, 'TXT'):
-
-            record_text = record_to_str(record)
+        for record in dns.resolver.query(domain.domain_name, 'TXT'):
+            record_text = record.to_text()
 
             if record_text.startswith("\""):
                 record_text = record_text[1:-1]
@@ -221,7 +215,7 @@ def spf_scan(domain):
                 logging.debug("\tResult Differs: Expected [{0}] - Actual [{1}]".format(result, response[0]))
                 domain.errors.append("Result Differs: Expected [{0}] - Actual [{1}]".format(result, response[0]))
 
-    except DNSError as error:
+    except (dns.resolver.NoAnswer, dns.exception.Timeout, dns.resolver.NXDOMAIN) as error:
         handle_error("[SPF]", domain, error)
 
 
@@ -229,12 +223,11 @@ def dmarc_scan(domain):
     # dmarc records are kept in TXT records for _dmarc.domain_name.
     try:
         dmarc_domain = '_dmarc.%s' % domain.domain_name
-        for record in dnslookup(dmarc_domain, 'TXT'):
-
-            record_text = record_to_str(record)
+        for record in dns.resolver.query(dmarc_domain, 'TXT'):
+            record_text = record.to_text()
 
             if record_text.startswith("\""):
-                record_text = record[1:-1]
+                record_text = record_text[1:-1]
 
             # Ensure the record is a DMARC record. Some domains that redirect will cause an SPF record to show.
             if record_text.startswith("v=DMARC1"):
@@ -260,12 +253,12 @@ def dmarc_scan(domain):
                 elif tag == "p":
                     domain.dmarc_policy = tag_dict[tag]
 
-    except DNSError as error:
+    except (dns.resolver.NoAnswer, dns.exception.Timeout, dns.resolver.NXDOMAIN) as error:
         handle_error("[DMARC]", domain, error)
 
 
 def find_host_from_ip(ip_addr):
-    return DNS.revlookup(ip_addr)
+    return str(resolver.query(reversename.from_address(ip_addr), "PTR")[0])
 
 
 def scan(domain_name, timeout, smtp_timeout, smtp_localhost, smtp_ports, smtp_cache, scan_types):
@@ -273,7 +266,7 @@ def scan(domain_name, timeout, smtp_timeout, smtp_localhost, smtp_ports, smtp_ca
 
     logging.debug("[{0}]".format(domain_name))
 
-    DNS.defaults['timeout'] = timeout
+    dns.resolver.timeout = dns.resolver.lifetime = timeout
 
     if scan_types["mx"] and domain.is_live:
         mx_scan(domain)
@@ -296,16 +289,6 @@ def scan(domain_name, timeout, smtp_timeout, smtp_localhost, smtp_ports, smtp_ca
         dmarc_scan(domain)
 
     return domain
-
-
-def record_to_str(record):
-    if isinstance(record, list):
-        record = b''.join(record)
-
-    if isinstance(record, bytes):
-        record = record.decode('utf-8')
-
-    return record
 
 
 def handle_error(prefix, domain, error):

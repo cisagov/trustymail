@@ -81,7 +81,9 @@ class Domain:
 
     def add_mx_record(self, record):
         self.mx_records.append(record)
-        self.mail_servers.append(record[1])
+        # The rstrip is because dnspython's string representation of
+        # the record will contain a trailing period if it is a FQDN.
+        self.mail_servers.append(record.exchange.to_text().rstrip('.'))
 
     def parent_has_dmarc(self):
         if self.base_domain is None:
