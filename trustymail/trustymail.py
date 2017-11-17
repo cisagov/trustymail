@@ -226,8 +226,7 @@ def dmarc_scan(resolver, domain):
         for record in resolver.query(dmarc_domain, 'TXT'):
             record_text = record.to_text()
 
-            if record_text.startswith("\""):
-                record_text = record_text[1:-1]
+            record_text.lstrip('"')
 
             # Ensure the record is a DMARC record. Some domains that redirect will cause an SPF record to show.
             if record_text.startswith("v=DMARC1"):
@@ -258,7 +257,8 @@ def dmarc_scan(resolver, domain):
 
 
 def find_host_from_ip(ip_addr):
-    return str(resolver.query(reversename.from_address(ip_addr), "PTR")[0])
+    hostname, _ =  resolver.query(reversename.from_address(ip_addr), "PTR")
+    return str(hostname)
 
 
 def scan(domain_name, timeout, smtp_timeout, smtp_localhost, smtp_ports, smtp_cache, scan_types, dns_hostnames):
