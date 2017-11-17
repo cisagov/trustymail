@@ -1,7 +1,7 @@
 """trustymail: A tool for scanning DNS mail records for evaluating security.
 Usage:
   trustymail (INPUT ...) [options]
-  trustymail (INPUT ...) [--output=OUTFILE] [--timeout=TIMEOUT] [--smtp-timeout=TIMEOUT] [--smtp-localhost=HOSTNAME] [--smtp-ports=PORTS] [--no-smtp-cache] [--mx] [--starttls] [--spf] [--dmarc] [--debug] [--json]
+  trustymail (INPUT ...) [--output=OUTFILE] [--timeout=TIMEOUT] [--smtp-timeout=TIMEOUT] [--smtp-localhost=HOSTNAME] [--smtp-ports=PORTS] [--no-smtp-cache] [--mx] [--starttls] [--spf] [--dmarc] [--debug] [--json] [--dns-hostnames=HOSTNAMES]
   trustymail (-h | --help)
 Options:
   -h --help                   Show this message.
@@ -22,6 +22,12 @@ Options:
   --dmarc                     Only check dmarc records
   --json                      Output is in json format (default csv)
   --debug                     Output should include error messages.
+  --dns-hostnames=HOSTNAMES   A comma-delimited list of DNS servers to query 
+                              against.  For example, if you want to use 
+                              Google's DNS then you would use 
+                              the value --dns-hosts="8.8.8.8,8.8.4.4".  By 
+                              default the DNS configuration of the host OS are 
+                              used.
 
 Notes:
    If no scan type options are specified, all are run against a given domain/input.
@@ -73,6 +79,11 @@ def main():
     else:
         smtp_ports = _DEFAULT_SMTP_PORTS
 
+    if args["--dns-hostnames"] is not None:
+        dns_hostnames = args['--dns-hostnames'].split(',')
+    else:
+        dns_hostnames = None
+
     # --starttls implies --mx
     if args["--starttls"]:
         args["--mx"] = True
@@ -90,7 +101,7 @@ def main():
         domain_scans.append(trustymail.scan(domain_name, timeout,
                                             smtp_timeout, smtp_localhost,
                                             smtp_ports, not args["--no-smtp-cache"],
-                                            scan_types))
+                                            scan_types, dns_hostnames))
 
     # Default output file name is results.
     if args["--output"] is None:

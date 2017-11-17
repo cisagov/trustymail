@@ -37,32 +37,32 @@ def domain_list_from_url(url):
 
 
 def domain_list_from_csv(csv_file):
-        domain_list = list(csv.reader(csv_file, delimiter=','))
+    domain_list = list(csv.reader(csv_file, delimiter=','))
 
-        # Check the headers for the word domain - use that row.
+    # Check the headers for the word domain - use that row.
 
-        domain_column = 0
+    domain_column = 0
 
-        for i in range(0, len(domain_list[0])):
-            header = domain_list[0][i]
-            if "domain" in header.lower():
-                domain_column = i
-                # CSV starts with headers, remove first row.
-                domain_list.pop(0)
-                break
+    for i in range(0, len(domain_list[0])):
+        header = domain_list[0][i]
+        if "domain" in header.lower():
+            domain_column = i
+            # CSV starts with headers, remove first row.
+            domain_list.pop(0)
+            break
 
-        domains = []
-        for row in domain_list:
-            domains.append(row[domain_column])
+    domains = []
+    for row in domain_list:
+        domains.append(row[domain_column])
 
-        return domains
+    return domains
 
 
-def mx_scan(domain):
+def mx_scan(resolver, domain):
     try:
-        for record in dns.resolver.query(domain.domain_name, 'MX'):
+        for record in resolver.query(domain.domain_name, 'MX'):
             domain.add_mx_record(record)
-    except (dns.resolver.NoAnswer, dns.exception.Timeout, dns.resolver.NXDOMAIN) as error:
+    except (dns.resolver.NoNameservers, dns.resolver.NoAnswer, dns.exception.Timeout, dns.resolver.NXDOMAIN) as error:
         handle_error("[MX]", domain, error)
 
 
@@ -163,9 +163,9 @@ def starttls_scan(domain, smtp_timeout, smtp_localhost, smtp_ports, smtp_cache):
                 domain.starttls_results[server_and_port] = _SMTP_CACHE[server_and_port]
 
             
-def spf_scan(domain):
+def spf_scan(resolver, domain):
     try:
-        for record in dns.resolver.query(domain.domain_name, 'TXT'):
+        for record in resolver.query(domain.domain_name, 'TXT'):
             record_text = record.to_text()
 
             if record_text.startswith("\""):
@@ -215,15 +215,15 @@ def spf_scan(domain):
                 logging.debug("\tResult Differs: Expected [{0}] - Actual [{1}]".format(result, response[0]))
                 domain.errors.append("Result Differs: Expected [{0}] - Actual [{1}]".format(result, response[0]))
 
-    except (dns.resolver.NoAnswer, dns.exception.Timeout, dns.resolver.NXDOMAIN) as error:
+    except (dns.resolver.NoNameservers, dns.resolver.NoAnswer, dns.exception.Timeout, dns.resolver.NXDOMAIN) as error:
         handle_error("[SPF]", domain, error)
 
 
-def dmarc_scan(domain):
+def dmarc_scan(resolver, domain):
     # dmarc records are kept in TXT records for _dmarc.domain_name.
     try:
         dmarc_domain = '_dmarc.%s' % domain.domain_name
-        for record in dns.resolver.query(dmarc_domain, 'TXT'):
+        for record in resolver.query(dmarc_domain, 'TXT'):
             record_text = record.to_text()
 
             if record_text.startswith("\""):
@@ -253,7 +253,7 @@ def dmarc_scan(domain):
                 elif tag == "p":
                     domain.dmarc_policy = tag_dict[tag]
 
-    except (dns.resolver.NoAnswer, dns.exception.Timeout, dns.resolver.NXDOMAIN) as error:
+    except (dns.resolver.NoNameservers, dns.resolver.NoAnswer, dns.exception.Timeout, dns.resolver.NXDOMAIN) as error:
         handle_error("[DMARC]", domain, error)
 
 
@@ -261,32 +261,39 @@ def find_host_from_ip(ip_addr):
     return str(resolver.query(reversename.from_address(ip_addr), "PTR")[0])
 
 
-def scan(domain_name, timeout, smtp_timeout, smtp_localhost, smtp_ports, smtp_cache, scan_types):
+def scan(domain_name, timeout, smtp_timeout, smtp_localhost, smtp_ports, smtp_cache, scan_types, dns_hostnames):
+    # Set some timeouts
+    dns.resolver.timeout = 0.001#float(timeout)
+    dns.resolver.lifetime = 0.001#float(timeout)
+    
+    # Our resolver
+    resolver = dns.resolver.Resolver()
+    if dns_hostnames:
+        resolver.nameservers = dns_hostnames
+
     domain = Domain(domain_name)
 
     logging.debug("[{0}]".format(domain_name))
 
-    dns.resolver.timeout = dns.resolver.lifetime = timeout
-
     if scan_types["mx"] and domain.is_live:
-        mx_scan(domain)
+        mx_scan(resolver, domain)
 
     if scan_types["starttls"] and domain.is_live:
         starttls_scan(domain, smtp_timeout, smtp_localhost, smtp_ports, smtp_cache)
 
     if scan_types["spf"] and domain.is_live:
-        spf_scan(domain)
+        spf_scan(resolver, domain)
 
     if scan_types["dmarc"] and domain.is_live:
-        dmarc_scan(domain)
+        dmarc_scan(resolver, domain)
 
     # If the user didn't specify any scans then run a full scan.
     if domain.is_live and not (scan_types["mx"] or scan_types["starttls"]
                                    or scan_types["spf"] or scan_types["dmarc"]):
-        mx_scan(domain)
+        mx_scan(resolver, domain)
         starttls_scan(domain, smtp_timeout, smtp_localhost, smtp_ports, smtp_cache)
-        spf_scan(domain)
-        dmarc_scan(domain)
+        spf_scan(resolver, domain)
+        dmarc_scan(resolver, domain)
 
     return domain
 
