@@ -3,6 +3,7 @@ Usage:
   trustymail (INPUT ...) [options]
   trustymail (INPUT ...) [--output=OUTFILE] [--timeout=TIMEOUT] [--smtp-timeout=TIMEOUT] [--smtp-localhost=HOSTNAME] [--smtp-ports=PORTS] [--no-smtp-cache] [--mx] [--starttls] [--spf] [--dmarc] [--debug] [--json] [--dns-hostnames=HOSTNAMES]
   trustymail (-h | --help)
+
 Options:
   -h --help                   Show this message.
   -o --output=OUTFILE         Name of output file. (Default results)
@@ -24,8 +25,8 @@ Options:
   --debug                     Output should include error messages.
   --dns-hostnames=HOSTNAMES   A comma-delimited list of DNS servers to query 
                               against.  For example, if you want to use 
-                              Google's DNS then you would use 
-                              the value --dns-hostnames="8.8.8.8,8.8.4.4".  By 
+                              Google's DNS then you would use the 
+                              value --dns-hostnames='8.8.8.8,8.8.4.4'.  By 
                               default the DNS configuration of the host OS are 
                               used.
 
