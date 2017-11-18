@@ -60,7 +60,9 @@ def domain_list_from_csv(csv_file):
 
 def mx_scan(resolver, domain):
     try:
-        for record in resolver.query(domain.domain_name, 'MX'):
+        # Use TCP, since we care about the content and correctness of the
+        # records more than whether their records fit in a single UDP packet.
+        for record in resolver.query(domain.domain_name, 'MX', tcp=True):
             domain.add_mx_record(record)
     except (dns.resolver.NoNameservers, dns.resolver.NoAnswer, dns.exception.Timeout, dns.resolver.NXDOMAIN) as error:
         handle_error("[MX]", domain, error)
@@ -165,7 +167,9 @@ def starttls_scan(domain, smtp_timeout, smtp_localhost, smtp_ports, smtp_cache):
             
 def spf_scan(resolver, domain):
     try:
-        for record in resolver.query(domain.domain_name, 'TXT'):
+        # Use TCP, since we care about the content and correctness of the
+        # records more than whether their records fit in a single UDP packet.
+        for record in resolver.query(domain.domain_name, 'TXT', tcp=True):
             record_text = record.to_text()
 
             if record_text.startswith("\""):
@@ -223,7 +227,9 @@ def dmarc_scan(resolver, domain):
     # dmarc records are kept in TXT records for _dmarc.domain_name.
     try:
         dmarc_domain = '_dmarc.%s' % domain.domain_name
-        for record in resolver.query(dmarc_domain, 'TXT'):
+        # Use TCP, since we care about the content and correctness of the
+        # records more than whether their records fit in a single UDP packet.
+        for record in resolver.query(dmarc_domain, 'TXT', tcp=True):
             record_text = record.to_text().strip('"')
 
             # Ensure the record is a DMARC record. Some domains that redirect will cause an SPF record to show.
@@ -255,17 +261,23 @@ def dmarc_scan(resolver, domain):
 
 
 def find_host_from_ip(ip_addr):
-    hostname, _ =  resolver.query(reversename.from_address(ip_addr), "PTR")
+    # Use TCP, since we care about the content and correctness of the records
+    # more than whether their records fit in a single UDP packet.
+    hostname, _ =  resolver.query(reversename.from_address(ip_addr), "PTR", tcp=True)
     return str(hostname)
 
 
 def scan(domain_name, timeout, smtp_timeout, smtp_localhost, smtp_ports, smtp_cache, scan_types, dns_hostnames):
     # Set some timeouts
-    dns.resolver.timeout = 0.001#float(timeout)
-    dns.resolver.lifetime = 0.001#float(timeout)
+    dns.resolver.timeout = float(timeout)
+    dns.resolver.lifetime = float(timeout)
     
     # Our resolver
     resolver = dns.resolver.Resolver()
+    # Retry queries if we receive a SERVFAIL response.  This may only indicate
+    # a temporary network problem.
+    resolver.retry_servfail = True
+    # If the user passed in DNS hostnames to query against then use them
     if dns_hostnames:
         resolver.nameservers = dns_hostnames
 
