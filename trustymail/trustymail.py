@@ -7,6 +7,7 @@ import datetime
 import json
 import socket
 
+import DNS
 import dns.resolver
 
 from trustymail.domain import Domain
@@ -268,6 +269,10 @@ def find_host_from_ip(ip_addr):
 
 
 def scan(domain_name, timeout, smtp_timeout, smtp_localhost, smtp_ports, smtp_cache, scan_types, dns_hostnames):
+    #
+    # Configure the dnspython library
+    #
+    
     # Set some timeouts
     dns.resolver.timeout = float(timeout)
     dns.resolver.lifetime = float(timeout)
@@ -280,6 +285,17 @@ def scan(domain_name, timeout, smtp_timeout, smtp_localhost, smtp_ports, smtp_ca
     # If the user passed in DNS hostnames to query against then use them
     if dns_hostnames:
         resolver.nameservers = dns_hostnames
+
+    #
+    # The spf library uses py3dns behind the scenes, so we need to configure
+    # that too
+    #
+    DNS.defaults['timeout'] = timeout
+    # Use TCP instead of UDP
+    DNS.defaults['protocol'] = 'tcp'
+    # If the user passed in DNS hostnames to query against then use them
+    if dns_hostnames:
+        DNS.defaults['server'] = dns_hostnames
 
     domain = Domain(domain_name)
 
