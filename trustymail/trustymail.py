@@ -196,7 +196,14 @@ def spf_scan(resolver, domain):
                 result = "neutral"
 
             try:
-                query = spf.query("127.0.0.1", "email_wizard@" + domain.domain_name, domain.domain_name, strict=2)
+                # Here I am using the IP address for c1b1.ncats.cyber.dhs.gov
+                # (64.69.57.18) since it (1) has a valid PTR record and (2) is
+                # not listed by anyone as a valid mail server.
+                #
+                # I'm actually temporarily using an IP that www.google.com
+                # resolves to until we resolve why Google DNS does not return
+                # the same PTR records as the CAL DNS does for 64.69.57.18.
+                query = spf.query("172.217.13.228", "email_wizard@" + domain.domain_name, domain.domain_name, strict=2)
                 response = query.check()
             except spf.AmbiguityWarning as error:
                 logging.debug("\t" + error.msg)
