@@ -149,8 +149,11 @@ class Domain:
 
     # Format a list into a string to increase readability in CSV.
     def format_list(self, record_list):
-
+        # record_list should only be a list, not an integer, None, or
+        # anything else.  Thus this if clause handles only empty
+        # lists.  This makes a "null" appear in the JSON output for
+        # empty lists, as expected.
         if not record_list:
-            return ""
+            return None
 
         return ", ".join(record_list)
