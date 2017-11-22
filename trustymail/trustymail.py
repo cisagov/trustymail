@@ -304,9 +304,11 @@ def scan(domain_name, timeout, smtp_timeout, smtp_localhost, smtp_ports, smtp_ca
     if dns_hostnames:
         DNS.defaults['server'] = dns_hostnames
 
-    domain = Domain(domain_name)
+    # Domain's constructor needs all these parameters because it does a DMARC
+    # scan in its init
+    domain = Domain(domain_name, timeout, smtp_timeout, smtp_localhost, smtp_ports, smtp_cache, dns_hostnames)
 
-    logging.debug("[{0}]".format(domain_name))
+    logging.debug("[{0}]".format(domain_name.lower()))
 
     if scan_types["mx"] and domain.is_live:
         mx_scan(resolver, domain)
