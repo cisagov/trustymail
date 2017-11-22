@@ -240,12 +240,13 @@ def dmarc_scan(resolver, domain):
         for record in resolver.query(dmarc_domain, 'TXT', tcp=True):
             record_text = record.to_text().strip('"')
 
-            # Ensure the record is a DMARC record. Some domains that redirect will cause an SPF record to show.
+            # Ensure the record is a DMARC record. Some domains that
+            # redirect will cause an SPF record to show.
             if record_text.startswith("v=DMARC1"):
                 domain.dmarc.append(record_text)
 
-            # Remove excess spacing
-            record_text = record_text.strip(" ")
+            # Remove excess whitespace
+            record_text = record_text.strip()
 
             # DMARC records follow a specific outline as to how they are defined - tag:value
             # We can split this up into a easily manipulatable
@@ -285,7 +286,10 @@ def scan(domain_name, timeout, smtp_timeout, smtp_localhost, smtp_ports, smtp_ca
     dns.resolver.lifetime = float(timeout)
     
     # Our resolver
-    resolver = dns.resolver.Resolver()
+    #
+    # Note that it uses the system configuration in /etc/resolv.conf
+    # if no DNS hostnames are specified.
+    resolver = dns.resolver.Resolver(configure=not dns_hostnames)
     # Retry queries if we receive a SERVFAIL response.  This may only indicate
     # a temporary network problem.
     resolver.retry_servfail = True
