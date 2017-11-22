@@ -21,7 +21,7 @@ CSV_HEADERS = [
     "DMARC Record", "Valid DMARC", "DMARC Results",
     "DMARC Record on Base Domain", "Valid DMARC Record on Base Domain",
     "DMARC Results on Base Domain", "DMARC Policy",
-    "Syntax Errors", "Errors"
+    "Syntax Errors", "Debug"
 ]
 
 # A cache for SMTP scanning results
@@ -226,7 +226,7 @@ def spf_scan(resolver, domain):
             else:
                 domain.valid_spf = False
                 logging.debug("\tResult Differs: Expected [{0}] - Actual [{1}]".format(result, response[0]))
-                domain.errors.append("Result Differs: Expected [{0}] - Actual [{1}]".format(result, response[0]))
+                domain.debug.append("Result Differs: Expected [{0}] - Actual [{1}]".format(result, response[0]))
 
     except (dns.resolver.NoNameservers, dns.resolver.NoAnswer, dns.exception.Timeout, dns.resolver.NXDOMAIN) as error:
         handle_error("[SPF]", domain, error)
@@ -342,10 +342,10 @@ def handle_error(prefix, domain, error):
     if hasattr(error, "message"):
         if "NXDOMAIN" in error.message and prefix != "[DMARC]":
             domain.is_live = False
-        domain.errors.append(error.message)
+        domain.debug.append(error.message)
         logging.debug("  {0} {1}".format(prefix, error.message))
     else:
-        domain.errors.append(str(error))
+        domain.debug.append(str(error))
         logging.debug("  {0} {1}".format(prefix, str(error)))
 
 

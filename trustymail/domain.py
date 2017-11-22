@@ -47,8 +47,8 @@ class Domain:
         # 3. Whether or not the server supports STARTTLS
         self.starttls_results = {}
 
-        # A list of any errors that occurred while scanning records.
-        self.errors = []
+        # A list of any debugging information collected while scanning records.
+        self.debug = []
 
         # A list of the ports tested for SMTP
         self.ports_tested = set()
@@ -144,7 +144,7 @@ class Domain:
             "DMARC Policy": self.get_dmarc_policy(),
             
             "Syntax Errors": self.format_list(self.syntax_errors),
-            "Errors": self.format_list(self.errors)
+            "Debug": self.format_list(self.debug)
             }
 
         return results
