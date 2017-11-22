@@ -42,8 +42,6 @@ import errno
 
 from trustymail import trustymail
 
-base_domains = {}
-
 # The default ports to be checked to see if an SMTP server is listening.
 _DEFAULT_SMTP_PORTS = {25, 465, 587}
 
