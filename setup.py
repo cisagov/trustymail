@@ -58,6 +58,7 @@ setup(
         'requests',
         'docopt',
         'publicsuffix',
+        'dnspython',
         'py3dns',
         'pyspf==2.0.11',
     ],

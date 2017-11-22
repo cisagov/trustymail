@@ -9,16 +9,15 @@ class Domain:
 
     base_domains = {}
 
-    def __init__(self, domain_name):
-        self.domain_name = domain_name
+    def __init__(self, domain_name, timeout, smtp_timeout, smtp_localhost, smtp_ports, smtp_cache, dns_hostnames):
+        self.domain_name = domain_name.lower()
 
-        self.base_domain_name = public_list.get_public_suffix(domain_name)
+        self.base_domain_name = public_list.get_public_suffix(self.domain_name)
 
         if self.base_domain_name != self.domain_name:
             if self.base_domain_name not in Domain.base_domains:
-                domain = Domain(self.base_domain_name)
                 # Populate DMARC for parent.
-                trustymail.dmarc_scan(domain)
+                domain = trustymail.scan(self.base_domain_name, timeout, smtp_timeout, smtp_localhost, smtp_ports, smtp_cache, {"mx":False, "starttls":False, "spf":False, "dmarc":True}, dns_hostnames)
                 Domain.base_domains[self.base_domain_name] = domain
             self.base_domain = Domain.base_domains[self.base_domain_name]
         else:
@@ -81,7 +80,9 @@ class Domain:
 
     def add_mx_record(self, record):
         self.mx_records.append(record)
-        self.mail_servers.append(record[1])
+        # The rstrip is because dnspython's string representation of
+        # the record will contain a trailing period if it is a FQDN.
+        self.mail_servers.append(record.exchange.to_text().rstrip('.').lower())
 
     def parent_has_dmarc(self):
         if self.base_domain is None:
@@ -142,7 +143,8 @@ class Domain:
             "DMARC Results on Base Domain": self.parent_dmarc_results(),
             "DMARC Policy": self.get_dmarc_policy(),
             
-            "Syntax Errors": self.format_list(self.syntax_errors)
+            "Syntax Errors": self.format_list(self.syntax_errors),
+            "Errors": self.format_list(self.errors)
             }
 
         return results

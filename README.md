@@ -1,6 +1,8 @@
 ## Trustworthy Mail
 
-`trustymail` is a tool that evaluates SPF/DMARC records set in a domain's DNS. It also checks the mail servers listed in a domain's MX records for STARTTLS support. It saves its results to CSV or JSON.
+`trustymail` is a tool that evaluates SPF/DMARC records set in a
+domain's DNS. It also checks the mail servers listed in a domain's MX
+records for STARTTLS support. It saves its results to CSV or JSON.
 
 #### Installed as a module
 
@@ -18,7 +20,8 @@ trustymail [options] example.com
 
 #### Running directly
 
-To run the tool locally from the repository, without installing, first install the requirements:
+To run the tool locally from the repository, without installing, first
+install the requirements:
 
 ```bash
 pip install -r requirements.txt
@@ -41,7 +44,8 @@ trustymail --output=homeland.csv --debug dhs.gov us-cert.gov usss.gov
 trustymail agencies.csv
 ```
 
-Note: if INPUT ends with `.csv`, domains will be read from CSV. CSV output will always be written to disk, defaulting to `results.csv`.
+Note: if INPUT ends with `.csv`, domains will be read from CSV. CSV
+output will always be written to disk, defaulting to `results.csv`.
 
 #### Options
 
@@ -65,6 +69,12 @@ Note: if INPUT ends with `.csv`, domains will be read from CSV. CSV output will 
   --spf                       Only check spf records
   --dmarc                     Only check dmarc records
   --debug                     Output should include error messages.
+  --dns-hostnames=HOSTNAMES   A comma-delimited list of DNS servers to query 
+                              against.  For example, if you want to use 
+                              Google's DNS then you would use the 
+                              value --dns-hostnames='8.8.8.8,8.8.4.4'.  By 
+                              default the DNS configuration of the host OS are 
+                              used.
 ```
 
 ## What's Checked?
@@ -130,6 +140,8 @@ The following values are returned in `results.csv`:
 
 * `Syntax Errors` - A list of syntax errors that were detected when
   scanning DMARC or SPF records, or checking for STARTTLS support.
+* `Errors` - A list of any other errors encountered, such as DNS
+  failures.
 
 ## Public domain
 
