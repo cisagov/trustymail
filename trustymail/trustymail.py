@@ -9,6 +9,7 @@ import socket
 
 import DNS
 import dns.resolver
+import dns.reversename
 
 from trustymail.domain import Domain
 
@@ -165,7 +166,7 @@ def starttls_scan(domain, smtp_timeout, smtp_localhost, smtp_ports, smtp_cache):
                 # Copy the cached results into the domain object
                 domain.starttls_results[server_and_port] = _SMTP_CACHE[server_and_port]
 
-            
+
 def spf_scan(resolver, domain):
     try:
         # Use TCP, since we care about the content and correctness of the
@@ -270,10 +271,10 @@ def dmarc_scan(resolver, domain):
         handle_error("[DMARC]", domain, error)
 
 
-def find_host_from_ip(ip_addr):
+def find_host_from_ip(resolver, ip_addr):
     # Use TCP, since we care about the content and correctness of the records
     # more than whether their records fit in a single UDP packet.
-    hostname, _ =  resolver.query(reversename.from_address(ip_addr), "PTR", tcp=True)
+    hostname, _ = resolver.query(dns.reversename.from_address(ip_addr), "PTR", tcp=True)
     return str(hostname)
 
 
@@ -281,11 +282,11 @@ def scan(domain_name, timeout, smtp_timeout, smtp_localhost, smtp_ports, smtp_ca
     #
     # Configure the dnspython library
     #
-    
+
     # Set some timeouts
     dns.resolver.timeout = float(timeout)
     dns.resolver.lifetime = float(timeout)
-    
+
     # Our resolver
     #
     # Note that it uses the system configuration in /etc/resolv.conf

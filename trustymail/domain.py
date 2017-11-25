@@ -17,7 +17,7 @@ class Domain:
         if self.base_domain_name != self.domain_name:
             if self.base_domain_name not in Domain.base_domains:
                 # Populate DMARC for parent.
-                domain = trustymail.scan(self.base_domain_name, timeout, smtp_timeout, smtp_localhost, smtp_ports, smtp_cache, {"mx":False, "starttls":False, "spf":False, "dmarc":True}, dns_hostnames)
+                domain = trustymail.scan(self.base_domain_name, timeout, smtp_timeout, smtp_localhost, smtp_ports, smtp_cache, {"mx": False, "starttls": False, "spf": False, "dmarc": True}, dns_hostnames)
                 Domain.base_domains[self.base_domain_name] = domain
             self.base_domain = Domain.base_domains[self.base_domain_name]
         else:
@@ -141,10 +141,10 @@ class Domain:
             "Valid DMARC Record on Base Domain": self.parent_has_dmarc() and self.parent_valid_dmarc(),
             "DMARC Results on Base Domain": self.parent_dmarc_results(),
             "DMARC Policy": self.get_dmarc_policy(),
-            
+
             "Syntax Errors": self.format_list(self.syntax_errors),
             "Errors": self.format_list(self.errors)
-            }
+        }
 
         return results
 

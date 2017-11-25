@@ -23,13 +23,13 @@ Options:
   --dmarc                     Only check dmarc records
   --json                      Output is in json format (default csv)
   --debug                     Output should include error messages.
-  --dns-hostnames=HOSTNAMES   A comma-delimited list of DNS servers to query 
-                              against.  For example, if you want to use 
-                              Google's DNS then you would use the 
-                              value --dns-hostnames='8.8.8.8,8.8.4.4'.  By 
-                              default the DNS configuration of the host OS 
-                              (/etc/resolv.conf) is used.  Note that 
-                              the host's DNS configuration is not used at all 
+  --dns-hostnames=HOSTNAMES   A comma-delimited list of DNS servers to query
+                              against.  For example, if you want to use
+                              Google's DNS then you would use the
+                              value --dns-hostnames='8.8.8.8,8.8.4.4'.  By
+                              default the DNS configuration of the host OS
+                              (/etc/resolv.conf) is used.  Note that
+                              the host's DNS configuration is not used at all
                               if this option is used.
 
 Notes:
