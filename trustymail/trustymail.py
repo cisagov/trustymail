@@ -10,6 +10,7 @@ import spf
 
 import DNS
 import dns.resolver
+import dns.reversename
 
 from trustymail.domain import Domain
 
@@ -83,7 +84,7 @@ def starttls_scan(domain, smtp_timeout, smtp_localhost, smtp_ports, smtp_cache):
     ----------
     domain : Domain
         The Domain to be tested.
-        
+
     smtp_timeout : int
         The SMTP connection timeout in seconds.
 
@@ -91,8 +92,8 @@ def starttls_scan(domain, smtp_timeout, smtp_localhost, smtp_ports, smtp_cache):
         The hostname to use when connecting to SMTP servers.
 
     smtp_ports : obj:`list` of :obj:`str`
-        A comma-delimited list of ports at which to look for SMTP servers.  
-        
+        A comma-delimited list of ports at which to look for SMTP servers.
+
     smtp_cache : bool
         Whether or not to cache SMTP results.
     """
@@ -103,7 +104,7 @@ def starttls_scan(domain, smtp_timeout, smtp_localhost, smtp_ports, smtp_cache):
 
             if not smtp_cache or (server_and_port not in _SMTP_CACHE):
                 domain.starttls_results[server_and_port] = {}
-                
+
                 smtp_connection = smtplib.SMTP(timeout=smtp_timeout,
                                                local_hostname=smtp_localhost)
                 logging.debug("Testing " + server_and_port + " for STARTTLS support")
@@ -120,7 +121,7 @@ def starttls_scan(domain, smtp_timeout, smtp_localhost, smtp_ports, smtp_cache):
 
                     if smtp_cache:
                         _SMTP_CACHE[server_and_port] = domain.starttls_results[server_and_port]
-                    
+
                     continue
 
                 # Now try to say hello.  This will tell us if the
@@ -139,10 +140,10 @@ def starttls_scan(domain, smtp_timeout, smtp_localhost, smtp_ports, smtp_cache):
                         smtp_connection.quit()
                     except smtplib.SMTPServerDisconnected as error2:
                         handle_error("[STARTTLS]", domain, error2)
-                        
+
                     if smtp_cache:
                         _SMTP_CACHE[server_and_port] = domain.starttls_results[server_and_port]
-                    
+
                     continue
 
                 # Now check if the server supports STARTTLS.
@@ -347,10 +348,10 @@ def dmarc_scan(resolver, domain):
         handle_error("[DMARC]", domain, error)
 
 
-def find_host_from_ip(ip_addr):
+def find_host_from_ip(resolver, ip_addr):
     # Use TCP, since we care about the content and correctness of the records
     # more than whether their records fit in a single UDP packet.
-    hostname, _ =  resolver.query(reversename.from_address(ip_addr), "PTR", tcp=True)
+    hostname, _ = resolver.query(dns.reversename.from_address(ip_addr), "PTR", tcp=True)
     return str(hostname)
 
 
@@ -358,11 +359,11 @@ def scan(domain_name, timeout, smtp_timeout, smtp_localhost, smtp_ports, smtp_ca
     #
     # Configure the dnspython library
     #
-    
+
     # Set some timeouts
     dns.resolver.timeout = float(timeout)
     dns.resolver.lifetime = float(timeout)
-    
+
     # Our resolver
     #
     # Note that it uses the system configuration in /etc/resolv.conf
@@ -405,8 +406,7 @@ def scan(domain_name, timeout, smtp_timeout, smtp_localhost, smtp_ports, smtp_ca
         dmarc_scan(resolver, domain)
 
     # If the user didn't specify any scans then run a full scan.
-    if domain.is_live and not (scan_types["mx"] or scan_types["starttls"]
-                                   or scan_types["spf"] or scan_types["dmarc"]):
+    if domain.is_live and not (scan_types["mx"] or scan_types["starttls"] or scan_types["spf"] or scan_types["dmarc"]):
         mx_scan(resolver, domain)
         starttls_scan(domain, smtp_timeout, smtp_localhost, smtp_ports, smtp_cache)
         spf_scan(resolver, domain)
