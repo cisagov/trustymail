@@ -17,7 +17,7 @@ class Domain:
         if self.base_domain_name != self.domain_name:
             if self.base_domain_name not in Domain.base_domains:
                 # Populate DMARC for parent.
-                domain = trustymail.scan(self.base_domain_name, timeout, smtp_timeout, smtp_localhost, smtp_ports, smtp_cache, {"mx":False, "starttls":False, "spf":False, "dmarc":True}, dns_hostnames)
+                domain = trustymail.scan(self.base_domain_name, timeout, smtp_timeout, smtp_localhost, smtp_ports, smtp_cache, {"mx": False, "starttls": False, "spf": False, "dmarc": True}, dns_hostnames)
                 Domain.base_domains[self.base_domain_name] = domain
             self.base_domain = Domain.base_domains[self.base_domain_name]
         else:
@@ -61,7 +61,7 @@ class Domain:
         Returns True if any of the mail servers associated with this
         domain are listening and support SMTP.
         """
-        return len(filter(lambda x:self.starttls_results[x]["supports_smtp"],
+        return len(filter(lambda x: self.starttls_results[x]["supports_smtp"],
                           self.starttls_results.keys())) > 0
 
     def has_starttls(self):
@@ -69,7 +69,7 @@ class Domain:
         Returns True if any of the mail servers associated with this
         domain are listening and support STARTTLS.
         """
-        return len(filter(lambda x:self.starttls_results[x]["starttls"],
+        return len(filter(lambda x: self.starttls_results[x]["starttls"],
                           self.starttls_results.keys())) > 0
 
     def has_spf(self):
@@ -108,12 +108,11 @@ class Domain:
                 return self.base_domain.get_dmarc_policy()
         return self.dmarc_policy
 
-
     def generate_results(self):
         mail_servers_that_support_smtp = [x for x in self.starttls_results.keys() if self.starttls_results[x]["supports_smtp"]]
         mail_servers_that_support_starttls = [x for x in self.starttls_results.keys() if self.starttls_results[x]["starttls"]]
         domain_supports_smtp = bool(mail_servers_that_support_starttls)
-        
+
         results = {
             "Domain": self.domain_name,
             "Base Domain": self.base_domain_name,
@@ -142,10 +141,10 @@ class Domain:
             "Valid DMARC Record on Base Domain": self.parent_has_dmarc() and self.parent_valid_dmarc(),
             "DMARC Results on Base Domain": self.parent_dmarc_results(),
             "DMARC Policy": self.get_dmarc_policy(),
-            
+
             "Syntax Errors": self.format_list(self.syntax_errors),
             "Errors": self.format_list(self.errors)
-            }
+        }
 
         return results
 
