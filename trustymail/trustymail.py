@@ -7,9 +7,8 @@ import datetime
 import json
 import socket
 
-from DNS import dnslookup
-from DNS import DNSError
 import DNS
+import dns.resolver
 
 from trustymail.domain import Domain
 
@@ -22,7 +21,7 @@ CSV_HEADERS = [
     "DMARC Record", "Valid DMARC", "DMARC Results",
     "DMARC Record on Base Domain", "Valid DMARC Record on Base Domain",
     "DMARC Results on Base Domain", "DMARC Policy",
-    "Syntax Errors"
+    "Syntax Errors", "Errors"
 ]
 
 # A cache for SMTP scanning results
@@ -39,34 +38,34 @@ def domain_list_from_url(url):
 
 
 def domain_list_from_csv(csv_file):
-        domain_list = list(csv.reader(csv_file, delimiter=','))
+    domain_list = list(csv.reader(csv_file, delimiter=','))
 
-        # Check the headers for the word domain - use that row.
+    # Check the headers for the word domain - use that row.
 
-        domain_column = 0
+    domain_column = 0
 
-        for i in range(0, len(domain_list[0])):
-            header = domain_list[0][i]
-            if "domain" in header.lower():
-                domain_column = i
-                # CSV starts with headers, remove first row.
-                domain_list.pop(0)
-                break
+    for i in range(0, len(domain_list[0])):
+        header = domain_list[0][i]
+        if "domain" in header.lower():
+            domain_column = i
+            # CSV starts with headers, remove first row.
+            domain_list.pop(0)
+            break
 
-        domains = []
-        for row in domain_list:
-            domains.append(row[domain_column])
+    domains = []
+    for row in domain_list:
+        domains.append(row[domain_column])
 
-        return domains
+    return domains
 
 
-def mx_scan(domain):
+def mx_scan(resolver, domain):
     try:
-        for record in dnslookup(domain.domain_name, 'MX'):
-            # Redirects will be presented as str of the redirect.
-            if isinstance(record, tuple):
-                domain.add_mx_record(record)
-    except DNSError as error:
+        # Use TCP, since we care about the content and correctness of the
+        # records more than whether their records fit in a single UDP packet.
+        for record in resolver.query(domain.domain_name, 'MX', tcp=True):
+            domain.add_mx_record(record)
+    except (dns.resolver.NoNameservers, dns.resolver.NoAnswer, dns.exception.Timeout, dns.resolver.NXDOMAIN) as error:
         handle_error("[MX]", domain, error)
 
 
@@ -166,13 +165,13 @@ def starttls_scan(domain, smtp_timeout, smtp_localhost, smtp_ports, smtp_cache):
                 # Copy the cached results into the domain object
                 domain.starttls_results[server_and_port] = _SMTP_CACHE[server_and_port]
 
-
-def spf_scan(domain):
+            
+def spf_scan(resolver, domain):
     try:
-        # for record in resolver.query(domain.domain_name, 'TXT'):
-        for record in dnslookup(domain.domain_name, 'TXT'):
-
-            record_text = record_to_str(record)
+        # Use TCP, since we care about the content and correctness of the
+        # records more than whether their records fit in a single UDP packet.
+        for record in resolver.query(domain.domain_name, 'TXT', tcp=True):
+            record_text = record.to_text()
 
             if record_text.startswith("\""):
                 record_text = record_text[1:-1]
@@ -197,7 +196,15 @@ def spf_scan(domain):
                 result = "neutral"
 
             try:
-                query = spf.query("127.0.0.1", "email_wizard@" + domain.domain_name, domain.domain_name, strict=2)
+                # Here I am using the IP address for c1b1.ncats.cyber.dhs.gov
+                # (64.69.57.18) since it (1) has a valid PTR record and (2) is
+                # not listed by anyone as a valid mail server.
+                #
+                # I'm actually temporarily using an IP that
+                # virginia.edu resolves to until we resolve why Google
+                # DNS does not return the same PTR records as the CAL
+                # DNS does for 64.69.57.18.
+                query = spf.query("128.143.22.36", "email_wizard@" + domain.domain_name, domain.domain_name, strict=2)
                 response = query.check()
             except spf.AmbiguityWarning as error:
                 logging.debug("\t" + error.msg)
@@ -221,27 +228,26 @@ def spf_scan(domain):
                 logging.debug("\tResult Differs: Expected [{0}] - Actual [{1}]".format(result, response[0]))
                 domain.errors.append("Result Differs: Expected [{0}] - Actual [{1}]".format(result, response[0]))
 
-    except DNSError as error:
+    except (dns.resolver.NoNameservers, dns.resolver.NoAnswer, dns.exception.Timeout, dns.resolver.NXDOMAIN) as error:
         handle_error("[SPF]", domain, error)
 
 
-def dmarc_scan(domain):
+def dmarc_scan(resolver, domain):
     # dmarc records are kept in TXT records for _dmarc.domain_name.
     try:
         dmarc_domain = '_dmarc.%s' % domain.domain_name
-        for record in dnslookup(dmarc_domain, 'TXT'):
+        # Use TCP, since we care about the content and correctness of the
+        # records more than whether their records fit in a single UDP packet.
+        for record in resolver.query(dmarc_domain, 'TXT', tcp=True):
+            record_text = record.to_text().strip('"')
 
-            record_text = record_to_str(record)
-
-            if record_text.startswith("\""):
-                record_text = record[1:-1]
-
-            # Ensure the record is a DMARC record. Some domains that redirect will cause an SPF record to show.
+            # Ensure the record is a DMARC record. Some domains that
+            # redirect will cause an SPF record to show.
             if record_text.startswith("v=DMARC1"):
                 domain.dmarc.append(record_text)
 
-            # Remove excess spacing
-            record_text = record_text.strip(" ")
+            # Remove excess whitespace
+            record_text = record_text.strip()
 
             # DMARC records follow a specific outline as to how they are defined - tag:value
             # We can split this up into a easily manipulatable
@@ -260,51 +266,75 @@ def dmarc_scan(domain):
                 elif tag == "p":
                     domain.dmarc_policy = tag_dict[tag]
 
-    except DNSError as error:
+    except (dns.resolver.NoNameservers, dns.resolver.NoAnswer, dns.exception.Timeout, dns.resolver.NXDOMAIN) as error:
         handle_error("[DMARC]", domain, error)
 
 
 def find_host_from_ip(ip_addr):
-    return DNS.revlookup(ip_addr)
+    # Use TCP, since we care about the content and correctness of the records
+    # more than whether their records fit in a single UDP packet.
+    hostname, _ =  resolver.query(reversename.from_address(ip_addr), "PTR", tcp=True)
+    return str(hostname)
 
 
-def scan(domain_name, timeout, smtp_timeout, smtp_localhost, smtp_ports, smtp_cache, scan_types):
-    domain = Domain(domain_name)
+def scan(domain_name, timeout, smtp_timeout, smtp_localhost, smtp_ports, smtp_cache, scan_types, dns_hostnames):
+    #
+    # Configure the dnspython library
+    #
+    
+    # Set some timeouts
+    dns.resolver.timeout = float(timeout)
+    dns.resolver.lifetime = float(timeout)
+    
+    # Our resolver
+    #
+    # Note that it uses the system configuration in /etc/resolv.conf
+    # if no DNS hostnames are specified.
+    resolver = dns.resolver.Resolver(configure=not dns_hostnames)
+    # Retry queries if we receive a SERVFAIL response.  This may only indicate
+    # a temporary network problem.
+    resolver.retry_servfail = True
+    # If the user passed in DNS hostnames to query against then use them
+    if dns_hostnames:
+        resolver.nameservers = dns_hostnames
 
-    logging.debug("[{0}]".format(domain_name))
-
+    #
+    # The spf library uses py3dns behind the scenes, so we need to configure
+    # that too
+    #
     DNS.defaults['timeout'] = timeout
+    # Use TCP instead of UDP
+    DNS.defaults['protocol'] = 'tcp'
+    # If the user passed in DNS hostnames to query against then use them
+    if dns_hostnames:
+        DNS.defaults['server'] = dns_hostnames
+
+    # Domain's constructor needs all these parameters because it does a DMARC
+    # scan in its init
+    domain = Domain(domain_name, timeout, smtp_timeout, smtp_localhost, smtp_ports, smtp_cache, dns_hostnames)
+
+    logging.debug("[{0}]".format(domain_name.lower()))
 
     if scan_types["mx"] and domain.is_live:
-        mx_scan(domain)
+        mx_scan(resolver, domain)
 
     if scan_types["starttls"] and domain.is_live:
         starttls_scan(domain, smtp_timeout, smtp_localhost, smtp_ports, smtp_cache)
 
     if scan_types["spf"] and domain.is_live:
-        spf_scan(domain)
+        spf_scan(resolver, domain)
 
     if scan_types["dmarc"] and domain.is_live:
-        dmarc_scan(domain)
+        dmarc_scan(resolver, domain)
 
     # If the user didn't specify any scans then run a full scan.
     if domain.is_live and not (scan_types["mx"] or scan_types["starttls"] or scan_types["spf"] or scan_types["dmarc"]):
-        mx_scan(domain)
+        mx_scan(resolver, domain)
         starttls_scan(domain, smtp_timeout, smtp_localhost, smtp_ports, smtp_cache)
-        spf_scan(domain)
-        dmarc_scan(domain)
+        spf_scan(resolver, domain)
+        dmarc_scan(resolver, domain)
 
     return domain
-
-
-def record_to_str(record):
-    if isinstance(record, list):
-        record = b''.join(record)
-
-    if isinstance(record, bytes):
-        record = record.decode('utf-8')
-
-    return record
 
 
 def handle_error(prefix, domain, error):
