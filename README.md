@@ -1,5 +1,8 @@
 ## Trustworthy Mail
 
+[![Build Status](https://travis-ci.org/dhs-ncats/trustymail.svg?branch=master)](https://travis-ci.org/dhs-ncats/trustymail)
+[![Coverage Status](https://coveralls.io/repos/github/dhs-ncats/trustymail/badge.svg?branch=master)](https://coveralls.io/github/dhs-ncats/trustymail?branch=master)
+
 `trustymail` is a tool that evaluates SPF/DMARC records set in a
 domain's DNS. It also checks the mail servers listed in a domain's MX
 records for STARTTLS support. It saves its results to CSV or JSON.
