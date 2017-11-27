@@ -180,11 +180,11 @@ def check_spf_record(record_text, expected_result, domain):
     ----------
     record_text : str
         The text of the SPF record to be tested.
-        
+
     expected_result : str
         The expected result of the test.
 
-    domain : trustymail.Domain 
+    domain : trustymail.Domain
         The Domain object corresponding to the SPF record being
         tested.  Any errors will be logged to this object.
     """
@@ -221,7 +221,7 @@ def check_spf_record(record_text, expected_result, domain):
 
 def get_spf_record_text(resolver, domain_name, domain, follow_redirect=False):
     """
-    Get the SPF record text for the given domain name. 
+    Get the SPF record text for the given domain name.
 
     DNS queries are performed using the dns.resolver.Resolver object.
     Errors are logged to the trustymail.Domain object.  The Boolean
@@ -231,11 +231,11 @@ def get_spf_record_text(resolver, domain_name, domain, follow_redirect=False):
     ----------
     resolver : dns.resolver.Resolver
         The Resolver object to use for DNS queries.
-        
+
     domain_name : str
         The domain name to query for an SPF record.
 
-    domain : trustymail.Domain 
+    domain : trustymail.Domain
         The Domain object whose corresponding SPF record text is
         desired.  Any errors will be logged to this object.
 
@@ -280,8 +280,8 @@ def spf_scan(resolver, domain):
     ----------
     resolver : dns.resolver.Resolver
         The Resolver object to use for DNS queries.
-        
-    domain : trustymail.Domain 
+
+    domain : trustymail.Domain
         The Domain object being scanned for SPF support.  Any errors
         will be logged to this object.
     """
@@ -290,7 +290,7 @@ def spf_scan(resolver, domain):
     record_text_not_following_redirect = get_spf_record_text(resolver, domain.domain_name, domain)
     if record_text_not_following_redirect:
         domain.spf.append(record_text_not_following_redirect)
-    
+
     record_text_following_redirect = get_spf_record_text(resolver, domain.domain_name, domain, True)
     if record_text_following_redirect:
         # From the found record grab the specific result when something
