@@ -1,17 +1,23 @@
 language: python
+
 sudo: false
+
 python:
-- '3.4'
-- '3.5'
-- '3.6'
+  - '3.4'
+  - '3.5'
+  - '3.6'
+
 install:
-- pip install flake8 pytest-cov pytest coveralls
-- pip install -e .
+  - pip install flake8 pytest-cov pytest coveralls
+  - pip install -e .
+
 script:
-- pytest --cov=trustymail
-- flake8 .
+  - pytest --cov=trustymail
+  - flake8 .
+
 after_success:
-- coveralls
+  - coveralls
+
 deploy:
   provider: pypi
   user: hmft
