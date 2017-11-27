@@ -19,5 +19,6 @@ deploy:
     secure: fhEGmCpVdBm/ae4RZXZL7hyiWzx8huFEWJe4YIF/2Qip0BgDlMDfQPoJ/8/DnsuG/+2GC3EEc0ZIl14RwBJ+bn0O+nfcNDsnKTK1ZNK5gtnd+AodHpROT5GUDxl6vb43BShDZm1nc7GaSI0udnpKKB/9xxGc6I1vF6O93VOSziGE7T2BKD1XeyiSHDHXfwT40KIUV8a8yEbjJYvAiVMLKsgxLA/m98Q2kzjqUoCwyAEsLMPaCHKo32DJNLULY+jJ6xTmXqtKRA/w+J5na1TY57RmXlp5kXs/1U44je4Brok0bKOghQfCYW23uB8q1M1GlduexwG6mgWvwJDNp4HKzKswrYG4VUd4SF07Bs7BFZbIuJONYN9xmD/obWQWwNmIoOWa89EOov6/Rp+d4yd15fm+IyO6vnkDBu6HmlyzJDVtIfXWsMnHKkCQtLb35g7CoRKOB6cnp9uvtixjity1caFFL6FnyRMaa2rXpD93Hgs65upAawMkuOROtYlkehBA/Pu2KglllPHpa/kXV6rw+YUKRpm/7sYc1ZykMwGFK2ZF0Rk1de49zrKP4fj1qj1jzD3nFalFi1JExRYwSbDPSVF/Q/ouSKzZ2HhvEPYXTW5E7YQhprDoNT889vNg1oSeTOh7Plk+L0Ukf+YFKMAZMxHn3W1QXnFV+dnCjINpLUY=
   on:
     tags: true
+    branch: master
     distributions: sdist bdist_wheel
     repo: dhs-ncats/trustymail
