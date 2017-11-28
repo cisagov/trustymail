@@ -1,5 +1,6 @@
 import csv
 import datetime
+import inspect
 import json
 import logging
 import re
@@ -72,8 +73,7 @@ def mx_scan(resolver, domain):
 
 
 def starttls_scan(domain, smtp_timeout, smtp_localhost, smtp_ports, smtp_cache):
-    """
-    Scan a domain to see if it supports SMTP and supports STARTTLS.
+    """Scan a domain to see if it supports SMTP and supports STARTTLS.
 
     Scan a domain to see if it supports SMTP.  If the domain does support
     SMTP, a further check will be done to see if it supports STARTTLS.
@@ -169,8 +169,7 @@ def starttls_scan(domain, smtp_timeout, smtp_localhost, smtp_ports, smtp_cache):
 
 
 def check_spf_record(record_text, expected_result, domain):
-    """
-    Test to see if an SPF record is valid and correct.
+    """Test to see if an SPF record is valid and correct.
 
     The record is tested by checking the response when we query if it
     allows us to send mail from an IP that is known not to be a mail
@@ -196,32 +195,28 @@ def check_spf_record(record_text, expected_result, domain):
         # I'm actually temporarily using an IP that virginia.edu resolves to
         # until we resolve why Google DNS does not return the same PTR records
         # as the CAL DNS does for 64.69.57.18.
-        query = spf.query("128.143.22.36", "email_wizard@" + domain.domain_name, domain.domain_name, strict=2)
+        query = spf.query('128.143.22.36', 'email_wizard@' + domain.domain_name, domain.domain_name, strict=2)
         response = query.check()
 
         if response[0] == 'temperror':
             logging.debug(response[2])
         elif response[0] == 'permerror':
-            logging.debug('\t' + response[2])
-            domain.syntax_errors.append(response[2])
+            handle_syntax_error('[SPF]', domain, response[2])
         elif response[0] == 'ambiguous':
-            logging.debug('\t' + response[2])
-            domain.syntax_errors.append(response[2])
+            handle_syntax_error('[SPF]', domain, response[2])
         elif response[0] == expected_result:
             # Everything checks out the SPF syntax seems valid.
             domain.valid_spf = True
         else:
             domain.valid_spf = False
-            logging.debug('\tResult Differs: Expected [{0}] - Actual [{1}]'.format(expected_result, response[0]))
-            domain.errors.append('Result Differs: Expected [{0}] - Actual [{1}]'.format(expected_result, response[0]))
+            msg = 'Result Differs: Expected [{0}] - Actual [{1}]'.format(expected_result, response[0])
+            handle_error('[SPF]', domain, msg)
     except spf.AmbiguityWarning as error:
-        logging.debug('\t' + error.msg)
-        domain.syntax_errors.append(error.msg)
+        handle_syntax_error('[SPF]', domain, error)
 
 
 def get_spf_record_text(resolver, domain_name, domain, follow_redirect=False):
-    """
-    Get the SPF record text for the given domain name.
+    """Get the SPF record text for the given domain name.
 
     DNS queries are performed using the dns.resolver.Resolver object.
     Errors are logged to the trustymail.Domain object.  The Boolean
@@ -271,8 +266,7 @@ def get_spf_record_text(resolver, domain_name, domain, follow_redirect=False):
 
 
 def spf_scan(resolver, domain):
-    """
-    Scan a domain to see if it supports SPF.  If the domain has an SPF
+    """Scan a domain to see if it supports SPF.  If the domain has an SPF
     record, verify that it properly rejects mail sent from an IP known
     to be disallowed.
 
@@ -339,7 +333,7 @@ def dmarc_scan(resolver, domain):
 
             for tag in tag_dict:
                 if tag not in ["v", "mailto", "rf", "p", "sp", "adkim", "aspf", "fo", "pct", "ri", "rua", "ruf"]:
-                    logging.debug("\tWarning: Unknown DMARC mechanism {0}".format(tag))
+                    handle_error('[DMARC]', domain, 'Warning: Unknown DMARC mechanism {0}'.format(tag))
                     domain.valid_dmarc = False
                 elif tag == "p":
                     domain.dmarc_policy = tag_dict[tag]
@@ -415,15 +409,33 @@ def scan(domain_name, timeout, smtp_timeout, smtp_localhost, smtp_ports, smtp_ca
     return domain
 
 
-def handle_error(prefix, domain, error):
-    if hasattr(error, "message"):
-        if "NXDOMAIN" in error.message and prefix != "[DMARC]":
+def handle_error(prefix, domain, error, syntax_error=False):
+    # Get the previous frame in the stack - the one that is calling
+    # this function
+    frame = inspect.currentframe().f_back
+    function = frame.f_code
+    function_name = function.co_name
+    filename = function.co_filename
+    line = frame.f_lineno
+
+    error_template = '{prefix} In {filename}:{line} in {function_name}: {error}'
+
+    if hasattr(error, 'message'):
+        if syntax_error and 'NXDOMAIN' in error.message and prefix != '[DMARC]':
             domain.is_live = False
-        domain.debug.append(error.message)
-        logging.debug("  {0} {1}".format(prefix, error.message))
+        error_string = error_template.format(prefix=prefix, function_name=function_name, line=line, filename=filename, error=error.message)
     else:
-        domain.debug.append(str(error))
-        logging.debug("  {0} {1}".format(prefix, str(error)))
+        error_string = error_template.format(prefix=prefix, function_name=function_name, line=line, filename=filename, error=str(error))
+
+    if syntax_error:
+        domain.syntax_errors.append(error_string)
+    else:
+        domain.debug.append(error_string)
+    logging.debug(error_string)
+
+
+def handle_syntax_error(prefix, domain, error):
+    handle_error(prefix, domain, error, syntax_error=True)
 
 
 def generate_csv(domains, file_name):
