@@ -144,7 +144,7 @@ class Domain:
 
             "Syntax Errors": self.format_list(self.syntax_errors),
             "Debug": self.format_list(self.debug)
-            }
+        }
 
         return results
 
