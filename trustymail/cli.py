@@ -93,10 +93,10 @@ def main():
 
     # User might not want every scan performed.
     scan_types = {
-        "mx": args["--mx"],
-        "starttls": args["--starttls"],
-        "spf": args["--spf"],
-        "dmarc": args["--dmarc"]
+        'mx': args['--mx'],
+        'starttls': args['--starttls'],
+        'spf': args['--spf'],
+        'dmarc': args['--dmarc']
     }
 
     domain_scans = []
