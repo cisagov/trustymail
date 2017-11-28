@@ -198,18 +198,15 @@ def check_spf_record(record_text, expected_result, domain):
         query = spf.query('128.143.22.36', 'email_wizard@' + domain.domain_name, domain.domain_name, strict=2)
         response = query.check()
 
-        if response[0] == 'temperror':
-            logging.debug(response[2])
-        elif response[0] == 'permerror':
-            handle_syntax_error('[SPF]', domain, response[2])
-        elif response[0] == 'ambiguous':
-            handle_syntax_error('[SPF]', domain, response[2])
-        elif response[0] == expected_result:
-            # Everything checks out the SPF syntax seems valid.
+        response_type = response[0]
+        if response_type == 'temperror' or response_type == 'permerror' or response_type == 'ambiguous':
+            handle_error('[SPF]', domain, 'SPF query returned {}: {}'.format(response_type, response[2]))
+        elif response_type == expected_result:
+            # Everything checks out.  The SPF syntax seems valid
             domain.valid_spf = True
         else:
             domain.valid_spf = False
-            msg = 'Result Differs: Expected [{0}] - Actual [{1}]'.format(expected_result, response[0])
+            msg = 'Result unexpectedly differs: Expected [{}] - actual [{}]'.format(expected_result, response_type)
             handle_error('[SPF]', domain, msg)
     except spf.AmbiguityWarning as error:
         handle_syntax_error('[SPF]', domain, error)
@@ -418,7 +415,7 @@ def handle_error(prefix, domain, error, syntax_error=False):
     filename = function.co_filename
     line = frame.f_lineno
 
-    error_template = '{prefix} In {filename}:{line} in {function_name}: {error}'
+    error_template = '{prefix} In {function_name} at {filename}:{line}: {error}'
 
     if hasattr(error, 'message'):
         if syntax_error and 'NXDOMAIN' in error.message and prefix != '[DMARC]':
