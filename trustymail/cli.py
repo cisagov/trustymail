@@ -37,10 +37,10 @@ Notes:
 """
 from trustymail import __version__
 
-import logging
 import docopt
-import os
 import errno
+import logging
+import os
 
 from trustymail import trustymail
 
@@ -51,8 +51,10 @@ _DEFAULT_SMTP_PORTS = {25, 465, 587}
 def main():
     args = docopt.docopt(__doc__, version=__version__)
 
+    log_level = logging.WARN
     if args['--debug']:
-        logging.basicConfig(format='%(message)s', level=logging.DEBUG)
+        log_level = logging.DEBUG
+    logging.basicConfig(format='%(asctime)-15s %(message)s', level=log_level)
 
     # Allow for user to input a csv for many domain names.
     if args['INPUT'][0].endswith('.csv'):
