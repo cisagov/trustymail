@@ -1,5 +1,8 @@
 ## Trustworthy Mail
 
+[![Build Status](https://travis-ci.org/dhs-ncats/trustymail.svg?branch=master)](https://travis-ci.org/dhs-ncats/trustymail)
+[![Coverage Status](https://coveralls.io/repos/github/dhs-ncats/trustymail/badge.svg?branch=master)](https://coveralls.io/github/dhs-ncats/trustymail?branch=master)
+
 `trustymail` is a tool that evaluates SPF/DMARC records set in a
 domain's DNS. It also checks the mail servers listed in a domain's MX
 records for STARTTLS support. It saves its results to CSV or JSON.
@@ -59,7 +62,7 @@ output will always be written to disk, defaulting to `results.csv`.
                               servers.  (Default is the FQDN of the host from
                               which trustymail is being run.)
   --smtp-ports=PORTS          A comma-delimited list of ports at which to look 
-                              for SMTP servers.  (Default is "25,465,587".)
+                              for SMTP servers.  (Default is '25,465,587'.)
   --no-smtp-cache             Do not cache SMTP results during the run.  This 
                               may results in slower scans due to testing the 
                               same mail servers multiple times.
@@ -69,12 +72,14 @@ output will always be written to disk, defaulting to `results.csv`.
   --spf                       Only check spf records
   --dmarc                     Only check dmarc records
   --debug                     Output should include error messages.
-  --dns-hostnames=HOSTNAMES   A comma-delimited list of DNS servers to query 
+  --dns=HOSTNAMES             A comma-delimited list of DNS servers to query 
                               against.  For example, if you want to use 
                               Google's DNS then you would use the 
                               value --dns-hostnames='8.8.8.8,8.8.4.4'.  By 
-                              default the DNS configuration of the host OS are 
-                              used.
+                              default the DNS configuration of the host OS 
+                              (/etc/resolv.conf) is used.  Note that 
+                              the host's DNS configuration is not used at all 
+                              if this option is used.
 ```
 
 ## What's Checked?
