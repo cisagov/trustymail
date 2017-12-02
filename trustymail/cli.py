@@ -22,7 +22,7 @@ Options:
   --spf                       Only check spf records
   --dmarc                     Only check dmarc records
   --json                      Output is in json format (default csv)
-  --debug                     Output should include error messages.
+  --debug                     Output should include more verbose logging.
   --dns-hostnames=HOSTNAMES   A comma-delimited list of DNS servers to query
                               against.  For example, if you want to use
                               Google's DNS then you would use the

@@ -24,7 +24,7 @@ CSV_HEADERS = [
     'DMARC Record', 'Valid DMARC', 'DMARC Results',
     'DMARC Record on Base Domain', 'Valid DMARC Record on Base Domain',
     'DMARC Results on Base Domain', 'DMARC Policy',
-    'Syntax Errors', 'Debug'
+    'Syntax Errors', 'Debug Info'
 ]
 
 # A cache for SMTP scanning results
@@ -408,11 +408,11 @@ def scan(domain_name, timeout, smtp_timeout, smtp_localhost, smtp_ports, smtp_ca
 
 def handle_error(prefix, domain, error, syntax_error=False):
     """Handle an error by logging via the Python logging library and
-    recording it in the debug or syntax_error members of the
+    recording it in the debug_info or syntax_error members of the
     trustymail.Domain object.
 
-    Since the "Debug" and "Syntax Error" fields in the CSV output of
-    trustymail come directly from the debug and syntax_error members
+    Since the "Debug Info" and "Syntax Error" fields in the CSV output of
+    trustymail come directly from the debug_info and syntax_error members
     of the trustymail.Domain object, and that CSV is likely all we
     will have to reconstruct how trustymail reached the conclusions it
     did, it is vital to record as much helpful information as
@@ -458,7 +458,7 @@ def handle_error(prefix, domain, error, syntax_error=False):
     if syntax_error:
         domain.syntax_errors.append(error_string)
     else:
-        domain.debug.append(error_string)
+        domain.debug_info.append(error_string)
     logging.debug(error_string)
 
 

@@ -48,7 +48,7 @@ class Domain:
         self.starttls_results = {}
 
         # A list of any debugging information collected while scanning records.
-        self.debug = []
+        self.debug_info = []
 
         # A list of the ports tested for SMTP
         self.ports_tested = set()
@@ -143,7 +143,7 @@ class Domain:
             'DMARC Policy': self.get_dmarc_policy(),
 
             'Syntax Errors': self.format_list(self.syntax_errors),
-            'Debug': self.format_list(self.debug)
+            'Debug Info': self.format_list(self.debug_info)
         }
 
         return results
