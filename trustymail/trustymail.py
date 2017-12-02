@@ -411,12 +411,12 @@ def handle_error(prefix, domain, error, syntax_error=False):
     recording it in the debug_info or syntax_error members of the
     trustymail.Domain object.
 
-    Since the "Debug Info" and "Syntax Error" fields in the CSV output of
-    trustymail come directly from the debug_info and syntax_error members
-    of the trustymail.Domain object, and that CSV is likely all we
-    will have to reconstruct how trustymail reached the conclusions it
-    did, it is vital to record as much helpful information as
-    possible.
+    Since the "Debug Info" and "Syntax Error" fields in the CSV output
+    of trustymail come directly from the debug_info and syntax_error
+    members of the trustymail.Domain object, and that CSV is likely
+    all we will have to reconstruct how trustymail reached the
+    conclusions it did, it is vital to record as much helpful
+    information as possible.
 
     Parameters
     ----------
