@@ -35,13 +35,16 @@ Options:
 Notes:
    If no scan type options are specified, all are run against a given domain/input.
 """
-from trustymail import __version__
-
-import docopt
+# Built-in imports
 import errno
 import logging
 import os
 
+# Dependency imports
+import docopt
+
+# Local imports
+from trustymail import __version__
 from trustymail import trustymail
 
 # The default ports to be checked to see if an SMTP server is listening.
