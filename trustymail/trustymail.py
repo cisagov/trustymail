@@ -407,6 +407,37 @@ def scan(domain_name, timeout, smtp_timeout, smtp_localhost, smtp_ports, smtp_ca
 
 
 def handle_error(prefix, domain, error, syntax_error=False):
+    """Handle an error by logging via the Python logging library and
+    recording it in the debug or syntax_error members of the
+    trustymail.Domain object.
+
+    Since the "Debug" and "Syntax Error" fields in the CSV output of
+    trustymail come directly from the debug and syntax_error members
+    of the trustymail.Domain object, and that CSV is likely all we
+    will have to reconstruct how trustymail reached the conclusions it
+    did, it is vital to record as much helpful information as
+    possible.
+
+    Parameters
+    ----------
+    prefix : str
+        The prefix to use when constructing the log string.  This is
+        usually the type of trustymail test that was being performed
+        when the error condition occurred.
+
+    domain : trustymail.Domain
+        The Domain object in which the error or syntax error should be
+        recorded.
+
+    error : str, BaseException, or Exception
+        Either a string describing the error, or an exception object
+        representing the error.
+
+    syntax_error : bool
+        If True then the error will be recorded in the syntax_error
+        member of the trustymail.Domain object.  Otherwise it is
+        recorded in the error member of the trustymail.Domain object.
+    """
     # Get the previous frame in the stack - the one that is calling
     # this function
     frame = inspect.currentframe().f_back
@@ -432,6 +463,9 @@ def handle_error(prefix, domain, error, syntax_error=False):
 
 
 def handle_syntax_error(prefix, domain, error):
+    """Convenience method for handle_error(prefix, domain, error,
+    syntax_error=True)
+    """
     handle_error(prefix, domain, error, syntax_error=True)
 
 
