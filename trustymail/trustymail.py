@@ -463,9 +463,7 @@ def handle_error(prefix, domain, error, syntax_error=False):
 
 
 def handle_syntax_error(prefix, domain, error):
-    """Convenience method for handle_error(prefix, domain, error,
-    syntax_error=True)
-    """
+    """Convenience method for handle_error"""
     handle_error(prefix, domain, error, syntax_error=True)
 
 
