@@ -22,7 +22,7 @@ Options:
   --spf                       Only check spf records
   --dmarc                     Only check dmarc records
   --json                      Output is in json format (default csv)
-  --debug                     Output should include error messages.
+  --debug                     Output should include more verbose logging.
   --dns-hostnames=HOSTNAMES   A comma-delimited list of DNS servers to query
                               against.  For example, if you want to use
                               Google's DNS then you would use the
@@ -35,13 +35,16 @@ Options:
 Notes:
    If no scan type options are specified, all are run against a given domain/input.
 """
-from trustymail import __version__
-
-import logging
-import docopt
-import os
+# Built-in imports
 import errno
+import logging
+import os
 
+# Dependency imports
+import docopt
+
+# Local imports
+from trustymail import __version__
 from trustymail import trustymail
 
 # The default ports to be checked to see if an SMTP server is listening.
@@ -51,8 +54,10 @@ _DEFAULT_SMTP_PORTS = {25, 465, 587}
 def main():
     args = docopt.docopt(__doc__, version=__version__)
 
+    log_level = logging.WARN
     if args['--debug']:
-        logging.basicConfig(format='%(message)s', level=logging.DEBUG)
+        log_level = logging.DEBUG
+    logging.basicConfig(format='%(asctime)-15s %(message)s', level=log_level)
 
     # Allow for user to input a csv for many domain names.
     if args['INPUT'][0].endswith('.csv'):
@@ -91,10 +96,10 @@ def main():
 
     # User might not want every scan performed.
     scan_types = {
-        "mx": args["--mx"],
-        "starttls": args["--starttls"],
-        "spf": args["--spf"],
-        "dmarc": args["--dmarc"]
+        'mx': args['--mx'],
+        'starttls': args['--starttls'],
+        'spf': args['--spf'],
+        'dmarc': args['--dmarc']
     }
 
     domain_scans = []

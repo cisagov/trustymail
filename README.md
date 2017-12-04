@@ -143,10 +143,12 @@ The following values are returned in `results.csv`:
 
 #### Etc.
 
-* `Syntax Errors` - A list of syntax errors that were detected when
-  scanning DMARC or SPF records, or checking for STARTTLS support.
-* `Errors` - A list of any other errors encountered, such as DNS
-  failures.
+* `Syntax Errors` - A list of syntax errors that were encountered when
+  analyzing SPF records.
+* `Debug` - A list of any other warnings or errors encountered, such
+  as DNS failures.  These can be helpful when determining how
+  `trustymail` reached its conclusions, and are indispensible for bug
+  reports.
 
 ## Public domain
 
