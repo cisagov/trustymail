@@ -85,28 +85,33 @@ class Domain:
         self.mail_servers.append(record.exchange.to_text().rstrip('.').lower())
 
     def parent_has_dmarc(self):
-        if self.base_domain is None:
-            return None
-        return self.base_domain.has_dmarc()
+        ans = self.has_dmarc()
+        if self.base_domain:
+            ans = self.base_domain.has_dmarc()
+        return ans
 
     def parent_valid_dmarc(self):
-        if self.base_domain is None:
-            return None
-        return self.base_domain.valid_dmarc
+        ans = self.valid_dmarc
+        if self.base_domain:
+            return self.base_domain.valid_dmarc
+        return ans
 
     def parent_dmarc_results(self):
-        if self.base_domain is None:
-            return None
-        return self.format_list(self.base_domain.dmarc)
+        ans = self.format_list(self.dmarc)
+        if self.base_domain:
+            ans = self.format_list(self.base_domain.dmarc)
+        return ans
 
     def get_dmarc_policy(self):
-        # If the policy was never set, or isn't in the list of valid policies, check the parents.
-        if self.dmarc_policy is None or self.dmarc_policy.lower() not in ['quarantine', 'reject', 'none']:
-            if self.base_domain is None:
-                return ''
+        ans = self.dmarc_policy
+        # If the policy was never set, or isn't in the list of valid
+        # policies, check the parents.
+        if ans is None or ans.lower() not in ['quarantine', 'reject', 'none']:
+            if self.base_domain:
+                ans = self.base_domain.get_dmarc_policy()
             else:
-                return self.base_domain.get_dmarc_policy()
-        return self.dmarc_policy
+                ans = None
+        return ans
 
     def generate_results(self):
         mail_servers_that_support_smtp = [x for x in self.starttls_results.keys() if self.starttls_results[x]['supports_smtp']]
