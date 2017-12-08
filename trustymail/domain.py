@@ -110,7 +110,7 @@ class Domain:
             if self.base_domain:
                 ans = self.base_domain.get_dmarc_policy()
             else:
-                ans = ''
+                ans = None
         return ans
 
     def generate_results(self):
