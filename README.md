@@ -140,6 +140,12 @@ The following values are returned in `results.csv`:
 * `DMARC Policy` - An adjudication, based on any policies found in
   `DMARC Results` and `DMARC Results on Base Domain`, of the relevant
   DMARC policy that applies.
+* `DMARC Policy Percentage` - The percentage of mail that should be subjected to the `DMARC Policy`
+according to the `DMARC Results`.
+* `DMARC Has Aggregate Report URI` - A boolean value that indicates if `DMARC Results` included `rua` URIs
+that tell recipients where to send DMARC aggregate reports
+* `DMARC Has Forensic Report URI` - A boolean value that indicates if `DMARC Results` included `ruf` URIs
+that tell recipients where to send DMARC forensic reports 
 
 #### Etc.
 
