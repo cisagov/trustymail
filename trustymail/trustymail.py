@@ -415,18 +415,18 @@ def dmarc_scan(resolver, domain):
                                 try:
                                     answer = resolver.query(target, "TXT", tcp=True)[0].to_text().strip('"')
                                     if not answer.startswith("v=DMARC1"):
-                                        handle_syntax_error('[DMARC]', domain, '{0}'.format(error_message))
+                                        handle_error('[DMARC]', domain, '{0}'.format(error_message))
                                         domain.valid_dmarc = False
                                 except (dns.resolver.NXDOMAIN, dns.resolver.NoAnswer):
-                                    handle_syntax_error('[DMARC]', domain, '{0}'.format(error_message))
+                                    handle_error('[DMARC]', domain, '{0}'.format(error_message))
                                     domain.valid_dmarc = False
                                 try:
                                     # Ensure ruf/rua/email domains have MX records
                                     resolver.query(email_domain, "MX", tcp=True)
                                 except (dns.resolver.NXDOMAIN, dns.resolver.NoAnswer):
-                                    handle_syntax_error('[DMARC]', domain, 'The domain for reporting '
-                                                                           'address {0} does not have any '
-                                                                           'MX records'.format(email_address))
+                                    handle_error('[DMARC]', domain, 'The domain for reporting '
+                                                                    'address {0} does not have any '
+                                                                    'MX records'.format(email_address))
                                     domain.valid_dmarc = False
 
     except (dns.resolver.NoNameservers, dns.resolver.NoAnswer, dns.exception.Timeout, dns.resolver.NXDOMAIN) as error:
