@@ -1,5 +1,6 @@
 from os import path, stat
 from datetime import datetime, timedelta
+from collections import OrderedDict
 
 import publicsuffix
 
@@ -155,42 +156,42 @@ class Domain:
         mail_servers_that_support_starttls = [x for x in self.starttls_results.keys() if self.starttls_results[x]['starttls']]
         domain_supports_smtp = bool(mail_servers_that_support_smtp)
 
-        results = {
-            'Domain': self.domain_name,
-            'Base Domain': self.base_domain_name,
-            'Live': self.is_live,
+        results = OrderedDict([
+            ('Domain', self.domain_name),
+            ('Base Domain', self.base_domain_name),
+            ('Live', self.is_live),
 
-            'MX Record': self.has_mail(),
-            'Mail Servers': self.format_list(self.mail_servers),
-            'Mail Server Ports Tested': self.format_list([str(port) for port in self.ports_tested]),
-            'Domain Supports SMTP Results': self.format_list(mail_servers_that_support_smtp),
+            ('MX Record', self.has_mail()),
+            ('Mail Servers', self.format_list(self.mail_servers)),
+            ('Mail Server Ports Tested', self.format_list([str(port) for port in self.ports_tested])),
+            ('Domain Supports SMTP Results', self.format_list(mail_servers_that_support_smtp)),
             # True if and only if at least one mail server speaks SMTP
-            'Domain Supports SMTP': domain_supports_smtp,
-            'Domain Supports STARTTLS Results': self.format_list(mail_servers_that_support_starttls),
+            ('Domain Supports SMTP', domain_supports_smtp),
+            ('Domain Supports STARTTLS Results', self.format_list(mail_servers_that_support_starttls)),
             # True if and only if all mail servers that speak SMTP
             # also support STARTTLS
-            'Domain Supports STARTTLS': domain_supports_smtp and all([self.starttls_results[x]['starttls'] for x in mail_servers_that_support_smtp]),
+            ('Domain Supports STARTTLS', domain_supports_smtp and all([self.starttls_results[x]['starttls'] for x in mail_servers_that_support_smtp])),
 
-            'SPF Record': self.has_spf(),
-            'Valid SPF': self.valid_spf,
-            'SPF Results': self.format_list(self.spf),
+            ('SPF Record', self.has_spf()),
+            ('Valid SPF', self.valid_spf),
+            ('SPF Results', self.format_list(self.spf)),
 
-            'DMARC Record': self.has_dmarc(),
-            'Valid DMARC': self.has_dmarc() and self.valid_dmarc,
-            'DMARC Results': self.format_list(self.dmarc),
+            ('DMARC Record', self.has_dmarc()),
+            ('Valid DMARC', self.has_dmarc() and self.valid_dmarc),
+            ('DMARC Results', self.format_list(self.dmarc)),
 
-            'DMARC Record on Base Domain': self.parent_has_dmarc(),
-            'Valid DMARC Record on Base Domain': self.parent_has_dmarc() and self.parent_valid_dmarc(),
-            'DMARC Results on Base Domain': self.parent_dmarc_results(),
-            'DMARC Policy': self.get_dmarc_policy(),
-            'DMARC Policy Percentage': self.dmarc_pct,
-            'DMARC Has Aggregate Report URI': self.dmarc_has_aggregate_uri,
-            'DMARC Has Forensic Report URI': self.dmarc_forensic_uri,
+            ('DMARC Record on Base Domain', self.parent_has_dmarc()),
+            ('Valid DMARC Record on Base Domain', self.parent_has_dmarc() and self.parent_valid_dmarc()),
+            ('DMARC Results on Base Domain', self.parent_dmarc_results()),
+            ('DMARC Policy', self.get_dmarc_policy()),
+            ('DMARC Policy Percentage', self.dmarc_pct),
+            ('DMARC Has Aggregate Report URI', self.dmarc_has_aggregate_uri),
+            ('DMARC Has Forensic Report URI', self.dmarc_forensic_uri),
 
 
-            'Syntax Errors': self.format_list(self.syntax_errors),
-            'Debug Info': self.format_list(self.debug_info)
-        }
+            ('Syntax Errors', self.format_list(self.syntax_errors)),
+            ('Debug Info', self.format_list(self.debug_info))
+        ])
 
         return results
 

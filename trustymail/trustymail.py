@@ -15,18 +15,6 @@ import dns.reversename
 
 from trustymail.domain import Domain
 
-CSV_HEADERS = [
-    'Domain', 'Base Domain', 'Live',
-    'MX Record', 'Mail Servers', 'Mail Server Ports Tested',
-    'Domain Supports SMTP', 'Domain Supports SMTP Results',
-    'Domain Supports STARTTLS', 'Domain Supports STARTTLS Results',
-    'SPF Record', 'Valid SPF', 'SPF Results',
-    'DMARC Record', 'Valid DMARC', 'DMARC Results',
-    'DMARC Record on Base Domain', 'Valid DMARC Record on Base Domain',
-    'DMARC Results on Base Domain', 'DMARC Policy',
-    'Syntax Errors', 'Debug Info'
-]
-
 # A cache for SMTP scanning results
 _SMTP_CACHE = {}
 
@@ -45,7 +33,7 @@ def domain_list_from_url(url):
 def domain_list_from_csv(csv_file):
     domain_list = list(csv.reader(csv_file, delimiter=','))
 
-    # Check the headers for the word domain - use that row.
+    # Check the headers for the word domain - use that column.
 
     domain_column = 0
 
@@ -564,25 +552,15 @@ def handle_syntax_error(prefix, domain, error):
 
 
 def generate_csv(domains, file_name):
-    output = open(file_name, 'w')
-    writer = csv.writer(output)
+    with open(file_name, 'w', encoding="utf-8", newline='\n') as output_file:
+        writer = csv.DictWriter(output_file, fieldnames=domains[0].generate_results().keys())
 
-    # First row should always be the headers
-    writer.writerow(CSV_HEADERS)
+        # First row should always be the headers
+        writer.writeheader()
 
-    for domain in domains:
-        row = []
-
-        # Grab the dictionary for each row.
-        # Keys for the dict are the column headers.
-        results = domain.generate_results()
-
-        for column in CSV_HEADERS:
-            row.append(results[column])
-
-        writer.writerow(row)
-
-    output.close()
+        for domain in domains:
+            writer.writerow(domain.generate_results())
+            output_file.flush()
 
 
 def generate_json(domains):
