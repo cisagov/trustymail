@@ -99,5 +99,5 @@ ENV/
 # PyCharm project settings
 .idea/
 
-# Coached Public Suffix List
+# Cached Public Suffix List
 *.dat
