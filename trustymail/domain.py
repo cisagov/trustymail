@@ -9,7 +9,10 @@ from trustymail import trustymail
 def get_psl():
     """
     Gets the Public Suffix List - either new, or cached in the CWD for 24 hours
-    :return: A PublicSuffixList object
+
+    Returns
+    -------
+    PublicSuffixList: An instance of PublicSuffixList loaded with a cached or updated list
     """
     psl_path = "public_suffix_list.dat"
 

@@ -347,7 +347,6 @@ def dmarc_scan(resolver, domain):
                 elif tag == 'p':
                     if tag_dict[tag] not in ["none", "quarantine", "reject"]:
                         msg = 'Unknown DMARC policy {0}'.format(tag)
-                        domain.syntax_errors.append(msg)
                         handle_syntax_error('[DMARC]', domain, '{0}'.format(msg))
                         domain.valid_dmarc = False
                     else:
@@ -392,7 +391,6 @@ def dmarc_scan(resolver, domain):
                         domain.dmarc_pct = pct
                     except ValueError:
                         msg = 'invalid DMARC pct tag value: {0} - must be an integer'.format(tag_dict[tag])
-                        domain.syntax_errors.append(msg)
                         handle_syntax_error('[DMARC]', domain, '{0}'.format(msg))
                         domain.valid_dmarc = False
                 elif tag == "rua" or tag == "ruf":
