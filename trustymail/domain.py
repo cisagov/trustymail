@@ -1,8 +1,39 @@
-from publicsuffix import PublicSuffixList
+from os import path, stat
+from datetime import datetime, timedelta
+
+import publicsuffix
 
 from trustymail import trustymail
 
-public_list = PublicSuffixList()
+
+def get_psl():
+    """
+    Gets the Public Suffix List - either new, or cached in the CWD for 24 hours
+    :return: A PublicSuffixList object
+    """
+    psl_path = "public_suffix_list.dat"
+
+    def download_psl():
+        fresh_psl = publicsuffix.fetch()
+        with open(psl_path, "w", encoding="utf-8") as fresh_psl_file:
+            fresh_psl_file.write(fresh_psl.read())
+
+        return publicsuffix.PublicSuffixList(fresh_psl)
+
+    if not path.exists(psl_path):
+        psl = download_psl()
+    else:
+        psl_age = datetime.now() - datetime.fromtimestamp(stat(psl_path).st_mtime)
+        if psl_age > timedelta(hours=24):
+            psl = download_psl()
+        else:
+            with open(psl_path, encoding="utf-8") as psl_file:
+                psl = publicsuffix.PublicSuffixList(psl_file)
+
+    return psl
+
+
+public_list = get_psl()
 
 
 class Domain:
@@ -31,6 +62,9 @@ class Domain:
         self.spf = []
         self.dmarc = []
         self.dmarc_policy = None
+        self.dmarc_pct = None
+        self.dmarc_has_aggregate_uri = False
+        self.dmarc_forensic_uri = False
 
         # Syntax validity - default spf to false as the lack of an SPF is a bad thing.
         self.valid_spf = False
@@ -146,6 +180,10 @@ class Domain:
             'Valid DMARC Record on Base Domain': self.parent_has_dmarc() and self.parent_valid_dmarc(),
             'DMARC Results on Base Domain': self.parent_dmarc_results(),
             'DMARC Policy': self.get_dmarc_policy(),
+            'DMARC Policy Percentage': self.dmarc_pct,
+            'DMARC Has Aggregate Report URI': self.dmarc_has_aggregate_uri,
+            'DMARC Has Forensic Report URI': self.dmarc_forensic_uri,
+
 
             'Syntax Errors': self.format_list(self.syntax_errors),
             'Debug Info': self.format_list(self.debug_info)
