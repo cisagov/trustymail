@@ -318,13 +318,13 @@ def dmarc_scan(resolver, domain):
                 value = options.split('=')[1].strip()
                 tag_dict[tag] = value
 
-            if "p" not in tag_dict:
-                tag_dict["p"] = "none"
-            if "sp" not in tag_dict:
-                tag_dict["sp"] = tag_dict["p"]
-            if "rua" not in tag_dict:
+            if 'p' not in tag_dict:
+                tag_dict['p'] = 'none'
+            if 'sp' not in tag_dict:
+                tag_dict['sp'] = tag_dict['p']
+            if 'rua' not in tag_dict:
                 domain.dmarc_has_aggregate_uri = True
-            if "ruf" not in tag_dict:
+            if 'ruf' not in tag_dict:
                 domain.dmarc_has_aggregate_uri = True
 
             for tag in tag_dict:
@@ -333,31 +333,31 @@ def dmarc_scan(resolver, domain):
                     handle_syntax_error('[DMARC]', domain, '{0}'.format(msg))
                     domain.valid_dmarc = False
                 elif tag == 'p':
-                    if tag_dict[tag] not in ["none", "quarantine", "reject"]:
+                    if tag_dict[tag] not in ['none', 'quarantine', 'reject']:
                         msg = 'Unknown DMARC policy {0}'.format(tag)
                         handle_syntax_error('[DMARC]', domain, '{0}'.format(msg))
                         domain.valid_dmarc = False
                     else:
                         domain.dmarc_policy = tag_dict[tag]
                 elif tag == 'sp':
-                    if tag_dict[tag] not in ["none", "quarantine", "reject"]:
+                    if tag_dict[tag] not in ['none', 'quarantine', 'reject']:
                         msg = 'Unknown DMARC subdomain policy {0}'.format(tag_dict[tag])
                         handle_syntax_error('[DMARC]', domain, '{0}'.format(msg))
                         domain.valid_dmarc = False
                 elif tag == 'fo':
-                    values = tag_dict[tag].split(":")
-                    if "0" in values and "1" in values:
+                    values = tag_dict[tag].split(':')
+                    if '0' in values and '1' in values:
                         msg = 'fo tag values 0 and 1 are mutually exclusive'
                         handle_syntax_error('[DMARC]', domain, '{0}'.format(msg))
                     for value in values:
-                        if value not in ["0", "1", "d", "s"]:
+                        if value not in ['0', '1', 'd', 's']:
                             msg = 'Unknown DMARC fo tag value {0}'.format(value)
                             handle_syntax_error('[DMARC]', domain, '{0}'.format(msg))
                             domain.valid_dmarc = False
                 elif tag == 'rf':
-                    values = tag_dict[tag].split(":")
+                    values = tag_dict[tag].split(':')
                     for value in values:
-                        if value not in ["afrf"]:
+                        if value not in ['afrf']:
                             msg = 'Unknown DMARC rf tag value {0}'.format(value)
                             handle_syntax_error('[DMARC]', domain, '{0}'.format(msg))
                             domain.valid_dmarc = False
@@ -381,8 +381,8 @@ def dmarc_scan(resolver, domain):
                         msg = 'invalid DMARC pct tag value: {0} - must be an integer'.format(tag_dict[tag])
                         handle_syntax_error('[DMARC]', domain, '{0}'.format(msg))
                         domain.valid_dmarc = False
-                elif tag == "rua" or tag == "ruf":
-                    uris = tag_dict[tag].split(",")
+                elif tag == 'rua' or tag == 'ruf':
+                    uris = tag_dict[tag].split(',')
                     for uri in uris:
                         # mailto: is currently the only type of DMARC URI
                         mailto_matches = MAILTO_REGEX.findall(uri)
@@ -392,17 +392,17 @@ def dmarc_scan(resolver, domain):
                             domain.valid_dmarc = False
                         else:
                             email_address = mailto_matches[0]
-                            email_domain = email_address.split("@")[-1]
+                            email_domain = email_address.split('@')[-1]
                             if email_domain.lower() != domain.domain_name.lower():
-                                target = "{0}._report._dmarc.{1}".format(domain.domain_name, email_domain)
-                                error_message = "{0} does not indicate that it accepts DMARC reports about {1} - " \
-                                                "https://tools.ietf.org" \
-                                                "/html/rfc7489#section-7.1".format(email_domain,
+                                target = '{0}._report._dmarc.{1}'.format(domain.domain_name, email_domain)
+                                error_message = '{0} does not indicate that it accepts DMARC reports about {1} - ' \
+                                                'https://tools.ietf.org' \
+                                                '/html/rfc7489#section-7.1'.format(email_domain,
                                                                                    domain.domain_name)
                                 handle_error('[DMARC]', domain, '{0}'.format(error_message))
                                 try:
-                                    answer = resolver.query(target, "TXT", tcp=True)[0].to_text().strip('"')
-                                    if not answer.startswith("v=DMARC1"):
+                                    answer = resolver.query(target, 'TXT', tcp=True)[0].to_text().strip('"')
+                                    if not answer.startswith('v=DMARC1'):
                                         handle_error('[DMARC]', domain, '{0}'.format(error_message))
                                         domain.valid_dmarc = False
                                 except (dns.resolver.NXDOMAIN, dns.resolver.NoAnswer):
@@ -410,7 +410,7 @@ def dmarc_scan(resolver, domain):
                                     domain.valid_dmarc = False
                                 try:
                                     # Ensure ruf/rua/email domains have MX records
-                                    resolver.query(email_domain, "MX", tcp=True)
+                                    resolver.query(email_domain, 'MX', tcp=True)
                                 except (dns.resolver.NXDOMAIN, dns.resolver.NoAnswer):
                                     handle_error('[DMARC]', domain, 'The domain for reporting '
                                                                     'address {0} does not have any '
@@ -552,7 +552,7 @@ def handle_syntax_error(prefix, domain, error):
 
 
 def generate_csv(domains, file_name):
-    with open(file_name, 'w', encoding="utf-8", newline='\n') as output_file:
+    with open(file_name, 'w', encoding='utf-8', newline='\n') as output_file:
         writer = csv.DictWriter(output_file, fieldnames=domains[0].generate_results().keys())
 
         # First row should always be the headers

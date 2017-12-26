@@ -15,11 +15,11 @@ def get_psl():
     -------
     PublicSuffixList: An instance of PublicSuffixList loaded with a cached or updated list
     """
-    psl_path = "public_suffix_list.dat"
+    psl_path = 'public_suffix_list.dat'
 
     def download_psl():
         fresh_psl = publicsuffix.fetch()
-        with open(psl_path, "w", encoding="utf-8") as fresh_psl_file:
+        with open(psl_path, 'w', encoding='utf-8') as fresh_psl_file:
             fresh_psl_file.write(fresh_psl.read())
 
         return publicsuffix.PublicSuffixList(fresh_psl)
@@ -31,7 +31,7 @@ def get_psl():
         if psl_age > timedelta(hours=24):
             psl = download_psl()
         else:
-            with open(psl_path, encoding="utf-8") as psl_file:
+            with open(psl_path, encoding='utf-8') as psl_file:
                 psl = publicsuffix.PublicSuffixList(psl_file)
 
     return psl
