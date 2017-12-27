@@ -71,7 +71,7 @@ setup(
 
     entry_points={
         'console_scripts': [
-            'trustymail = trustymail.cli:main'
+            'trustymail = cli:main'
         ]
     }
 )

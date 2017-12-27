@@ -30,10 +30,10 @@ install the requirements:
 pip install -r requirements.txt
 ```
 
-Then run it as a module via `python -m`:
+Then run the CLI:
 
 ```bash
-python -m trustymail.cli [options] example.com
+python cli.py [options] example.com
 ```
 
 
