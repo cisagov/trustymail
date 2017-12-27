@@ -33,7 +33,7 @@ pip install -r requirements.txt
 Then run the CLI:
 
 ```bash
-python cli.py [options] example.com
+python scripts/trustymail [options] example.com
 ```
 
 
