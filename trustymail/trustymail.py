@@ -322,10 +322,22 @@ def dmarc_scan(resolver, domain):
                 tag_dict['p'] = 'none'
             if 'sp' not in tag_dict:
                 tag_dict['sp'] = tag_dict['p']
+            if 'ri' not in tag_dict:
+                tag_dict['ri'] = 86400
+            if 'pct' not in tag_dict:
+                tag_dict['pct'] = 100
+            if 'adkim' not in tag_dict:
+                tag_dict['pct'] = 'r'
+            if 'aspf'not in tag_dict:
+                tag_dict['aspf'] = 'r'
+            if 'ro' not in tag_dict:
+                tag_dict['ro'] = '0'
+            if 'rf' not in tag_dict:
+                tag_dict['rf'] = 'afrf'
             if 'rua' not in tag_dict:
                 domain.dmarc_has_aggregate_uri = True
             if 'ruf' not in tag_dict:
-                domain.dmarc_has_aggregate_uri = True
+                domain.dmarc_has_forensic_uri = True
 
             for tag in tag_dict:
                 if tag not in ['v', 'mailto', 'rf', 'p', 'sp', 'adkim', 'aspf', 'fo', 'pct', 'ri', 'rua', 'ruf']:
