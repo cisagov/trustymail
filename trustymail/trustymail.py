@@ -579,8 +579,7 @@ def generate_json(domains):
     for domain in domains:
         output.append(domain.generate_results())
 
-    return json.dumps(output, sort_keys=True,
-                      indent=2, default=format_datetime)
+    return json.dumps(output, indent=2, default=format_datetime)
 
 
 # Taken from pshtt to keep formatting similar
