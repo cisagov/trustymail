@@ -18,7 +18,7 @@ from trustymail.domain import Domain
 # A cache for SMTP scanning results
 _SMTP_CACHE = {}
 
-MAILTO_REGEX = re.compile(r"mailto:([\w\-!#$%&'*+-/=?^_`{|}~][\w\-.!#$%&'*+-/=?^_`{|}~]+@[\w\-.]+)")
+MAILTO_REGEX = re.compile(r"mailto:([\w\-!#$%&'*+-/=?^_`{|}~][\w\-.!#$%&'*+-/=?^_`{|}~]+@[\w\-.!]+)")
 
 
 def domain_list_from_url(url):
@@ -330,8 +330,8 @@ def dmarc_scan(resolver, domain):
                 tag_dict['adkim'] = 'r'
             if 'aspf'not in tag_dict:
                 tag_dict['aspf'] = 'r'
-            if 'ro' not in tag_dict:
-                tag_dict['ro'] = '0'
+            if 'fo' not in tag_dict:
+                tag_dict['fo'] = '0'
             if 'rf' not in tag_dict:
                 tag_dict['rf'] = 'afrf'
             if 'rua' not in tag_dict:
@@ -404,7 +404,7 @@ def dmarc_scan(resolver, domain):
                             domain.valid_dmarc = False
                         else:
                             email_address = mailto_matches[0]
-                            email_domain = email_address.split('@')[-1]
+                            email_domain = email_address.split('@')[-1].split('!')[0]
                             if email_domain.lower() != domain.domain_name.lower():
                                 target = '{0}._report._dmarc.{1}'.format(domain.domain_name, email_domain)
                                 error_message = '{0} does not indicate that it accepts DMARC reports about {1} - ' \
