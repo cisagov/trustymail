@@ -69,7 +69,5 @@ setup(
         ],
     },
 
-    entry_points={
-        'scripts': ['scripts/trustymail']
-    }
+    scripts=['scripts/trustymail']
 )
