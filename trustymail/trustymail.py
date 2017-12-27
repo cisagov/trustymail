@@ -411,7 +411,6 @@ def dmarc_scan(resolver, domain):
                                                 'https://tools.ietf.org' \
                                                 '/html/rfc7489#section-7.1'.format(email_domain,
                                                                                    domain.domain_name)
-                                handle_error('[DMARC]', domain, '{0}'.format(error_message))
                                 try:
                                     answer = resolver.query(target, 'TXT', tcp=True)[0].to_text().strip('"')
                                     if not answer.startswith('v=DMARC1'):
