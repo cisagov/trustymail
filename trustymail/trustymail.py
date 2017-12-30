@@ -304,6 +304,12 @@ def dmarc_scan(resolver, domain):
             # redirect will cause an SPF record to show.
             if record_text.startswith('v=DMARC1'):
                 domain.dmarc.append(record_text)
+            elif record_text.startswith('v=spf1'):
+                msg = "Found a SPF record where a DMARC record should be; most likely, the _dmarc " \
+                      "subdomain record does not actually exist, and the request for TXT records was " \
+                      "redirected to the base domain"
+                handle_syntax_error('[DMARC]', domain, '{0}'.format(msg))
+                domain.valid_dmarc = False
 
             # Remove excess whitespace
             record_text = record_text.strip()
