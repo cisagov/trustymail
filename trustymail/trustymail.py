@@ -18,7 +18,7 @@ from trustymail.domain import Domain
 # A cache for SMTP scanning results
 _SMTP_CACHE = {}
 
-MAILTO_REGEX = re.compile(r"mailto:([\w\-!#$%&'*+-/=?^_`{|}~][\w\-.!#$%&'*+-/=?^_`{|}~]+@[\w\-.]+)(!\w+)?")
+MAILTO_REGEX = re.compile(r"mailto:([\w\-!#$%&'*+-/=?^_`{|}~][\w\-.!#$%&'*+-/=?^_`{|}~]*@[\w\-.]+)(!\w+)?")
 
 
 def domain_list_from_url(url):
