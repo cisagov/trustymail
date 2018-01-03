@@ -59,7 +59,13 @@ def mx_scan(resolver, domain):
         # records more than whether their records fit in a single UDP packet.
         for record in resolver.query(domain.domain_name, 'MX', tcp=True):
             domain.add_mx_record(record)
-    except (dns.resolver.NoNameservers, dns.resolver.NoAnswer, dns.exception.Timeout, dns.resolver.NXDOMAIN) as error:
+    except dns.resolver.NoNameservers as error:
+        # This exception means that we got a SERVFAIL response.  These
+        # responses are almost always permanent, not temporary, so let's treat
+        # the domain as not live.
+        domain.is_live = False
+        handle_error('[MX]', domain, error)
+    except (dns.resolver.NoAnswer, dns.exception.Timeout, dns.resolver.NXDOMAIN) as error:
         handle_error('[MX]', domain, error)
 
 
@@ -247,7 +253,13 @@ def get_spf_record_text(resolver, domain_name, domain, follow_redirect=False):
                 record_to_return = get_spf_record_text(resolver, redirect_domain_name, domain)
             else:
                 record_to_return = record_text
-    except (dns.resolver.NoNameservers, dns.resolver.NoAnswer, dns.exception.Timeout, dns.resolver.NXDOMAIN) as error:
+    except dns.resolver.NoNameservers as error:
+        # This exception means that we got a SERVFAIL response.  These
+        # responses are almost always permanent, not temporary, so let's treat
+        # the domain as not live.
+        domain.is_live = False
+        handle_error('[SPF]', domain, error)
+    except (dns.resolver.NoAnswer, dns.exception.Timeout, dns.resolver.NXDOMAIN) as error:
         handle_error('[SPF]', domain, error)
 
     return record_to_return
@@ -472,8 +484,13 @@ def dmarc_scan(resolver, domain):
 
         domain.dmarc_has_aggregate_uri = len(domain.dmarc_aggregate_uris) > 0
         domain.dmarc_has_forensic_uri = len(domain.dmarc_forensic_uris) > 0
-
-    except (dns.resolver.NoNameservers, dns.resolver.NoAnswer, dns.exception.Timeout, dns.resolver.NXDOMAIN) as error:
+    except dns.resolver.NoNameservers as error:
+        # This exception means that we got a SERVFAIL response.  These
+        # responses are almost always permanent, not temporary, so let's treat
+        # the domain as not live.
+        domain.is_live = False
+        handle_error('[DMARC]', domain, error)
+    except (dns.resolver.NoAnswer, dns.exception.Timeout, dns.resolver.NXDOMAIN) as error:
         handle_error('[DMARC]', domain, error)
 
 
@@ -498,9 +515,13 @@ def scan(domain_name, timeout, smtp_timeout, smtp_localhost, smtp_ports, smtp_ca
     # Note that it uses the system configuration in /etc/resolv.conf
     # if no DNS hostnames are specified.
     resolver = dns.resolver.Resolver(configure=not dns_hostnames)
-    # Retry queries if we receive a SERVFAIL response.  This may only indicate
-    # a temporary network problem.
-    resolver.retry_servfail = True
+    # Retry DNS servers if we receive a SERVFAIL response from them.  We set
+    # this to False because, unless the reason for the SERVFAIL is truly
+    # temporary and resolves before trustymail finishes scanning the domain,
+    # this obscures the potentially informative SERVFAIL error as a DNS timeout
+    # because of the way dns.resolver.query() is written.  See
+    # http://www.dnspython.org/docs/1.14.0/dns.resolver-pysrc.html#query.
+    resolver.retry_servfail = False
     # If the user passed in DNS hostnames to query against then use them
     if dns_hostnames:
         resolver.nameservers = dns_hostnames
