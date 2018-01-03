@@ -51,8 +51,8 @@ def format_list(record_list):
 
     return ', '.join(record_list)
 
-class Domain:
 
+class Domain:
     base_domains = {}
 
     def __init__(self, domain_name, timeout, smtp_timeout, smtp_localhost, smtp_ports, smtp_cache, dns_hostnames):
@@ -165,10 +165,10 @@ class Domain:
         return ans
 
     def generate_results(self):
-        mail_servers_that_support_smtp = [x for x in self.starttls_results.keys() if self.starttls_results[x]
-        ['supports_smtp']]
-        mail_servers_that_support_starttls = [x for x in self.starttls_results.keys() if self.starttls_results[x]
-        ['starttls']]
+        mail_servers_that_support_smtp = [x for x in self.starttls_results.keys() if self.starttls_results[x][
+            'supports_smtp']]
+        mail_servers_that_support_starttls = [x for x in self.starttls_results.keys() if self.starttls_results[x][
+            'starttls']]
         domain_supports_smtp = bool(mail_servers_that_support_smtp)
 
         results = OrderedDict([
@@ -213,5 +213,3 @@ class Domain:
         ])
 
         return results
-
-
