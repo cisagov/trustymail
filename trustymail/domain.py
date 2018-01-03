@@ -40,6 +40,17 @@ def get_psl():
 public_list = get_psl()
 
 
+def format_list(record_list):
+    """Format a list into a string to increase readability in CSV"""
+    # record_list should only be a list, not an integer, None, or
+    # anything else.  Thus this if clause handles only empty
+    # lists.  This makes a "null" appear in the JSON output for
+    # empty lists, as expected.
+    if not record_list:
+        return None
+
+    return ', '.join(record_list)
+
 class Domain:
 
     base_domains = {}
@@ -67,8 +78,10 @@ class Domain:
         self.dmarc = []
         self.dmarc_policy = None
         self.dmarc_pct = None
+        self.dmarc_aggregate_uris = []
+        self.dmarc_forensic_uris = []
         self.dmarc_has_aggregate_uri = False
-        self.dmarc_forensic_uri = False
+        self.dmarc_has_forensic_uri = False
 
         # Syntax validity - default spf to false as the lack of an SPF is a bad thing.
         self.valid_spf = False
@@ -135,9 +148,9 @@ class Domain:
         return ans
 
     def parent_dmarc_results(self):
-        ans = self.format_list(self.dmarc)
+        ans = format_list(self.dmarc)
         if self.base_domain:
-            ans = self.format_list(self.base_domain.dmarc)
+            ans = format_list(self.base_domain.dmarc)
         return ans
 
     def get_dmarc_policy(self):
@@ -152,8 +165,10 @@ class Domain:
         return ans
 
     def generate_results(self):
-        mail_servers_that_support_smtp = [x for x in self.starttls_results.keys() if self.starttls_results[x]['supports_smtp']]
-        mail_servers_that_support_starttls = [x for x in self.starttls_results.keys() if self.starttls_results[x]['starttls']]
+        mail_servers_that_support_smtp = [x for x in self.starttls_results.keys() if self.starttls_results[x]
+        ['supports_smtp']]
+        mail_servers_that_support_starttls = [x for x in self.starttls_results.keys() if self.starttls_results[x]
+        ['starttls']]
         domain_supports_smtp = bool(mail_servers_that_support_smtp)
 
         results = OrderedDict([
@@ -162,46 +177,41 @@ class Domain:
             ('Live', self.is_live),
 
             ('MX Record', self.has_mail()),
-            ('Mail Servers', self.format_list(self.mail_servers)),
-            ('Mail Server Ports Tested', self.format_list([str(port) for port in self.ports_tested])),
-            ('Domain Supports SMTP Results', self.format_list(mail_servers_that_support_smtp)),
+            ('Mail Servers', format_list(self.mail_servers)),
+            ('Mail Server Ports Tested', format_list([str(port) for port in self.ports_tested])),
+            ('Domain Supports SMTP Results', format_list(mail_servers_that_support_smtp)),
             # True if and only if at least one mail server speaks SMTP
             ('Domain Supports SMTP', domain_supports_smtp),
-            ('Domain Supports STARTTLS Results', self.format_list(mail_servers_that_support_starttls)),
+            ('Domain Supports STARTTLS Results', format_list(mail_servers_that_support_starttls)),
             # True if and only if all mail servers that speak SMTP
             # also support STARTTLS
             ('Domain Supports STARTTLS', domain_supports_smtp and all([self.starttls_results[x]['starttls'] for x in mail_servers_that_support_smtp])),
 
             ('SPF Record', self.has_spf()),
             ('Valid SPF', self.valid_spf),
-            ('SPF Results', self.format_list(self.spf)),
+            ('SPF Results', format_list(self.spf)),
 
             ('DMARC Record', self.has_dmarc()),
             ('Valid DMARC', self.has_dmarc() and self.valid_dmarc),
-            ('DMARC Results', self.format_list(self.dmarc)),
+            ('DMARC Results', format_list(self.dmarc)),
 
             ('DMARC Record on Base Domain', self.parent_has_dmarc()),
             ('Valid DMARC Record on Base Domain', self.parent_has_dmarc() and self.parent_valid_dmarc()),
             ('DMARC Results on Base Domain', self.parent_dmarc_results()),
             ('DMARC Policy', self.get_dmarc_policy()),
             ('DMARC Policy Percentage', self.dmarc_pct),
+
+            ("DMARC Aggregate Report URIs", format_list(self.dmarc_aggregate_uris)),
+            ("DMARC Forensic Report URIs", format_list(self.dmarc_forensic_uris)),
+
             ('DMARC Has Aggregate Report URI', self.dmarc_has_aggregate_uri),
-            ('DMARC Has Forensic Report URI', self.dmarc_forensic_uri),
+            ('DMARC Has Forensic Report URI', self.dmarc_has_forensic_uri),
 
 
-            ('Syntax Errors', self.format_list(self.syntax_errors)),
-            ('Debug Info', self.format_list(self.debug_info))
+            ('Syntax Errors', format_list(self.syntax_errors)),
+            ('Debug Info', format_list(self.debug_info))
         ])
 
         return results
 
-    # Format a list into a string to increase readability in CSV.
-    def format_list(self, record_list):
-        # record_list should only be a list, not an integer, None, or
-        # anything else.  Thus this if clause handles only empty
-        # lists.  This makes a "null" appear in the JSON output for
-        # empty lists, as expected.
-        if not record_list:
-            return None
 
-        return ', '.join(record_list)

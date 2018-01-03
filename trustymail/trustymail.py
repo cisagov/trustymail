@@ -4,6 +4,7 @@ import inspect
 import json
 import logging
 import re
+from collections import OrderedDict
 import requests
 import smtplib
 import socket
@@ -18,7 +19,7 @@ from trustymail.domain import Domain
 # A cache for SMTP scanning results
 _SMTP_CACHE = {}
 
-MAILTO_REGEX = re.compile(r"mailto:([\w\-!#$%&'*+-/=?^_`{|}~][\w\-.!#$%&'*+-/=?^_`{|}~]+@[\w\-.]+)(!\w+)?")
+MAILTO_REGEX = re.compile(r"(mailto):([\w\-!#$%&'*+-/=?^_`{|}~][\w\-.!#$%&'*+-/=?^_`{|}~]+@[\w\-.]+)(!\w+)?")
 
 
 def domain_list_from_url(url):
@@ -291,6 +292,37 @@ def spf_scan(resolver, domain):
         check_spf_record(record_text_not_following_redirect, result, domain)
 
 
+def parse_dmarc_report_uri(uri):
+    """
+    Parses a DMARC Reporting (i.e. ``rua``/``ruf)`` URI
+
+   Notes
+   -----
+        ``mailto:`` is the only reporting URI supported in `DMARC1`
+
+    Arguments
+    ---------
+        uri: A DMARC URI
+
+    Returns
+    -------
+        OrderedDict: Keys: ''scheme`` ``address`` and ``size_limit``
+
+    """
+    uri = uri.strip()
+    mailto_matches = MAILTO_REGEX.findall(uri)
+    if len(mailto_matches) != 1:
+        return None
+    match = mailto_matches[0]
+    scheme = match[0]
+    email_address = match[1]
+    size_limit = match[2].lstrip("!")
+    if size_limit == "":
+        size_limit = None
+
+    return OrderedDict([("scheme", scheme), ("address", email_address), ("size_limit", size_limit)])
+
+
 def dmarc_scan(resolver, domain):
     # dmarc records are kept in TXT records for _dmarc.domain_name.
     try:
@@ -341,9 +373,9 @@ def dmarc_scan(resolver, domain):
             if 'rf' not in tag_dict:
                 tag_dict['rf'] = 'afrf'
             if 'rua' not in tag_dict:
-                domain.dmarc_has_aggregate_uri = True
+                domain.dmarc_has_aggregate_uri = False
             if 'ruf' not in tag_dict:
-                domain.dmarc_has_forensic_uri = True
+                domain.dmarc_has_forensic_uri = False
 
             for tag in tag_dict:
                 if tag not in ['v', 'mailto', 'rf', 'p', 'sp', 'adkim', 'aspf', 'fo', 'pct', 'ri', 'rua', 'ruf']:
@@ -403,13 +435,17 @@ def dmarc_scan(resolver, domain):
                     uris = tag_dict[tag].split(',')
                     for uri in uris:
                         # mailto: is currently the only type of DMARC URI
-                        mailto_matches = MAILTO_REGEX.findall(uri)
-                        if len(mailto_matches) != 1:
+                        parsed_uri = parse_dmarc_report_uri(uri)
+                        if parsed_uri is None:
                             msg = 'Error: {0} is an invalid DMARC URI'.format(uri)
                             handle_syntax_error('[DMARC]', domain, '{0}'.format(msg))
                             domain.valid_dmarc = False
                         else:
-                            email_address = mailto_matches[0][0]
+                            if tag == "rua":
+                                domain.dmarc_aggregate_uris.append(uri)
+                            elif tag == "ruf":
+                                domain.dmarc_forensic_uris.append(uri)
+                            email_address = parsed_uri["address"]
                             email_domain = email_address.split('@')[-1]
                             if email_domain.lower() != domain.domain_name.lower():
                                 target = '{0}._report._dmarc.{1}'.format(domain.domain_name, email_domain)
