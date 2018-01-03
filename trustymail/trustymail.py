@@ -470,6 +470,9 @@ def dmarc_scan(resolver, domain):
                                                                     'MX records'.format(email_address))
                                     domain.valid_dmarc = False
 
+        domain.dmarc_has_aggregate_uri = len(domain.dmarc_aggregate_uris) > 0
+        domain.dmarc_has_forensic_uri = len(domain.dmarc_forensic_uris) > 0
+
     except (dns.resolver.NoNameservers, dns.resolver.NoAnswer, dns.exception.Timeout, dns.resolver.NXDOMAIN) as error:
         handle_error('[DMARC]', domain, error)
 
