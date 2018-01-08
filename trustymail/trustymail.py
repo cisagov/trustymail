@@ -357,8 +357,10 @@ def dmarc_scan(resolver, domain):
                 tag_dict[tag] = value
 
             if 'p' not in tag_dict:
-                tag_dict['p'] = 'none'
-            if 'sp' not in tag_dict:
+                msg = 'Record missing required policy (p) tag'
+                handle_syntax_error('[DMARC]', domain, '{0}'.format(msg))
+                domain.valid_dmarc = False
+            elif 'sp' not in tag_dict:
                 tag_dict['sp'] = tag_dict['p']
             if 'ri' not in tag_dict:
                 tag_dict['ri'] = 86400
@@ -459,15 +461,15 @@ def dmarc_scan(resolver, domain):
                                         handle_error('[DMARC]', domain, '{0}'.format(error_message))
                                         domain.valid_dmarc = False
                                 except (dns.resolver.NXDOMAIN, dns.resolver.NoAnswer):
-                                    handle_error('[DMARC]', domain, '{0}'.format(error_message))
+                                    handle_syntax_error('[DMARC]', domain, '{0}'.format(error_message))
                                     domain.valid_dmarc = False
                                 try:
                                     # Ensure ruf/rua/email domains have MX records
                                     resolver.query(email_domain, 'MX', tcp=True)
                                 except (dns.resolver.NXDOMAIN, dns.resolver.NoAnswer):
-                                    handle_error('[DMARC]', domain, 'The domain for reporting '
-                                                                    'address {0} does not have any '
-                                                                    'MX records'.format(email_address))
+                                    handle_syntax_error('[DMARC]', domain, 'The domain for reporting '
+                                                                           'address {0} does not have any '
+                                                                           'MX records'.format(email_address))
                                     domain.valid_dmarc = False
 
         domain.dmarc_has_aggregate_uri = len(domain.dmarc_aggregate_uris) > 0
