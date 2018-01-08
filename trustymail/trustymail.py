@@ -429,6 +429,10 @@ def dmarc_scan(resolver, domain):
                             handle_syntax_error('[DMARC]', domain, '{0}'.format(msg))
                             domain.valid_dmarc = False
                         domain.dmarc_pct = pct
+                        if pct < 100:
+                            handle_syntax_error("Error: The DMARC pct tag value must not be less than 100 "
+                                                "(the implicit default), so that the policy applies to all mail")
+                            domain.valid_dmarc = False
                     except ValueError:
                         msg = 'invalid DMARC pct tag value: {0} - must be an integer'.format(tag_dict[tag])
                         handle_syntax_error('[DMARC]', domain, '{0}'.format(msg))
