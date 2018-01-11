@@ -341,7 +341,16 @@ def dmarc_scan(resolver, domain):
         dmarc_domain = '_dmarc.%s' % domain.domain_name
         # Use TCP, since we care about the content and correctness of the
         # records more than whether their records fit in a single UDP packet.
-        for record in resolver.query(dmarc_domain, 'TXT', tcp=True):
+        records = resolver.query(dmarc_domain, 'TXT', tcp=True)
+
+        # Treat multiple DMARC records as an error, in accordance with the RFC
+        # (https://tools.ietf.org/html/rfc7489#section-6.6.3)
+        if len(records) > 1:
+            handle_error('[DMARC]', domain, 'Warning: Multiple DMARC records present')
+            domain.valid_dmarc = False
+        elif records:
+            record = records[0]
+
             record_text = record.to_text().strip('"')
 
             # Ensure the record is a DMARC record. Some domains that
@@ -358,8 +367,9 @@ def dmarc_scan(resolver, domain):
             # Remove excess whitespace
             record_text = record_text.strip()
 
-            # DMARC records follow a specific outline as to how they are defined - tag:value
-            # We can split this up into a easily manipulatable
+            # DMARC records follow a specific outline as to how they are
+            # defined - tag:value We can split this up into a easily
+            # manipulatable dictionary
             tag_dict = {}
             for options in record_text.split(';'):
                 if '=' not in options:
