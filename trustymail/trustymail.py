@@ -14,7 +14,7 @@ import DNS
 import dns.resolver
 import dns.reversename
 
-from trustymail.domain import Domain
+from trustymail.domain import get_public_suffix, Domain
 
 # A cache for SMTP scanning results
 _SMTP_CACHE = {}
@@ -474,7 +474,7 @@ def dmarc_scan(resolver, domain):
                                 domain.dmarc_forensic_uris.append(uri)
                             email_address = parsed_uri["address"]
                             email_domain = email_address.split('@')[-1]
-                            if email_domain.lower() != domain.domain_name.lower():
+                            if get_public_suffix(email_domain).lower() != domain.base_domain.lower():
                                 target = '{0}._report._dmarc.{1}'.format(domain.domain_name, email_domain)
                                 error_message = '{0} does not indicate that it accepts DMARC reports about {1} - ' \
                                                 'https://tools.ietf.org' \
