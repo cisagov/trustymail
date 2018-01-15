@@ -474,10 +474,7 @@ def dmarc_scan(resolver, domain):
                                 domain.dmarc_forensic_uris.append(uri)
                             email_address = parsed_uri["address"]
                             email_domain = email_address.split('@')[-1]
-                            # Domain.domain_name is set to lowercase in
-                            # Donain's constructor, so there is no need to call
-                            # lower() on the right-hand side of the comparison
-                            if get_public_suffix(email_domain).lower() != domain.base_domain.domain_name:
+                            if get_public_suffix(email_domain).lower() != domain.base_domain_name.lower():
                                 target = '{0}._report._dmarc.{1}'.format(domain.domain_name, email_domain)
                                 error_message = '{0} does not indicate that it accepts DMARC reports about {1} - ' \
                                                 'https://tools.ietf.org' \
