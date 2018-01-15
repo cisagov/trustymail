@@ -37,7 +37,11 @@ def get_psl():
     return psl
 
 
-public_list = get_psl()
+def get_public_suffix(domain):
+    """Returns the public suffix of a given domain"""
+    public_list = get_psl()
+
+    return public_list.get_public_suffix(domain)
 
 
 def format_list(record_list):
@@ -58,7 +62,7 @@ class Domain:
     def __init__(self, domain_name, timeout, smtp_timeout, smtp_localhost, smtp_ports, smtp_cache, dns_hostnames):
         self.domain_name = domain_name.lower()
 
-        self.base_domain_name = public_list.get_public_suffix(self.domain_name)
+        self.base_domain_name = get_public_suffix(self.domain_name)
 
         if self.base_domain_name != self.domain_name:
             if self.base_domain_name not in Domain.base_domains:
