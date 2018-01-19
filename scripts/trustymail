@@ -22,6 +22,7 @@ Options:
                               same mail servers multiple times.
   --mx                        Only check mx records
   --starttls                  Only check mx records and STARTTLS support.  (Implies --mx.)
+  --cipher                    Only check mx records, STARTTLS support, Cipher.  (Implies --mx, --starttls.)
   --spf                       Only check spf records
   --dmarc                     Only check dmarc records
   --json                      Output is in json format (default csv)
@@ -51,7 +52,7 @@ from trustymail import __version__
 from trustymail import trustymail
 
 # The default ports to be checked to see if an SMTP server is listening.
-_DEFAULT_SMTP_PORTS = {25, 465, 587}
+_DEFAULT_SMTP_PORTS = {25, 465, 587, 2525}
 
 
 def main():
@@ -97,10 +98,17 @@ def main():
     if args['--starttls']:
         args['--mx'] = True
 
+    # --cipher implies --mx & --starttls
+        if args['--cipher']:
+            args['--mx'] = True,
+            args['--startls'] = True
+
+
     # User might not want every scan performed.
     scan_types = {
         'mx': args['--mx'],
         'starttls': args['--starttls'],
+        'cipher': args['--cipher'],
         'spf': args['--spf'],
         'dmarc': args['--dmarc']
     }

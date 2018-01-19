@@ -211,6 +211,45 @@ def cipher_protocol_scan(domain, smtp_cache):
                     server_info = ServerConnectivityInfo(hostname=mail_server_starttls.split(":")[0],
                                                          port=mail_server_starttls.split(":")[0],
                                                          tls_wrapped_protocol=TlsWrappedProtocolEnum.STARTTLS_SMTP)
+                    server_info.test_connectivity_to_server()
+                except ServerConnectivityError as error:
+                    handle_error('[Cipher]', domain, error)
+                    # If connection Error just mark the Server:Port as False
+                    domain.cipher_results[mail_server_starttls]['is_tls10_rc4'] = False
+                    domain.cipher_results[mail_server_starttls]['is_tls10_3des'] = False
+                    domain.cipher_results[mail_server_starttls]['is_tls11_rc4'] = False
+                    domain.cipher_results[mail_server_starttls]['is_tls11_3des'] = False
+                    domain.cipher_results[mail_server_starttls]['is_tls12_rc4'] = False
+                    domain.cipher_results[mail_server_starttls]['is_tls12_3des'] = False
+                    domain.cipher_results[mail_server_starttls]['is_tls13_rc4'] = False
+                    domain.cipher_results[mail_server_starttls]['is_tls13_3des'] = False
+                    domain.cipher_results[mail_server_starttls]['is_sslv2'] = False
+                    domain.cipher_results[mail_server_starttls]['is_sslv3'] = False
+
+                    if smtp_cache:
+                        _SMTP_CIPHER_PROTOCOL_CACHE[mail_server_starttls] = domain.tls_cipher_protocol_results[
+                            mail_server_starttls]
+                    continue
+
+                logging.debug('Queuing for TLSv1.0-TLSv1.3, SSLv2, and SSLv3...')
+                concurrent_scanner = ConcurrentScanner()
+                concurrent_scanner.queue_scan_command(server_info, Tlsv10ScanCommand())
+                concurrent_scanner.queue_scan_command(server_info, Tlsv11ScanCommand())
+                concurrent_scanner.queue_scan_command(server_info, Tlsv12ScanCommand())
+                concurrent_scanner.queue_scan_command(server_info, Tlsv13ScanCommand())
+                concurrent_scanner.queue_scan_command(server_info, Sslv20ScanCommand())
+                concurrent_scanner.queue_scan_command(server_info, Sslv30ScanCommand())
+
+                logging.debug('Processing results...')
+                for scan_result in concurrent_scanner.get_results():
+                    # All scan results have the corresponding scan_command and server_info as an attribute
+                    logging.debug(
+                        '\t Received scan result for {} on host {}'.format(scan_result.scan_command.__class__.__name__,
+                                                                           scan_result.server_info.hostname))
+
+
+
+
 
 
 
