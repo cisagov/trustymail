@@ -67,7 +67,9 @@ class Domain:
         if self.base_domain_name != self.domain_name:
             if self.base_domain_name not in Domain.base_domains:
                 # Populate DMARC for parent.
-                domain = trustymail.scan(self.base_domain_name, timeout, smtp_timeout, smtp_localhost, smtp_ports, smtp_cache, {'mx': False, 'starttls': False, 'spf': False, 'dmarc': True}, dns_hostnames)
+                domain = trustymail.scan(self.base_domain_name, timeout, smtp_timeout, smtp_localhost, smtp_ports,
+                                         smtp_cache, {'mx': False, 'starttls': False, 'spf': False, 'dmarc': True},
+                                         dns_hostnames)
                 Domain.base_domains[self.base_domain_name] = domain
             self.base_domain = Domain.base_domains[self.base_domain_name]
         else:
@@ -101,6 +103,18 @@ class Domain:
         # 2. Whether or not the server supports SMTP
         # 3. Whether or not the server supports STARTTLS
         self.starttls_results = {}
+
+        # A dictionary for each port for each entry in mail_server.
+        # The dictionary's values indicate:
+        # 1. Whether or not the server support the following Ciphers (TLS 1.0 - TLS 1.3):
+        #    a. RC4
+        #    b. 3DES
+        # 2. Whether or not the server support the following Protocols:
+        #    a. SSLv2
+        #    b. SSLv3
+
+        self.tls_cipher_protocol_results = {}
+
 
         # A list of any debugging information collected while scanning records.
         self.debug_info = []
@@ -175,6 +189,13 @@ class Domain:
             'starttls']]
         domain_supports_smtp = bool(mail_servers_that_support_smtp)
 
+        mail_servers_that_support_sslv2 = [x for x in self.tls_cipher_protocol_results.keys()
+                                           if self.tls_cipher_protocol_results[x]['is_sslv2']]
+        mail_servers_that_support_sslv3 = [x for x in self.tls_cipher_protocol_results.keys()
+                                           if self.tls_cipher_protocol_results[x]['is_sslv3']]
+        domain_supports_sslv2 = bool(mail_servers_that_support_sslv2)
+        domain_supports_sslv3 = bool(mail_servers_that_support_sslv3)
+
         results = OrderedDict([
             ('Domain', self.domain_name),
             ('Base Domain', self.base_domain_name),
@@ -189,7 +210,11 @@ class Domain:
             ('Domain Supports STARTTLS Results', format_list(mail_servers_that_support_starttls)),
             # True if and only if all mail servers that speak SMTP
             # also support STARTTLS
-            ('Domain Supports STARTTLS', domain_supports_smtp and all([self.starttls_results[x]['starttls'] for x in mail_servers_that_support_smtp])),
+            ('Domain Supports STARTTLS', domain_supports_smtp and all([self.starttls_results[x]['starttls']
+                                                                       for x in mail_servers_that_support_smtp])),
+
+            ('Domain Supports SSLv2', domain_supports_sslv2),
+            ('Domain Supports SSLv3', domain_supports_sslv3),
 
             ('SPF Record', self.has_spf()),
             ('Valid SPF', self.valid_spf),

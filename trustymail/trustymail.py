@@ -14,10 +14,20 @@ import DNS
 import dns.resolver
 import dns.reversename
 
+from sslyze.concurrent_scanner import ConcurrentScanner, PluginRaisedExceptionScanResult
+from sslyze.server_connectivity import ServerConnectivityInfo, ServerConnectivityError
+from sslyze.ssl_settings import TlsWrappedProtocolEnum
+from sslyze.plugins.openssl_cipher_suites_plugin import Tlsv10ScanCommand, Tlsv11ScanCommand, Tlsv12ScanCommand,\
+    Tlsv13ScanCommand, Sslv30ScanCommand, Sslv20ScanCommand
+
 from trustymail.domain import get_public_suffix, Domain
 
 # A cache for SMTP scanning results
 _SMTP_CACHE = {}
+
+# A cache for SMTP TLS Cipher and SSL Protocol results
+_SMTP_CIPHER_PROTOCOL_CACHE = {}
+
 
 MAILTO_REGEX = re.compile(r"(mailto):([\w\-!#$%&'*+-/=?^_`{|}~][\w\-.!#$%&'*+-/=?^_`{|}~]*@[\w\-.]+)(!\w+)?")
 
@@ -163,6 +173,45 @@ def starttls_scan(domain, smtp_timeout, smtp_localhost, smtp_ports, smtp_cache):
                 logging.debug('\tUsing cached results for ' + server_and_port)
                 # Copy the cached results into the domain object
                 domain.starttls_results[server_and_port] = _SMTP_CACHE[server_and_port]
+
+def cipher_protocol_scan(domain, smtp_cache):
+    """Scan a Domain to see if it supports RC4/3DES/SSLv2/SSLv3.
+        Scan a domain to see if supports any bad Protocols and Cipher for BOD-18-01.
+        Function will check TLS 1.0 - 1.3 for RC4 and 3DES Support and SSLv2 & SSLv3.
+        The function is requires at least sslyze 1.3.2.
+
+        This function utilize the starttls scan results to increase speed of scan.
+
+        Requirements:
+        -------------
+        mx_scan
+            Uses the results of mx scan to check ciphers
+        starttls_scan
+            Uses the starttls results to see if support for encryption is used and no rescan is required
+        sslyze 1.3.2 or later
+            Used to scan MX starttls
+
+        Paramaters
+        ----------
+        domain : Domain
+            The Domain to be tested.
+        smtp_cache : bool
+            Whether or not to cache SMTP Cipher Results.
+             Use the TlsWrapped ProtocolEnum.STARTTLS_SMTP
+    """
+    # Extract the results from STARTTLS
+    for mail_server_starttls in domain.starttls_results:
+        mx_results = mail_server_starttls # ToDo: fix this
+        if domain.starttls_results[mail_server_starttls]['starttls'] is True:
+            if not smtp_cache or (mail_server_starttls not in _SMTP_CIPHER_PROTOCOL_CACHE):
+                domain.tls_cipher_protocol_results[mail_server_starttls] = {}
+                # Test the initial connection to determine support of STARTTLS SMTP using sslyze
+                logging.debug('%s -  Scanning for bad ciphers and protocols' % (server_and_port))
+                try:
+                    server_info = ServerConnectivityInfo(hostname=mail_server_starttls.split(":")[0],
+                                                         port=mail_server_starttls.split(":")[0],
+                                                         tls_wrapped_protocol=TlsWrappedProtocolEnum.STARTTLS_SMTP)
+
 
 
 def check_spf_record(record_text, expected_result, domain):
@@ -452,7 +501,9 @@ def dmarc_scan(resolver, domain):
                             domain.valid_dmarc = False
                         domain.dmarc_pct = pct
                         if pct < 100:
-                            handle_syntax_error('[DMARC]', domain, 'Error: The DMARC pct tag value must not be less than 100 (the implicit default), so that the policy applies to all mail')
+                            msg = 'Error: The DMARC pct tag value must not be less than 100 ' \
+                                  '(the implicit default), so that the policy applies to all mail'
+                            handle_syntax_error('[DMARC]', domain, msg)
                             domain.valid_dmarc = False
                     except ValueError:
                         msg = 'invalid DMARC pct tag value: {0} - must be an integer'.format(tag_dict[tag])
