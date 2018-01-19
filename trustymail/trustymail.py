@@ -206,7 +206,7 @@ def cipher_protocol_scan(domain, smtp_cache):
             if not smtp_cache or (mail_server_starttls not in _SMTP_CIPHER_PROTOCOL_CACHE):
                 domain.tls_cipher_protocol_results[mail_server_starttls] = {}
                 # Test the initial connection to determine support of STARTTLS SMTP using sslyze
-                logging.debug('%s -  Scanning for bad ciphers and protocols' % (server_and_port))
+                logging.debug('%s -  Scanning for bad ciphers and protocols' % (mail_server_starttls))
                 try:
                     server_info = ServerConnectivityInfo(hostname=mail_server_starttls.split(":")[0],
                                                          port=mail_server_starttls.split(":")[0],
