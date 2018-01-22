@@ -61,6 +61,7 @@ setup(
         'dnspython',
         'py3dns',
         'pyspf==2.0.11',
+        'SSLyze==1.3.2'
     ],
 
     extras_require={

@@ -14,10 +14,20 @@ import DNS
 import dns.resolver
 import dns.reversename
 
+from sslyze.concurrent_scanner import ConcurrentScanner, PluginRaisedExceptionScanResult
+from sslyze.server_connectivity import ServerConnectivityInfo, ServerConnectivityError
+from sslyze.ssl_settings import TlsWrappedProtocolEnum
+from sslyze.plugins.openssl_cipher_suites_plugin import Tlsv10ScanCommand, Tlsv11ScanCommand, Tlsv12ScanCommand,\
+    Tlsv13ScanCommand, Sslv30ScanCommand, Sslv20ScanCommand
+
 from trustymail.domain import get_public_suffix, Domain
 
 # A cache for SMTP scanning results
 _SMTP_CACHE = {}
+
+# A cache for SMTP TLS Cipher and SSL Protocol results
+_SMTP_CIPHER_CACHE = {}
+
 
 MAILTO_REGEX = re.compile(r"(mailto):([\w\-!#$%&'*+-/=?^_`{|}~][\w\-.!#$%&'*+-/=?^_`{|}~]*@[\w\-.]+)(!\w+)?")
 
@@ -163,6 +173,214 @@ def starttls_scan(domain, smtp_timeout, smtp_localhost, smtp_ports, smtp_cache):
                 logging.debug('\tUsing cached results for ' + server_and_port)
                 # Copy the cached results into the domain object
                 domain.starttls_results[server_and_port] = _SMTP_CACHE[server_and_port]
+
+def cipher_protocol_scan(domain, smtp_cache):
+    """Scan a Domain to see if it supports RC4/3DES/SSLv2/SSLv3.
+        Scan a domain to see if supports any bad Protocols and Cipher for BOD-18-01.
+        Function will check TLS 1.0 - 1.3 for RC4 and 3DES Support and SSLv2 & SSLv3.
+        The function is requires at least sslyze 1.3.2.
+
+        This function utilize the starttls scan results to increase speed of scan.
+
+        Requirements:
+        -------------
+        mx_scan
+            Uses the results of mx scan to check ciphers
+        starttls_scan
+            Uses the starttls results to see if support for encryption is used and no rescan is required
+        sslyze 1.3.2 or later
+            Used to scan MX starttls
+
+        Paramaters
+        ----------
+        domain : Domain
+            The Domain to be tested.
+        smtp_cache : bool
+            Whether or not to cache SMTP Cipher Results.
+             Use the TlsWrapped ProtocolEnum.STARTTLS_SMTP
+    """
+    # Extract the results from STARTTLS
+    for mail_server_starttls in domain.starttls_results:
+        server_and_port = mail_server_starttls
+        # Check for STARTTLS True
+        if domain.starttls_results[mail_server_starttls]['starttls'] is True:
+            if not smtp_cache or (server_and_port not in _SMTP_CIPHER_CACHE):
+                domain.cipher_results[server_and_port] = {}
+                # Test the initial connection to determine support of STARTTLS SMTP using sslyze
+                try:
+                    logging.debug('%s -  Scanning for bad ciphers and protocols' % (server_and_port))
+                    mx_server = server_and_port.split(":")[0]
+                    mx_port = server_and_port.split(":")[1]
+                    server_info = ServerConnectivityInfo(hostname=mx_server, port=mx_port,
+                                                         tls_wrapped_protocol=TlsWrappedProtocolEnum.STARTTLS_SMTP)
+                    server_info.test_connectivity_to_server()
+                    logging.debug('\t Supports Cipher')
+                except ServerConnectivityError as error:
+                    handle_error('[Cipher]', domain, error)
+                    domain.cipher_results[server_and_port]['is_tls10_rc4'] = False
+                    domain.cipher_results[server_and_port]['is_tls10_3des'] = False
+                    domain.cipher_results[server_and_port]['is_tls11_rc4'] = False
+                    domain.cipher_results[server_and_port]['is_tls11_3des'] = False
+                    domain.cipher_results[server_and_port]['is_tls12_rc4'] = False
+                    domain.cipher_results[server_and_port]['is_tls12_3des'] = False
+                    domain.cipher_results[server_and_port]['is_tls13_rc4'] = False
+                    domain.cipher_results[server_and_port]['is_tls13_3des'] = False
+                    domain.cipher_results[server_and_port]['is_sslv2'] = False
+                    domain.cipher_results[server_and_port]['is_sslv3'] = False
+                    if smtp_cache:
+                        _SMTP_CIPHER_CACHE[server_and_port] = domain.cipher_results[server_and_port]
+                    continue
+                concurrent_scanner = ConcurrentScanner()
+                logging.debug('Queuing for TLSv1.0-TLSv1.3, SSLv2, and SSLv3...')
+                concurrent_scanner.queue_scan_command(server_info, Tlsv10ScanCommand())
+                concurrent_scanner.queue_scan_command(server_info, Tlsv11ScanCommand())
+                concurrent_scanner.queue_scan_command(server_info, Tlsv12ScanCommand())
+                concurrent_scanner.queue_scan_command(server_info, Tlsv13ScanCommand())
+                concurrent_scanner.queue_scan_command(server_info, Sslv20ScanCommand())
+                concurrent_scanner.queue_scan_command(server_info, Sslv30ScanCommand())
+                logging.debug('Processing results...')
+                for scan_result in concurrent_scanner.get_results():
+                    # All scan results have the corresponding scan_command and server_info as an attribute
+                    logging.debug(
+                        '\t Received scan result for {} on host {}'.format(scan_result.scan_command.__class__.__name__,
+                                                                        scan_result.server_info.hostname))
+                    if isinstance(scan_result, PluginRaisedExceptionScanResult):
+                        logging.debug('Scan command failed: {}'.format(scan_result.as_text()))
+                        handle_error('[Cipher Plugin Raised Exception]', domain, scan_result.as_text())
+                    if isinstance(scan_result.scan_command, Tlsv10ScanCommand):  # Testing for TLS 1.0 for RC4/3DES
+                        # Do something with the result
+                        logging.debug('\tTLS 1.0 cipher suites')
+                        failed_rc4 = False
+                        failed_3des = False
+                        try:
+                            for cipher in scan_result.accepted_cipher_list:
+                                if ("3DES" in cipher.name):
+                                    failed_3des = True
+                                elif "RC4" in cipher.name:
+                                    failed_rc4 = True
+                        except AttributeError as error:
+                            handle_error('[Ciphers]', domain, error)
+                            failed_3des = True
+                            failed_rc4 = True
+
+                        domain.cipher_results[server_and_port]['is_tls10_rc4'] = failed_rc4
+                        domain.cipher_results[server_and_port]['is_tls10_3des'] = failed_3des
+                        logging.debug('\t\t TLS 1.0 cipher suites RC4: ' + str(failed_rc4))
+                        logging.debug('\t\t TLS 1.0 cipher suites 3DES: ' + str(failed_3des))
+
+                    elif isinstance(scan_result.scan_command, Tlsv11ScanCommand):  # Testing TLS 1.1 for RC4/3DES
+                        # Do something with the result
+                        logging.debug('\tTLS 1.1 cipher suites')
+                        failed_rc4 = False
+                        failed_3des = False
+                        try:
+                            for cipher in scan_result.accepted_cipher_list:
+                                if "3DES" in cipher.name:
+                                    failed_3des = True
+                                elif "RC4" in cipher.name:
+                                    failed_rc4 = True
+                        except AttributeError as error:
+                            handle_error('[Ciphers]', domain, error)
+                            failed_3des = True
+                            failed_rc4 = True
+
+                        domain.cipher_results[server_and_port]['is_tls11_rc4'] = failed_rc4
+                        domain.cipher_results[server_and_port]['is_tls11_3des'] = failed_3des
+                        logging.debug('\t\t TLS 1.1 cipher suites RC4: ' + str(failed_rc4))
+                        logging.debug('\t\t TLS 1.1 cipher suites 3DES: ' + str(failed_3des))
+
+                    elif isinstance(scan_result.scan_command, Tlsv12ScanCommand):  # Tested TLS 1.2 for RC4/3DES
+                        # Do something with the result
+                        logging.debug('\tTLS 1.2 cipher suites')
+                        failed_rc4 = False
+                        failed_3des = False
+                        try:
+                            for cipher in scan_result.accepted_cipher_list:
+                                if "3DES" in cipher.name:
+                                    failed_3des = True
+                                elif "RC4" in cipher.name:
+                                    failed_rc4 = True
+                        except AttributeError as err:
+                            handle_error('[Ciphers]', domain, err)
+                            failed_3des = True
+                            failed_rc4 = True
+
+                        domain.cipher_results[server_and_port]['is_tls12_rc4'] = failed_rc4
+                        domain.cipher_results[server_and_port]['is_tls12_3des'] = failed_3des
+                        logging.debug('\t\t TLS 1.2 cipher suites RC4: ' + str(failed_rc4))
+                        logging.debug('\t\t TLS 1.2 cipher suites 3DES: ' + str(failed_3des))
+
+                    elif isinstance(scan_result.scan_command, Tlsv13ScanCommand):  # Tested TLS 1.3 for RC4/3DES
+                        # Do something with the result
+                        logging.debug('\tTLS 1.3 cipher suites')
+                        failed_rc4 = False
+                        failed_3des = False
+                        try:
+                            for cipher in scan_result.accepted_cipher_list:
+                                if "3DES" in cipher.name:
+                                    failed_3des = True
+                                elif "RC4" in cipher.name:
+                                    failed_rc4 = True
+                        except AttributeError as err:
+                            handle_error('[Ciphers]', domain, err)
+                            failed_3des = True
+                            failed_rc4 = True
+
+                        domain.cipher_results[server_and_port]['is_tls13_rc4'] = failed_rc4
+                        domain.cipher_results[server_and_port]['is_tls13_3des'] = failed_3des
+                        logging.debug('\t\t TLS 1.3 cipher suites RC4: ' + str(failed_rc4))
+                        logging.debug('\t\t TLS 1.3 cipher suites 3DES: ' + str(failed_3des))
+
+                    elif isinstance(scan_result.scan_command, Sslv20ScanCommand):  # Testing for SSLv2
+                        # Do something with the result
+                        logging.debug('\tSSLv2 cipher suites')
+                        if bool(scan_result.accepted_cipher_list) == False:
+                            logging.debug('\t\t SSLv2 cipher suites: False')
+                            domain.cipher_results[server_and_port]['is_sslv2'] = False
+                        else:
+                            logging.debug('\t SSLv2 cipher suites: True')
+                            domain.cipher_results[server_and_port]['is_sslv2'] = True
+
+                    elif isinstance(scan_result.scan_command, Sslv30ScanCommand):  # Testing for SSLv3
+                        # Do something with the result
+                        logging.debug('\tSSLv3 cipher suites Results')
+                        if bool(scan_result.accepted_cipher_list) == False:
+                            logging.debug('\t\t SSLv3 cipher suites: False')
+                            domain.cipher_results[server_and_port]['is_sslv3'] = False
+                        else:
+                            logging.debug('\t\t SSLv3 cipher suites: True')
+                            domain.cipher_results[server_and_port]['is_sslv3'] = True
+
+                _SMTP_CIPHER_CACHE[server_and_port] = domain.cipher_results[server_and_port]
+
+            else:
+                logging.debug('\tUsing cached results for ' + server_and_port)
+                # Copy the cached results into the domain object
+                domain.cipher_results[server_and_port] = _SMTP_CIPHER_CACHE[server_and_port]
+        else:
+            if not smtp_cache or (server_and_port not in _SMTP_CIPHER_CACHE):
+                logging.debug('\tUsing Failed Result due to STARTTLS=FALSE for: ' + server_and_port)
+                domain.cipher_results[server_and_port] = {}
+                domain.cipher_results[server_and_port]['is_tls10_rc4'] = False
+                domain.cipher_results[server_and_port]['is_tls10_3des'] = False
+                domain.cipher_results[server_and_port]['is_tls11_rc4'] = False
+                domain.cipher_results[server_and_port]['is_tls11_3des'] = False
+                domain.cipher_results[server_and_port]['is_tls12_rc4'] = False
+                domain.cipher_results[server_and_port]['is_tls12_3des'] = False
+                domain.cipher_results[server_and_port]['is_tls13_rc4'] = False
+                domain.cipher_results[server_and_port]['is_tls13_3des'] = False
+                domain.cipher_results[server_and_port]['is_sslv2'] = False
+                domain.cipher_results[server_and_port]['is_sslv3'] = False
+                if smtp_cache:
+                    _SMTP_CIPHER_CACHE[server_and_port] = domain.cipher_results[server_and_port]
+                continue
+
+            else:
+                logging.debug('\tUsing cached results for ' + server_and_port)
+                # Copy the cached results into the domain object
+                domain.cipher_results[server_and_port] = _SMTP_CIPHER_CACHE[server_and_port]
+
+
 
 
 def check_spf_record(record_text, expected_result, domain):
@@ -452,7 +670,9 @@ def dmarc_scan(resolver, domain):
                             domain.valid_dmarc = False
                         domain.dmarc_pct = pct
                         if pct < 100:
-                            handle_syntax_error('[DMARC]', domain, 'Error: The DMARC pct tag value must not be less than 100 (the implicit default), so that the policy applies to all mail')
+                            msg = 'Error: The DMARC pct tag value must not be less than 100 ' \
+                                  '(the implicit default), so that the policy applies to all mail'
+                            handle_syntax_error('[DMARC]', domain, msg)
                             domain.valid_dmarc = False
                     except ValueError:
                         msg = 'invalid DMARC pct tag value: {0} - must be an integer'.format(tag_dict[tag])
@@ -564,6 +784,12 @@ def scan(domain_name, timeout, smtp_timeout, smtp_localhost, smtp_ports, smtp_ca
     if scan_types['starttls'] and domain.is_live:
         starttls_scan(domain, smtp_timeout, smtp_localhost, smtp_ports, smtp_cache)
 
+    try:
+        if scan_types['ciphers'] and domain.is_live:
+            cipher_protocol_scan(domain)
+    except KeyError as error:
+        handle_error('[SCAN]', domain, error)
+
     if scan_types['spf'] and domain.is_live:
         spf_scan(resolver, domain)
 
@@ -574,6 +800,7 @@ def scan(domain_name, timeout, smtp_timeout, smtp_localhost, smtp_ports, smtp_ca
     if domain.is_live and not (scan_types['mx'] or scan_types['starttls'] or scan_types['spf'] or scan_types['dmarc']):
         mx_scan(resolver, domain)
         starttls_scan(domain, smtp_timeout, smtp_localhost, smtp_ports, smtp_cache)
+        cipher_protocol_scan(domain, smtp_cache)
         spf_scan(resolver, domain)
         dmarc_scan(resolver, domain)
 
