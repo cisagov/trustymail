@@ -113,7 +113,7 @@ class Domain:
         #    a. SSLv2
         #    b. SSLv3
 
-        self.tls_cipher_protocol_results = {}
+        self.cipher_results = {}
 
 
         # A list of any debugging information collected while scanning records.
@@ -190,21 +190,20 @@ class Domain:
             'starttls']]
         domain_supports_smtp = bool(mail_servers_that_support_smtp)
 
-        mail_servers_that_support_sslv2 = [x for x in self.tls_cipher_protocol_results.keys() if self.tls_cipher_protocol_results[x][
+        mail_servers_that_support_sslv2 = [x for x in self.cipher_results.keys() if self.cipher_results[x][
             'is_sslv2']]
-        mail_servers_that_support_sslv3 = [x for x in self.tls_cipher_protocol_results.keys() if self.tls_cipher_protocol_results[x][
+        mail_servers_that_support_sslv3 = [x for x in self.cipher_results.keys() if self.cipher_results[x][
             'is_sslv3']]
         domain_supports_sslv2 = bool(mail_servers_that_support_sslv2)
         domain_supports_sslv3 = bool(mail_servers_that_support_sslv3)
 
-
-        mail_servers_that_support_tls10_rc4 = [x for x in self.tls_cipher_protocol_results.keys() if self.tls_cipher_protocol_results[x][
+        mail_servers_that_support_tls10_rc4 = [x for x in self.cipher_results.keys() if self.cipher_results[x][
             'is_tls10_rc4']]
-        mail_servers_that_support_tls11_rc4 = [x for x in self.tls_cipher_protocol_results.keys() if self.tls_cipher_protocol_results[x][
+        mail_servers_that_support_tls11_rc4 = [x for x in self.cipher_results.keys() if self.cipher_results[x][
             'is_tls11_rc4']]
-        mail_servers_that_support_tls12_rc4 = [x for x in self.tls_cipher_protocol_results.keys() if self.tls_cipher_protocol_results[x][
+        mail_servers_that_support_tls12_rc4 = [x for x in self.cipher_results.keys() if self.cipher_results[x][
             'is_tls12_rc4']]
-        mail_servers_that_support_tls13_rc4 = [x for x in self.tls_cipher_protocol_results.keys() if self.tls_cipher_protocol_results[x][
+        mail_servers_that_support_tls13_rc4 = [x for x in self.cipher_results.keys() if self.cipher_results[x][
             'is_tls13_rc4']]
 
         domain_supports_rc4 = False if mail_servers_that_support_tls10_rc4 is False or \
@@ -212,23 +211,24 @@ class Domain:
                                        mail_servers_that_support_tls12_rc4 is False or \
                                        mail_servers_that_support_tls13_rc4 is False else True
 
-        mail_servers_that_support_tls10_3des = [x for x in self.tls_cipher_protocol_results.keys()
-                                                if self.tls_cipher_protocol_results[x]['is_tls10_3des']]
-        mail_servers_that_support_tls11_3des = [x for x in self.tls_cipher_protocol_results.keys()
-                                                if self.tls_cipher_protocol_results[x]['is_tls11_3des']]
-        mail_servers_that_support_tls12_3des = [x for x in self.tls_cipher_protocol_results.keys()
-                                                if self.tls_cipher_protocol_results[x]['is_tls12_3des']]
-        mail_servers_that_support_tls13_3des = [x for x in self.tls_cipher_protocol_results.keys()
-                                                if self.tls_cipher_protocol_results[x]['is_tls13_3des']]
+        mail_servers_that_support_tls10_3des = [x for x in self.cipher_results.keys() if self.cipher_results[x][
+            'is_tls10_3des']]
+        mail_servers_that_support_tls11_3des = [x for x in self.cipher_results.keys() if self.cipher_results[x][
+            'is_tls11_3des']]
+        mail_servers_that_support_tls12_3des = [x for x in self.cipher_results.keys() if self.cipher_results[x][
+            'is_tls12_3des']]
+        mail_servers_that_support_tls13_3des = [x for x in self.cipher_results.keys() if self.cipher_results[x][
+            'is_tls13_3des']]
+
 
         domain_supports_3des = False if mail_servers_that_support_tls10_3des is False or \
                                         mail_servers_that_support_tls11_3des is False or \
                                         mail_servers_that_support_tls12_3des is False or \
                                         mail_servers_that_support_tls13_3des is False else True
 
-        domain_supports_cipher_results = False if domain_supports_3des is False or domain_supports_rc4 is False or \
-                                         domain_supports_sslv2 is False or domain_supports_sslv3 is False else True
-
+        domain_supports_cipher_results = False
+        if domain_supports_3des is True or domain_supports_rc4 is True or domain_supports_sslv2 is True or domain_supports_sslv3 is True:
+            domain_supports_cipher_results = True
 
         results = OrderedDict([
             ('Domain', self.domain_name),
