@@ -81,6 +81,7 @@ class Domain:
         self.spf = []
         self.dmarc = []
         self.dmarc_policy = None
+        self.dmarc_subdomain_policy = None
         self.dmarc_pct = None
         self.dmarc_aggregate_uris = []
         self.dmarc_forensic_uris = []
@@ -163,9 +164,61 @@ class Domain:
         # policies, check the parents.
         if ans is None or ans.lower() not in ['quarantine', 'reject', 'none']:
             if self.base_domain:
-                ans = self.base_domain.get_dmarc_policy()
+                # We check the *subdomain* policy in case one was
+                # explicitly set.  If one was not explicitly set then
+                # the subdomain policy is populated with the value for
+                # the domain policy by trustymail.py anyway, in
+                # accordance with the RFC
+                # (https://tools.ietf.org/html/rfc7489#section-6.3).
+                ans = self.base_domain.get_dmarc_subdomain_policy()
             else:
                 ans = None
+        return ans
+
+    def get_dmarc_subdomain_policy(self):
+        ans = self.dmarc_subdomain_policy
+        # If the policy was never set, or isn't in the list of valid
+        # policies, check the parents.
+        if ans is None or ans.lower() not in ['quarantine', 'reject', 'none']:
+            if self.base_domain:
+                ans = self.base_domain.get_dmarc_subdomain_policy()
+            else:
+                ans = None
+        return ans
+
+    def get_dmarc_pct(self):
+        ans = self.dmarc_pct
+        if not ans:
+            # Check the parents
+            ans = self.base_domain.get_dmarc_pct()
+        return ans
+
+    def get_dmarc_has_aggregate_uri(self):
+        ans = self.dmarc_has_aggregate_uri
+        # If there are no aggregate URIs then check the parents.
+        if not ans and self.base_domain:
+            ans = self.base_domain.get_dmarc_has_aggregate_uri()
+        return ans
+
+    def get_dmarc_has_forensic_uri(self):
+        ans = self.dmarc_has_forensic_uri
+        # If there are no forensic URIs then check the parents.
+        if not ans and self.base_domain:
+            ans = self.base_domain.get_dmarc_has_forensic_uri()
+        return ans
+
+    def get_dmarc_aggregate_uris(self):
+        ans = self.dmarc_aggregate_uris
+        # If there are no aggregate URIs then check the parents.
+        if not ans and self.base_domain:
+            ans = self.base_domain.get_dmarc_aggregate_uris()
+        return ans
+
+    def get_dmarc_forensic_uris(self):
+        ans = self.dmarc_forensic_uris
+        # If there are no forensic URIs then check the parents.
+        if not ans and self.base_domain:
+            ans = self.base_domain.get_dmarc_forensic_uris()
         return ans
 
     def generate_results(self):
@@ -203,14 +256,13 @@ class Domain:
             ('Valid DMARC Record on Base Domain', self.parent_has_dmarc() and self.parent_valid_dmarc()),
             ('DMARC Results on Base Domain', self.parent_dmarc_results()),
             ('DMARC Policy', self.get_dmarc_policy()),
-            ('DMARC Policy Percentage', self.dmarc_pct),
+            ('DMARC Policy Percentage', self.get_dmarc_pct()),
 
-            ("DMARC Aggregate Report URIs", format_list(self.dmarc_aggregate_uris)),
-            ("DMARC Forensic Report URIs", format_list(self.dmarc_forensic_uris)),
+            ("DMARC Aggregate Report URIs", format_list(self.get_dmarc_aggregate_uris())),
+            ("DMARC Forensic Report URIs", format_list(self.get_dmarc_forensic_uris())),
 
-            ('DMARC Has Aggregate Report URI', self.dmarc_has_aggregate_uri),
-            ('DMARC Has Forensic Report URI', self.dmarc_has_forensic_uri),
-
+            ('DMARC Has Aggregate Report URI', self.get_dmarc_has_aggregate_uri()),
+            ('DMARC Has Forensic Report URI', self.get_dmarc_has_forensic_uri()),
 
             ('Syntax Errors', format_list(self.syntax_errors)),
             ('Debug Info', format_list(self.debug_info))
