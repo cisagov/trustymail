@@ -418,6 +418,8 @@ def dmarc_scan(resolver, domain):
                         msg = 'Unknown DMARC subdomain policy {0}'.format(tag_dict[tag])
                         handle_syntax_error('[DMARC]', domain, '{0}'.format(msg))
                         domain.valid_dmarc = False
+                    else:
+                        domain.dmarc_subdomain_policy = tag_dict[tag]
                 elif tag == 'fo':
                     values = tag_dict[tag].split(':')
                     if '0' in values and '1' in values:
