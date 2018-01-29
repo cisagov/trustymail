@@ -447,7 +447,7 @@ def dmarc_scan(resolver, domain):
                 elif tag == 'pct':
                     try:
                         pct = int(tag_dict[tag])
-                        if pct < 0 or pct > 100:
+                        if pct <= 0 or pct > 100:
                             msg = 'Error: invalid DMARC pct tag value: {0} - must be an integer between ' \
                                   '0 and 100'.format(tag_dict[tag])
                             handle_syntax_error('[DMARC]', domain, '{0}'.format(msg))
