@@ -461,6 +461,8 @@ def dmarc_scan(resolver, domain):
                         domain.valid_dmarc = False
                 elif tag == 'rua' or tag == 'ruf':
                     uris = tag_dict[tag].split(',')
+                    if len(uris) > 2:
+                        handle_syntax_error('[DMARC]', domain, 'Warning: The {} tag specifies {} URIs.  Receivers are not required to send reports to more than two URIs - https://tools.ietf.org/html/rfc7489#section-6.2.'.format(tag, len(uris)))
                     for uri in uris:
                         # mailto: is currently the only type of DMARC URI
                         parsed_uri = parse_dmarc_report_uri(uri)
