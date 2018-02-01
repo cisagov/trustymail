@@ -501,7 +501,7 @@ def dmarc_scan(resolver, domain):
                                     domain.valid_dmarc = False
 
             # Log a warning if the DMARC record specifies a policy but does not
-            # specify any ruf or rua URIs, since this greatly reduces teh
+            # specify any ruf or rua URIs, since this greatly reduces the
             # usefulness of DMARC.
             if 'p' in tag_dict and 'rua' not in tag_dict and 'ruf' not in tag_dict:
                 handle_syntax_error('[DMARC]', domain, 'Warning: A DMARC policy is specified but no reporting URIs.  This makes the DMARC implementation considerably less useful that it could be.  See https://tools.ietf.org/html/rfc7489#section-6.5 for more details.')
