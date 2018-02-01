@@ -461,6 +461,8 @@ def dmarc_scan(resolver, domain):
                         domain.valid_dmarc = False
                 elif tag == 'rua' or tag == 'ruf':
                     uris = tag_dict[tag].split(',')
+                    if len(uris) > 2:
+                        handle_syntax_error('[DMARC]', domain, 'Warning: The {} tag specifies {} URIs.  Receivers are not required to send reports to more than two URIs - https://tools.ietf.org/html/rfc7489#section-6.2.'.format(tag, len(uris)))
                     for uri in uris:
                         # mailto: is currently the only type of DMARC URI
                         parsed_uri = parse_dmarc_report_uri(uri)
@@ -497,6 +499,12 @@ def dmarc_scan(resolver, domain):
                                                                            'address {0} does not have any '
                                                                            'MX records'.format(email_address))
                                     domain.valid_dmarc = False
+
+            # Log a warning if the DMARC record specifies a policy but does not
+            # specify any ruf or rua URIs, since this greatly reduces the
+            # usefulness of DMARC.
+            if 'p' in tag_dict and 'rua' not in tag_dict and 'ruf' not in tag_dict:
+                handle_syntax_error('[DMARC]', domain, 'Warning: A DMARC policy is specified but no reporting URIs.  This makes the DMARC implementation considerably less useful that it could be.  See https://tools.ietf.org/html/rfc7489#section-6.5 for more details.')
 
         domain.dmarc_has_aggregate_uri = len(domain.dmarc_aggregate_uris) > 0
         domain.dmarc_has_forensic_uri = len(domain.dmarc_forensic_uris) > 0
