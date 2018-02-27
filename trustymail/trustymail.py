@@ -59,13 +59,13 @@ def mx_scan(resolver, domain):
         # records more than whether their records fit in a single UDP packet.
         for record in resolver.query(domain.domain_name, 'MX', tcp=True):
             domain.add_mx_record(record)
-    except dns.resolver.NoNameservers as error:
-        # This exception means that we got a SERVFAIL response.  These
-        # responses are almost always permanent, not temporary, so let's treat
-        # the domain as not live.
+    except (dns.resolver.NoNameservers, dns.resolver.NXDOMAIN) as error:
+        # The NoNameServers exception means that we got a SERVFAIL response.
+        # These responses are almost always permanent, not temporary, so let's
+        # treat the domain as not live.
         domain.is_live = False
         handle_error('[MX]', domain, error)
-    except (dns.resolver.NoAnswer, dns.exception.Timeout, dns.resolver.NXDOMAIN) as error:
+    except (dns.resolver.NoAnswer, dns.exception.Timeout) as error:
         handle_error('[MX]', domain, error)
 
 
@@ -253,13 +253,13 @@ def get_spf_record_text(resolver, domain_name, domain, follow_redirect=False):
                 record_to_return = get_spf_record_text(resolver, redirect_domain_name, domain)
             else:
                 record_to_return = record_text
-    except dns.resolver.NoNameservers as error:
-        # This exception means that we got a SERVFAIL response.  These
-        # responses are almost always permanent, not temporary, so let's treat
-        # the domain as not live.
+    except (dns.resolver.NoNameservers, dns.resolver.NXDOMAIN) as error:
+        # The NoNameservers exception means that we got a SERVFAIL response.
+        # These responses are almost always permanent, not temporary, so let's
+        # treat the domain as not live.
         domain.is_live = False
         handle_error('[SPF]', domain, error)
-    except (dns.resolver.NoAnswer, dns.exception.Timeout, dns.resolver.NXDOMAIN) as error:
+    except (dns.resolver.NoAnswer, dns.exception.Timeout) as error:
         handle_error('[SPF]', domain, error)
 
     return record_to_return
@@ -508,13 +508,13 @@ def dmarc_scan(resolver, domain):
 
         domain.dmarc_has_aggregate_uri = len(domain.dmarc_aggregate_uris) > 0
         domain.dmarc_has_forensic_uri = len(domain.dmarc_forensic_uris) > 0
-    except dns.resolver.NoNameservers as error:
-        # This exception means that we got a SERVFAIL response.  These
-        # responses are almost always permanent, not temporary, so let's treat
-        # the domain as not live.
+    except (dns.resolver.NoNameservers, dns.resolver.NXDOMAIN) as error:
+        # The NoNameservers exception means that we got a SERVFAIL response.
+        # These responses are almost always permanent, not temporary, so let's
+        # treat the domain as not live.
         domain.is_live = False
         handle_error('[DMARC]', domain, error)
-    except (dns.resolver.NoAnswer, dns.exception.Timeout, dns.resolver.NXDOMAIN) as error:
+    except (dns.resolver.NoAnswer, dns.exception.Timeout) as error:
         handle_error('[DMARC]', domain, error)
 
 
