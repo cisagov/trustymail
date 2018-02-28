@@ -508,13 +508,13 @@ def dmarc_scan(resolver, domain):
 
         domain.dmarc_has_aggregate_uri = len(domain.dmarc_aggregate_uris) > 0
         domain.dmarc_has_forensic_uri = len(domain.dmarc_forensic_uris) > 0
-    except (dns.resolver.NoNameservers, dns.resolver.NXDOMAIN) as error:
+    except dns.resolver.NoNameservers as error:
         # The NoNameservers exception means that we got a SERVFAIL response.
         # These responses are almost always permanent, not temporary, so let's
         # treat the domain as not live.
         domain.is_live = False
         handle_error('[DMARC]', domain, error)
-    except (dns.resolver.NoAnswer, dns.exception.Timeout) as error:
+    except (dns.resolver.NXDOMAIN, dns.resolver.NoAnswer, dns.exception.Timeout) as error:
         handle_error('[DMARC]', domain, error)
 
 
