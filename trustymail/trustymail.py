@@ -245,7 +245,7 @@ def get_spf_record_text(resolver, domain_name, domain, follow_redirect=False):
         # Use TCP, since we care about the content and correctness of the
         # records more than whether their records fit in a single UDP packet.
         for record in resolver.query(domain_name, 'TXT', tcp=True):
-            record_text = record.to_text().strip('"')
+            record_text = remove_quotes(record.to_text())
 
             if not record_text.startswith('v=spf1'):
                 # Not an spf record, ignore it.
@@ -355,7 +355,7 @@ def dmarc_scan(resolver, domain):
         elif records:
             record = records[0]
 
-            record_text = record.to_text().strip('"')
+            record_text = remove_quotes(record.to_text())
 
             # Ensure the record is a DMARC record. Some domains that
             # redirect will cause an SPF record to show.
@@ -488,7 +488,7 @@ def dmarc_scan(resolver, domain):
                                                 '/html/rfc7489#section-7.1'.format(email_domain,
                                                                                    domain.domain_name)
                                 try:
-                                    answer = resolver.query(target, 'TXT', tcp=True)[0].to_text().strip('"')
+                                    answer = remove_quotes(resolver.query(target, 'TXT', tcp=True)[0].to_text())
                                     if not answer.startswith('v=DMARC1'):
                                         handle_error('[DMARC]', domain, '{0}'.format(error_message))
                                         domain.valid_dmarc = False
@@ -684,3 +684,25 @@ def format_datetime(obj):
         return obj
     else:
         return None
+
+def remove_quotes(txt_record):
+    """Remove double quotes and contatenate strings in a DNS TXT record
+
+    A DNS TXT record can contain multiple double-quoted strings, and
+    in that case the client has to remove the quotes and concatenate the
+    strings.  This function does just that.
+
+    Parameters
+    ----------
+    txt_record : str
+        The DNS TXT record that possibly consists of multiple
+        double-quoted strings.
+
+    Returns
+    -------
+    str: The DNS TXT record with double-quoted strings unquoted and
+    concatenated.
+    """
+    # This regular expression removes leading and trailing double quotes and
+    # also removes any pairs of double quotes separated by one or more spaces.
+    return re.sub('^"|"$|" +"', '', txt_record)
