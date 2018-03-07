@@ -104,6 +104,10 @@ def starttls_scan(domain, smtp_timeout, smtp_localhost, smtp_ports, smtp_cache):
 
                 smtp_connection = smtplib.SMTP(timeout=smtp_timeout,
                                                local_hostname=smtp_localhost)
+                # The following line is useful when debugging why an
+                # SMTP connection fails.  It prints out all the
+                # traffic sent to and from the SMTP server.
+                # smtp_connection.set_debuglevel(1)
                 logging.debug('Testing ' + server_and_port + ' for STARTTLS support')
                 # Try to connect.  This will tell us if something is
                 # listening.
