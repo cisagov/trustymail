@@ -685,6 +685,7 @@ def format_datetime(obj):
     else:
         return None
 
+
 def remove_quotes(txt_record):
     """Remove double quotes and contatenate strings in a DNS TXT record
 
