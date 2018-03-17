@@ -1,6 +1,5 @@
 from datetime import datetime, timedelta
 from collections import OrderedDict
-import logging
 from os import path, stat
 
 import publicsuffix
