@@ -1,9 +1,10 @@
-from os import path, stat
 from datetime import datetime, timedelta
 from collections import OrderedDict
+from os import path, stat
 
 import publicsuffix
 
+from trustymail import PublicSuffixListFilename
 from trustymail import trustymail
 
 
@@ -15,24 +16,22 @@ def get_psl():
     -------
     PublicSuffixList: An instance of PublicSuffixList loaded with a cached or updated list
     """
-    psl_path = 'public_suffix_list.dat'
 
     def download_psl():
         fresh_psl = publicsuffix.fetch()
-        with open(psl_path, 'w', encoding='utf-8') as fresh_psl_file:
+        with open(PublicSuffixListFilename, 'w', encoding='utf-8') as fresh_psl_file:
             fresh_psl_file.write(fresh_psl.read())
 
-        return publicsuffix.PublicSuffixList(fresh_psl)
-
-    if not path.exists(psl_path):
-        psl = download_psl()
+    # Download the psl if necessary
+    if not path.exists(PublicSuffixListFilename):
+        download_psl()
     else:
-        psl_age = datetime.now() - datetime.fromtimestamp(stat(psl_path).st_mtime)
+        psl_age = datetime.now() - datetime.fromtimestamp(stat(PublicSuffixListFilename).st_mtime)
         if psl_age > timedelta(hours=24):
-            psl = download_psl()
-        else:
-            with open(psl_path, encoding='utf-8') as psl_file:
-                psl = publicsuffix.PublicSuffixList(psl_file)
+            download_psl()
+
+    with open(PublicSuffixListFilename, encoding='utf-8') as psl_file:
+        psl = publicsuffix.PublicSuffixList(psl_file)
 
     return psl
 
