@@ -80,6 +80,16 @@ output will always be written to disk, defaulting to `results.csv`.
                               (/etc/resolv.conf) is used.  Note that 
                               the host's DNS configuration is not used at all 
                               if this option is used.
+  --psl-filename=FILENAME     The name of the file where the public suffix list
+                              (PSL) cache will be saved.  If set to the name of
+                              an existing file then that file will be used as
+                              the PSL.  If not present then the PSL cache will
+                              be saved to a file in the current directory called
+                              public_suffix_list.dat.
+  --psl-read-only             If present, then the public suffix list (PSL) 
+                              cache will be read but never overwritten.  This 
+                              is useful when running in AWS Lambda, for
+                              instance, where the local filesystem is read-only.
 ```
 
 ## What's Checked?
