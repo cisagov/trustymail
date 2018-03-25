@@ -4,7 +4,7 @@
 """trustymail: A tool for scanning DNS mail records for evaluating security.
 Usage:
   trustymail (INPUT ...) [options]
-  trustymail (INPUT ...) [--output=OUTFILE] [--timeout=TIMEOUT] [--smtp-timeout=TIMEOUT] [--smtp-localhost=HOSTNAME] [--smtp-ports=PORTS] [--no-smtp-cache] [--mx] [--starttls] [--spf] [--dmarc] [--debug] [--json] [--dns=HOSTNAMES] [--psl-filename=FILENAME]
+  trustymail (INPUT ...) [--output=OUTFILE] [--timeout=TIMEOUT] [--smtp-timeout=TIMEOUT] [--smtp-localhost=HOSTNAME] [--smtp-ports=PORTS] [--no-smtp-cache] [--mx] [--starttls] [--spf] [--dmarc] [--debug] [--json] [--dns=HOSTNAMES] [--psl-filename=FILENAME] [--psl-read-only]
   trustymail (-h | --help)
 
 Options:
@@ -21,7 +21,8 @@ Options:
                               may results in slower scans due to testing the
                               same mail servers multiple times.
   --mx                        Only check mx records
-  --starttls                  Only check mx records and STARTTLS support.  (Implies --mx.)
+  --starttls                  Only check mx records and STARTTLS support.
+                              (Implies --mx.)
   --spf                       Only check spf records
   --dmarc                     Only check dmarc records
   --json                      Output is in json format (default csv)
@@ -35,9 +36,15 @@ Options:
                               the host's DNS configuration is not used at all
                               if this option is used.
   --psl-filename=FILENAME     The name of the file where the public suffix list
-                              cache will be saved.  If set to the name of an
-                              existing file then that file will be used as the
-                              PSL.
+                              (PSL) cache will be saved.  If set to the name of
+                              an existing file then that file will be used as
+                              the PSL.  If not present then the PSL cache will
+                              be saved to a file in the current directory called
+                              public_suffix_list.dat.
+  --psl-read-only             If present, then the public suffix list (PSL) 
+                              cache will be read but never overwritten.  This 
+                              is useful when running in AWS Lambda, for
+                              instance, where the local filesystem is read-only.
 
 Notes:
    If no scan type options are specified, all are run against a given domain/input.
@@ -63,6 +70,9 @@ def main():
     # Monkey patching trustymail to make it cache the PSL where we want
     if args['--psl-filename'] is not None:
         trustymail.PublicSuffixListFilename = args['--psl-filename']
+    # Monkey patching trustymail to make the PSL cache read-only
+    if args['--psl-read-only']:
+        trustymail.PublicSuffixListReadOnly = True
     import trustymail.trustymail as tmail
 
     log_level = logging.WARN

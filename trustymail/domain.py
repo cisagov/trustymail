@@ -4,6 +4,7 @@ from os import path, stat
 
 import publicsuffix
 
+from trustymail import PublicSuffixListReadOnly
 from trustymail import PublicSuffixListFilename
 from trustymail import trustymail
 
@@ -23,12 +24,13 @@ def get_psl():
             fresh_psl_file.write(fresh_psl.read())
 
     # Download the psl if necessary
-    if not path.exists(PublicSuffixListFilename):
-        download_psl()
-    else:
-        psl_age = datetime.now() - datetime.fromtimestamp(stat(PublicSuffixListFilename).st_mtime)
-        if psl_age > timedelta(hours=24):
+    if not PublicSuffixListReadOnly:
+        if not path.exists(PublicSuffixListFilename):
             download_psl()
+        else:
+            psl_age = datetime.now() - datetime.fromtimestamp(stat(PublicSuffixListFilename).st_mtime)
+            if psl_age > timedelta(hours=24):
+                download_psl()
 
     with open(PublicSuffixListFilename, encoding='utf-8') as psl_file:
         psl = publicsuffix.PublicSuffixList(psl_file)
