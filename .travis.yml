@@ -23,7 +23,7 @@ install:
 script:
   - pytest --cov=trustymail
   - flake8 .
-  - bash travis_scripts/build_docker_image.sh
+  # - bash travis_scripts/build_docker_image.sh
 
 after_success:
   - coveralls
@@ -37,8 +37,8 @@ deploy:
     on:
       tags: true
       python: '3.6'
-  - provider: script
-    script: bash travis_scripts/deploy_to_docker_hub.sh
-    on:
-      tags: true
-      python: '3.6'
+  # - provider: script
+  #   script: bash travis_scripts/deploy_to_docker_hub.sh
+  #   on:
+  #     tags: true
+  #     python: '3.6'
