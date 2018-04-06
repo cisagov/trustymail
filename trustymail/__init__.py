@@ -1,1 +1,6 @@
-__version__ = '0.3.0'
+from __future__ import unicode_literals, absolute_import, print_function
+
+__version__ = '0.5.5'
+
+PublicSuffixListFilename = 'public_suffix_list.dat'
+PublicSuffixListReadOnly = False

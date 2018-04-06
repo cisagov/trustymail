@@ -1,7 +1,10 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 """trustymail: A tool for scanning DNS mail records for evaluating security.
 Usage:
   trustymail (INPUT ...) [options]
-  trustymail (INPUT ...) [--output=OUTFILE] [--timeout=TIMEOUT] [--smtp-timeout=TIMEOUT] [--smtp-localhost=HOSTNAME] [--smtp-ports=PORTS] [--no-smtp-cache] [--mx] [--starttls] [--spf] [--dmarc] [--debug] [--json] [--dns=HOSTNAMES]
+  trustymail (INPUT ...) [--output=OUTFILE] [--timeout=TIMEOUT] [--smtp-timeout=TIMEOUT] [--smtp-localhost=HOSTNAME] [--smtp-ports=PORTS] [--no-smtp-cache] [--mx] [--starttls] [--spf] [--dmarc] [--debug] [--json] [--dns=HOSTNAMES] [--psl-filename=FILENAME] [--psl-read-only]
   trustymail (-h | --help)
 
 Options:
@@ -18,7 +21,8 @@ Options:
                               may results in slower scans due to testing the
                               same mail servers multiple times.
   --mx                        Only check mx records
-  --starttls                  Only check mx records and STARTTLS support.  (Implies --mx.)
+  --starttls                  Only check mx records and STARTTLS support.
+                              (Implies --mx.)
   --spf                       Only check spf records
   --dmarc                     Only check dmarc records
   --json                      Output is in json format (default csv)
@@ -31,6 +35,16 @@ Options:
                               (/etc/resolv.conf) is used.  Note that
                               the host's DNS configuration is not used at all
                               if this option is used.
+  --psl-filename=FILENAME     The name of the file where the public suffix list
+                              (PSL) cache will be saved.  If set to the name of
+                              an existing file then that file will be used as
+                              the PSL.  If not present then the PSL cache will
+                              be saved to a file in the current directory called
+                              public_suffix_list.dat.
+  --psl-read-only             If present, then the public suffix list (PSL) 
+                              cache will be read but never overwritten.  This 
+                              is useful when running in AWS Lambda, for
+                              instance, where the local filesystem is read-only.
 
 Notes:
    If no scan type options are specified, all are run against a given domain/input.
@@ -44,15 +58,22 @@ import os
 import docopt
 
 # Local imports
-from trustymail import __version__
-from trustymail import trustymail
+import trustymail
 
 # The default ports to be checked to see if an SMTP server is listening.
 _DEFAULT_SMTP_PORTS = {25, 465, 587}
 
 
 def main():
-    args = docopt.docopt(__doc__, version=__version__)
+    args = docopt.docopt(__doc__, version=trustymail.__version__)
+
+    # Monkey patching trustymail to make it cache the PSL where we want
+    if args['--psl-filename'] is not None:
+        trustymail.PublicSuffixListFilename = args['--psl-filename']
+    # Monkey patching trustymail to make the PSL cache read-only
+    if args['--psl-read-only']:
+        trustymail.PublicSuffixListReadOnly = True
+    import trustymail.trustymail as tmail
 
     log_level = logging.WARN
     if args['--debug']:
@@ -104,10 +125,10 @@ def main():
 
     domain_scans = []
     for domain_name in domains:
-        domain_scans.append(trustymail.scan(domain_name, timeout,
-                                            smtp_timeout, smtp_localhost,
-                                            smtp_ports, not args['--no-smtp-cache'],
-                                            scan_types, dns_hostnames))
+        domain_scans.append(tmail.scan(domain_name, timeout,
+                                       smtp_timeout, smtp_localhost,
+                                       smtp_ports, not args['--no-smtp-cache'],
+                                       scan_types, dns_hostnames))
 
     # Default output file name is results.
     if args['--output'] is None:
@@ -122,14 +143,14 @@ def main():
         output_file_name += '.csv'
 
     if args['--json']:
-        json_out = trustymail.generate_json(domain_scans)
+        json_out = tmail.generate_json(domain_scans)
         if args['--output'] is None:
             print(json_out)
         else:
             write(json_out, output_file_name)
             logging.warn('Wrote results to %s.' % output_file_name)
     else:
-        trustymail.generate_csv(domain_scans, output_file_name)
+        tmail.generate_csv(domain_scans, output_file_name)
 
 
 def write(content, out_file):

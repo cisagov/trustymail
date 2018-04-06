@@ -1,18 +1,69 @@
-from publicsuffix import PublicSuffixList
+from datetime import datetime, timedelta
+from collections import OrderedDict
+from os import path, stat
 
+import publicsuffix
+
+from trustymail import PublicSuffixListReadOnly
+from trustymail import PublicSuffixListFilename
 from trustymail import trustymail
 
-public_list = PublicSuffixList()
+
+def get_psl():
+    """
+    Gets the Public Suffix List - either new, or cached in the CWD for 24 hours
+
+    Returns
+    -------
+    PublicSuffixList: An instance of PublicSuffixList loaded with a cached or updated list
+    """
+
+    def download_psl():
+        fresh_psl = publicsuffix.fetch()
+        with open(PublicSuffixListFilename, 'w', encoding='utf-8') as fresh_psl_file:
+            fresh_psl_file.write(fresh_psl.read())
+
+    # Download the psl if necessary
+    if not PublicSuffixListReadOnly:
+        if not path.exists(PublicSuffixListFilename):
+            download_psl()
+        else:
+            psl_age = datetime.now() - datetime.fromtimestamp(stat(PublicSuffixListFilename).st_mtime)
+            if psl_age > timedelta(hours=24):
+                download_psl()
+
+    with open(PublicSuffixListFilename, encoding='utf-8') as psl_file:
+        psl = publicsuffix.PublicSuffixList(psl_file)
+
+    return psl
+
+
+def get_public_suffix(domain):
+    """Returns the public suffix of a given domain"""
+    public_list = get_psl()
+
+    return public_list.get_public_suffix(domain)
+
+
+def format_list(record_list):
+    """Format a list into a string to increase readability in CSV"""
+    # record_list should only be a list, not an integer, None, or
+    # anything else.  Thus this if clause handles only empty
+    # lists.  This makes a "null" appear in the JSON output for
+    # empty lists, as expected.
+    if not record_list:
+        return None
+
+    return ', '.join(record_list)
 
 
 class Domain:
-
     base_domains = {}
 
     def __init__(self, domain_name, timeout, smtp_timeout, smtp_localhost, smtp_ports, smtp_cache, dns_hostnames):
         self.domain_name = domain_name.lower()
 
-        self.base_domain_name = public_list.get_public_suffix(self.domain_name)
+        self.base_domain_name = get_public_suffix(self.domain_name)
 
         if self.base_domain_name != self.domain_name:
             if self.base_domain_name not in Domain.base_domains:
@@ -31,6 +82,12 @@ class Domain:
         self.spf = []
         self.dmarc = []
         self.dmarc_policy = None
+        self.dmarc_subdomain_policy = None
+        self.dmarc_pct = None
+        self.dmarc_aggregate_uris = []
+        self.dmarc_forensic_uris = []
+        self.dmarc_has_aggregate_uri = False
+        self.dmarc_has_forensic_uri = False
 
         # Syntax validity - default spf to false as the lack of an SPF is a bad thing.
         self.valid_spf = False
@@ -85,76 +142,131 @@ class Domain:
         self.mail_servers.append(record.exchange.to_text().rstrip('.').lower())
 
     def parent_has_dmarc(self):
-        if self.base_domain is None:
-            return None
-        return self.base_domain.has_dmarc()
+        ans = self.has_dmarc()
+        if self.base_domain:
+            ans = self.base_domain.has_dmarc()
+        return ans
 
     def parent_valid_dmarc(self):
-        if self.base_domain is None:
-            return None
-        return self.base_domain.valid_dmarc
+        ans = self.valid_dmarc
+        if self.base_domain:
+            return self.base_domain.valid_dmarc
+        return ans
 
     def parent_dmarc_results(self):
-        if self.base_domain is None:
-            return None
-        return self.format_list(self.base_domain.dmarc)
+        ans = format_list(self.dmarc)
+        if self.base_domain:
+            ans = format_list(self.base_domain.dmarc)
+        return ans
 
     def get_dmarc_policy(self):
-        # If the policy was never set, or isn't in the list of valid policies, check the parents.
-        if self.dmarc_policy is None or self.dmarc_policy.lower() not in ['quarantine', 'reject', 'none']:
-            if self.base_domain is None:
-                return ''
+        ans = self.dmarc_policy
+        # If the policy was never set, or isn't in the list of valid
+        # policies, check the parents.
+        if ans is None or ans.lower() not in ['quarantine', 'reject', 'none']:
+            if self.base_domain:
+                # We check the *subdomain* policy in case one was
+                # explicitly set.  If one was not explicitly set then
+                # the subdomain policy is populated with the value for
+                # the domain policy by trustymail.py anyway, in
+                # accordance with the RFC
+                # (https://tools.ietf.org/html/rfc7489#section-6.3).
+                ans = self.base_domain.get_dmarc_subdomain_policy()
             else:
-                return self.base_domain.get_dmarc_policy()
-        return self.dmarc_policy
+                ans = None
+        return ans
+
+    def get_dmarc_subdomain_policy(self):
+        ans = self.dmarc_subdomain_policy
+        # If the policy was never set, or isn't in the list of valid
+        # policies, check the parents.
+        if ans is None or ans.lower() not in ['quarantine', 'reject', 'none']:
+            if self.base_domain:
+                ans = self.base_domain.get_dmarc_subdomain_policy()
+            else:
+                ans = None
+        return ans
+
+    def get_dmarc_pct(self):
+        ans = self.dmarc_pct
+        if not ans and self.base_domain:
+            # Check the parents
+            ans = self.base_domain.get_dmarc_pct()
+        return ans
+
+    def get_dmarc_has_aggregate_uri(self):
+        ans = self.dmarc_has_aggregate_uri
+        # If there are no aggregate URIs then check the parents.
+        if not ans and self.base_domain:
+            ans = self.base_domain.get_dmarc_has_aggregate_uri()
+        return ans
+
+    def get_dmarc_has_forensic_uri(self):
+        ans = self.dmarc_has_forensic_uri
+        # If there are no forensic URIs then check the parents.
+        if not ans and self.base_domain:
+            ans = self.base_domain.get_dmarc_has_forensic_uri()
+        return ans
+
+    def get_dmarc_aggregate_uris(self):
+        ans = self.dmarc_aggregate_uris
+        # If there are no aggregate URIs then check the parents.
+        if not ans and self.base_domain:
+            ans = self.base_domain.get_dmarc_aggregate_uris()
+        return ans
+
+    def get_dmarc_forensic_uris(self):
+        ans = self.dmarc_forensic_uris
+        # If there are no forensic URIs then check the parents.
+        if not ans and self.base_domain:
+            ans = self.base_domain.get_dmarc_forensic_uris()
+        return ans
 
     def generate_results(self):
-        mail_servers_that_support_smtp = [x for x in self.starttls_results.keys() if self.starttls_results[x]['supports_smtp']]
-        mail_servers_that_support_starttls = [x for x in self.starttls_results.keys() if self.starttls_results[x]['starttls']]
-        domain_supports_smtp = bool(mail_servers_that_support_starttls)
+        mail_servers_that_support_smtp = [x for x in self.starttls_results.keys() if self.starttls_results[x][
+            'supports_smtp']]
+        mail_servers_that_support_starttls = [x for x in self.starttls_results.keys() if self.starttls_results[x][
+            'starttls']]
+        domain_supports_smtp = bool(mail_servers_that_support_smtp)
 
-        results = {
-            'Domain': self.domain_name,
-            'Base Domain': self.base_domain_name,
-            'Live': self.is_live,
+        results = OrderedDict([
+            ('Domain', self.domain_name),
+            ('Base Domain', self.base_domain_name),
+            ('Live', self.is_live),
 
-            'MX Record': self.has_mail(),
-            'Mail Servers': self.format_list(self.mail_servers),
-            'Mail Server Ports Tested': self.format_list([str(port) for port in self.ports_tested]),
-            'Domain Supports SMTP Results': self.format_list(mail_servers_that_support_smtp),
+            ('MX Record', self.has_mail()),
+            ('Mail Servers', format_list(self.mail_servers)),
+            ('Mail Server Ports Tested', format_list([str(port) for port in self.ports_tested])),
+            ('Domain Supports SMTP Results', format_list(mail_servers_that_support_smtp)),
             # True if and only if at least one mail server speaks SMTP
-            'Domain Supports SMTP': domain_supports_smtp,
-            'Domain Supports STARTTLS Results': self.format_list(mail_servers_that_support_starttls),
+            ('Domain Supports SMTP', domain_supports_smtp),
+            ('Domain Supports STARTTLS Results', format_list(mail_servers_that_support_starttls)),
             # True if and only if all mail servers that speak SMTP
             # also support STARTTLS
-            'Domain Supports STARTTLS': domain_supports_smtp and all([self.starttls_results[x]['starttls'] for x in mail_servers_that_support_smtp]),
+            ('Domain Supports STARTTLS', domain_supports_smtp and all([self.starttls_results[x]['starttls'] for x in mail_servers_that_support_smtp])),
 
-            'SPF Record': self.has_spf(),
-            'Valid SPF': self.valid_spf,
-            'SPF Results': self.format_list(self.spf),
+            ('SPF Record', self.has_spf()),
+            ('Valid SPF', self.valid_spf),
+            ('SPF Results', format_list(self.spf)),
 
-            'DMARC Record': self.has_dmarc(),
-            'Valid DMARC': self.has_dmarc() and self.valid_dmarc,
-            'DMARC Results': self.format_list(self.dmarc),
+            ('DMARC Record', self.has_dmarc()),
+            ('Valid DMARC', self.has_dmarc() and self.valid_dmarc),
+            ('DMARC Results', format_list(self.dmarc)),
 
-            'DMARC Record on Base Domain': self.parent_has_dmarc(),
-            'Valid DMARC Record on Base Domain': self.parent_has_dmarc() and self.parent_valid_dmarc(),
-            'DMARC Results on Base Domain': self.parent_dmarc_results(),
-            'DMARC Policy': self.get_dmarc_policy(),
+            ('DMARC Record on Base Domain', self.parent_has_dmarc()),
+            ('Valid DMARC Record on Base Domain', self.parent_has_dmarc() and self.parent_valid_dmarc()),
+            ('DMARC Results on Base Domain', self.parent_dmarc_results()),
+            ('DMARC Policy', self.get_dmarc_policy()),
+            ('DMARC Policy Percentage', self.get_dmarc_pct()),
 
-            'Syntax Errors': self.format_list(self.syntax_errors),
-            'Debug Info': self.format_list(self.debug_info)
-        }
+            ("DMARC Aggregate Report URIs", format_list(self.get_dmarc_aggregate_uris())),
+            ("DMARC Forensic Report URIs", format_list(self.get_dmarc_forensic_uris())),
+
+            ('DMARC Has Aggregate Report URI', self.get_dmarc_has_aggregate_uri()),
+            ('DMARC Has Forensic Report URI', self.get_dmarc_has_forensic_uri()),
+
+            ('Syntax Errors', format_list(self.syntax_errors)),
+            ('Debug Info', format_list(self.debug_info))
+        ])
 
         return results
-
-    # Format a list into a string to increase readability in CSV.
-    def format_list(self, record_list):
-        # record_list should only be a list, not an integer, None, or
-        # anything else.  Thus this if clause handles only empty
-        # lists.  This makes a "null" appear in the JSON output for
-        # empty lists, as expected.
-        if not record_list:
-            return None
-
-        return ', '.join(record_list)

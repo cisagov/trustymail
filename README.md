@@ -1,4 +1,4 @@
-## Trustworthy Mail
+# Trustworthy Mail #
 
 [![Build Status](https://travis-ci.org/dhs-ncats/trustymail.svg?branch=master)](https://travis-ci.org/dhs-ncats/trustymail)
 [![Coverage Status](https://coveralls.io/repos/github/dhs-ncats/trustymail/badge.svg?branch=master)](https://coveralls.io/github/dhs-ncats/trustymail?branch=master)
@@ -7,7 +7,12 @@
 domain's DNS. It also checks the mail servers listed in a domain's MX
 records for STARTTLS support. It saves its results to CSV or JSON.
 
-#### Installed as a module
+## Getting Started ##
+
+`trustymail` can be installed as a module or run directly from the
+repository.
+
+### Installed as a module ###
 
 `trustymail` can be installed directly via pip:
 
@@ -21,7 +26,7 @@ It can then be run directly:
 trustymail [options] example.com
 ```
 
-#### Running directly
+### Running directly ###
 
 To run the tool locally from the repository, without installing, first
 install the requirements:
@@ -30,14 +35,13 @@ install the requirements:
 pip install -r requirements.txt
 ```
 
-Then run it as a module via `python -m`:
+Then run the CLI:
 
 ```bash
-python -m trustymail.cli [options] example.com
+python scripts/trustymail [options] example.com
 ```
 
-
-#### Usage and examples
+### Usage and examples ###
 
 ```bash
 trustymail [options] INPUT
@@ -50,7 +54,7 @@ trustymail agencies.csv
 Note: if INPUT ends with `.csv`, domains will be read from CSV. CSV
 output will always be written to disk, defaulting to `results.csv`.
 
-#### Options
+#### Options ####
 
 ```bash
   -h --help                   Show this message.
@@ -80,16 +84,26 @@ output will always be written to disk, defaulting to `results.csv`.
                               (/etc/resolv.conf) is used.  Note that 
                               the host's DNS configuration is not used at all 
                               if this option is used.
+  --psl-filename=FILENAME     The name of the file where the public suffix list
+                              (PSL) cache will be saved.  If set to the name of
+                              an existing file then that file will be used as
+                              the PSL.  If not present then the PSL cache will
+                              be saved to a file in the current directory called
+                              public_suffix_list.dat.
+  --psl-read-only             If present, then the public suffix list (PSL) 
+                              cache will be read but never overwritten.  This 
+                              is useful when running in AWS Lambda, for
+                              instance, where the local filesystem is read-only.
 ```
 
-## What's Checked?
+## What's Checked? ##
 
 For a given domain, MX records, SPF records (TXT), DMARC (TXT, at
 \_dmarc.<domain>), and support for STARTTLS are checked.
 
 The following values are returned in `results.csv`:
 
-#### Domain and redirect info
+### Domain and redirect info ###
 
 * `Domain` - The domain you're scanning!
 * `Base Domain` - The base domain of `Domain`. For example, for a
@@ -99,7 +113,7 @@ The following values are returned in `results.csv`:
   List](https://publicsuffix.org) when calculating the base domain.
 * `Live` - The domain is actually published in the DNS.
 
-#### Mail sending
+### Mail sending ###
 
 * `MX Record` - If an MX record was found that contains at least a
   single mail server.
@@ -115,7 +129,7 @@ The following values are returned in `results.csv`:
 * `Domain Supports STARTTLS Results` - A list of the mail server and
   port combinations that support STARTTLS.
 
-#### SPF
+### SPF ###
 
 * `SPF Record` - Whether or not a SPF record was found.
 * `Valid SPF` - Whether the SPF record found is syntactically correct,
@@ -123,7 +137,7 @@ The following values are returned in `results.csv`:
 * `SPF Results` - The textual representation of any SPF record found
   for the domain.
 
-#### DMARC
+### DMARC ###
 
 * `DMARC Record` - True/False whether or not a DMARC record was found.
 * `Valid DMARC` - Whether the DMARC record found is syntactically
@@ -140,8 +154,20 @@ The following values are returned in `results.csv`:
 * `DMARC Policy` - An adjudication, based on any policies found in
   `DMARC Results` and `DMARC Results on Base Domain`, of the relevant
   DMARC policy that applies.
+* `DMARC Policy Percentage` - The percentage of mail that should be
+  subjected to the `DMARC Policy` according to the `DMARC Results`.
+* `DMARC Aggregate Report URIs` - A list of the DMARC aggregate report
+  URIs specified by the domain.
+* `DMARC Forensic Report URIs` - A list of the DMARC forensic report
+  URIs specified by the domain. 
+* `DMARC Has Aggregate Report URI` - A boolean value that indicates if
+  `DMARC Results` included `rua` URIs that tell recipients where to
+  send DMARC aggregate reports.
+* `DMARC Has Forensic Report URI` - A boolean value that indicates if
+  `DMARC Results` included `ruf` URIs that tell recipients where to
+  send DMARC forensic reports .
 
-#### Etc.
+### Etc. ###
 
 * `Syntax Errors` - A list of syntax errors that were encountered when
   analyzing SPF records.
@@ -150,7 +176,7 @@ The following values are returned in `results.csv`:
   `trustymail` reached its conclusions, and are indispensible for bug
   reports.
 
-## Public domain
+## Public domain ##
 
 This project is in the worldwide [public domain](LICENSE.md).
 
