@@ -9,10 +9,18 @@ Based on:
 from setuptools import setup
 from trustymail import __version__
 
+
+def readme():
+    with open('README.md') as f:
+        return f.read()
+
+
 setup(
     name='trustymail',
     version=__version__,
     description='Scan domains and return data based on trustworthy email best practices',
+    long_description=readme(),
+    long_description_content_type='text/markdown',
 
     # NCATS "homepage"
     url='https://www.dhs.gov/cyber-incident-response',
@@ -55,19 +63,21 @@ setup(
     packages=['trustymail'],
 
     install_requires=[
-        'requests',
-        'docopt',
-        'publicsuffix',
-        'dnspython',
-        'py3dns',
+        'dnspython>=1.15.0',
+        'docopt>=0.6.2',
+        'publicsuffix>=1.1.0',
+        'py3dns>=3.1.0',
         'pyspf==2.0.11',
+        'requests>=2.18.4'
     ],
 
     extras_require={
-        # 'dev': ['check-manifest'],
-        'test': [
-            'tox',
-            'pytest'
+        'dev': [
+            'check-manifest>=0.36',
+            'pytest>=3.5.0',
+            'semver>=2.7.9',
+            'tox>=3.0.0',
+            'wheel>=0.31.0'
         ],
     },
 
