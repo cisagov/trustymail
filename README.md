@@ -1,6 +1,6 @@
 # Trustworthy Mail #
 
-[![Latest Version](https://img.shields.io/pypi/v/trustymail.svg)](https://pypi.python.org/pypi/trustymail/)
+[![Latest Version](https://img.shields.io/pypi/v/trustymail.svg)](https://pypi.org/project/trustymail/)
 [![Build Status](https://travis-ci.org/dhs-ncats/trustymail.svg?branch=master)](https://travis-ci.org/dhs-ncats/trustymail)
 [![Coverage Status](https://coveralls.io/repos/github/dhs-ncats/trustymail/badge.svg?branch=master)](https://coveralls.io/github/dhs-ncats/trustymail?branch=master)
 
