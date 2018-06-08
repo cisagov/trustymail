@@ -82,7 +82,7 @@ def main():
 
     # Allow for user to input a csv for many domain names.
     if args['INPUT'][0].endswith('.csv'):
-        domains = trustymail.domain_list_from_csv(open(args['INPUT'][0]))
+        domains = tmail.domain_list_from_csv(open(args['INPUT'][0]))
     else:
         domains = args['INPUT']
 
