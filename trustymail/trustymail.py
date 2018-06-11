@@ -345,7 +345,13 @@ def dmarc_scan(resolver, domain):
         dmarc_domain = '_dmarc.%s' % domain.domain_name
         # Use TCP, since we care about the content and correctness of the
         # records more than whether their records fit in a single UDP packet.
-        records = resolver.query(dmarc_domain, 'TXT', tcp=True)
+        all_records = resolver.query(dmarc_domain, 'TXT', tcp=True)
+
+        # According to step 4 in section 6.6.3 of the RFC
+        # (https://tools.ietf.org/html/rfc7489#section-6.6.3), "Records that do
+        # not start with a "v=" tag that identifies the current version of
+        # DMARC are discarded."
+        records = [record for record in all_records if record.to_text().startswith('"v=DMARC1;')]
 
         # Treat multiple DMARC records as an error, in accordance with the RFC
         # (https://tools.ietf.org/html/rfc7489#section-6.6.3)
