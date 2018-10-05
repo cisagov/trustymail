@@ -12,7 +12,6 @@ env:
     - secure: "IAbtmubLq2hL71aollQEfoV+t9Zbqn4rNVqi5YNerqxvXr6WiDzwmYUujOCnQiHli8xkIU0J8OSPX0aA4cOTxPGiZeNguGuVWmR2ZCB8SMyjbKJOEIpLZv/jG1Be6dVXiJwKwQM3yX4pqPfLIuYkE6S1GAodudPzcJ8xM/h1qzJijknJEqsCJQw43zSHZ/epYulgWcmnCAmaoehZTCjVcW4l8iyVHSNfgO7gu5iWC9y4AIIX96E9TZkSDeud1yqUcORMwfdOl2pHhDh3KnF8HZSOCetTHP7JacLUMJiiCpKN34Xn9RQgjbVKOrF/rcC8WEDrWKn14SFfgUP0dl6lCr6P9HE4aHKvrH/nCyflFOANbEKMywE8DzNA3zd7MC0HQkyb40LAiBSbTD58myUsc+WlmaZyvpJ7akukbmVjVPQWNvs1laz/bqyLdPh4WMqgOTbP7BrgDeIrCVedwdvhqq9KEaoak8RBs/Wb8LisI6j+vAY/HKlVnuIXRL0RNGTko96kBluEpAsWDjls39Hmu5hl1glbqCWDW9+dE0/Zx4MuSt4OVAywMW+lzxA16SdqDLCZqGv00vnPpxuBAvEEQbVtsmQ6lR+fwTYKFEDZM7axRwBlLzIDEzSoz4K0fSq3EuU4mkoVZKcHGnuHuRqaNhce0zzZx3lHdNTm7oa7b0U="
 
 python:
-  - '2.7'
   - '3.4'
   - '3.5'
   - '3.6'
