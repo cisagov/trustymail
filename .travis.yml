@@ -43,7 +43,7 @@ deploy:
     distributions: sdist bdist_wheel
     on:
       tags: true
-      python: '3.6'
+      python: '3.7'
   # - provider: script
   #   script: bash travis_scripts/deploy_to_docker_hub.sh
   #   on:
