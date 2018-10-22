@@ -59,13 +59,12 @@ def mx_scan(resolver, domain):
         # records more than whether their records fit in a single UDP packet.
         for record in resolver.query(domain.domain_name, 'MX', tcp=True):
             domain.add_mx_record(record)
-    except (dns.resolver.NoNameservers, dns.resolver.NXDOMAIN) as error:
+    except (dns.resolver.NoNameservers, dns.resolver.NXDOMAIN,
+            dns.resolver.NoAnswer, dns.exception.Timeout) as error:
         # The NoNameServers exception means that we got a SERVFAIL response.
         # These responses are almost always permanent, not temporary, so let's
-        # treat the domain as not live.
+        # treat the domain as not live if we get one of those.
         domain.is_live = False
-        handle_error('[MX]', domain, error)
-    except (dns.resolver.NoAnswer, dns.exception.Timeout) as error:
         handle_error('[MX]', domain, error)
 
 
