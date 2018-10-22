@@ -540,22 +540,29 @@ def scan(domain_name, timeout, smtp_timeout, smtp_localhost, smtp_ports, smtp_ca
     # Configure the dnspython library
     #
 
-    # Set some timeouts
-    dns.resolver.timeout = float(timeout)
-    dns.resolver.lifetime = float(timeout)
-
     # Our resolver
     #
     # Note that it uses the system configuration in /etc/resolv.conf
     # if no DNS hostnames are specified.
     resolver = dns.resolver.Resolver(configure=not dns_hostnames)
-    # Retry DNS servers if we receive a SERVFAIL response from them.  We set
-    # this to False because, unless the reason for the SERVFAIL is truly
-    # temporary and resolves before trustymail finishes scanning the domain,
-    # this obscures the potentially informative SERVFAIL error as a DNS timeout
-    # because of the way dns.resolver.query() is written.  See
-    # http://www.dnspython.org/docs/1.14.0/dns.resolver-pysrc.html#query.
+    # This is a setting that controls whether we retry DNS servers if
+    # we receive a SERVFAIL response from them.  We set this to False
+    # because, unless the reason for the SERVFAIL is truly temporary
+    # and resolves before trustymail finishes scanning the domain,
+    # this can obscure the potentially informative SERVFAIL error as a
+    # DNS timeout because of the way dns.resolver.query() is written.
+    # See
+    # http://www.dnspython.org/docs/1.14.0/dns.resolver-pysrc.html#Resolver.query.
     resolver.retry_servfail = False
+    # Set some timeouts.  The timeout should be less than or equal to
+    # the lifetime, but longer than the time a DNS server takes to
+    # return a SERVFAIL (since otherwise it's possible to get a DNS
+    # timeout when you should be getting a SERVFAIL.)  See
+    # http://www.dnspython.org/docs/1.14.0/dns.resolver-pysrc.html#Resolver.query
+    # and
+    # http://www.dnspython.org/docs/1.14.0/dns.resolver-pysrc.html#Resolver._compute_timeout.
+    resolver.timeout = float(timeout)
+    resolver.lifetime = float(timeout)
     # If the user passed in DNS hostnames to query against then use them
     if dns_hostnames:
         resolver.nameservers = dns_hostnames
