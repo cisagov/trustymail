@@ -312,8 +312,8 @@ def parse_dmarc_report_uri(uri):
     """
     Parses a DMARC Reporting (i.e. ``rua``/``ruf)`` URI
 
-   Notes
-   -----
+    Notes
+    -----
         ``mailto:`` is the only reporting URI supported in `DMARC1`
 
     Arguments
