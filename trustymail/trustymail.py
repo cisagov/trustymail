@@ -251,7 +251,7 @@ def get_spf_record_text(resolver, domain_name, domain, follow_redirect=False):
                 # Not an spf record, ignore it.
                 continue
 
-            match = re.search('v=spf1\s*redirect=(\S*)', record_text)
+            match = re.search(r'v=spf1\s*redirect=(\S*)', record_text)
             if follow_redirect and match:
                 redirect_domain_name = match.group(1)
                 record_to_return = get_spf_record_text(resolver, redirect_domain_name, domain)
