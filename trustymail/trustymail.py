@@ -520,6 +520,11 @@ def dmarc_scan(resolver, domain):
         domain.dmarc_has_forensic_uri = len(domain.dmarc_forensic_uris) > 0
     except (dns.resolver.NoNameservers, dns.resolver.NXDOMAIN,
             dns.resolver.NoAnswer, dns.exception.Timeout) as error:
+        # Normally we count a NoNameservers exception as indicating
+        # that a domain is "not live".  In this case we don't, though,
+        # since the DMARC DNS check doesn't query for the domain name
+        # itself.  If the domain name is domain.com, the DMARC DNS
+        # check queries for _dmarc.domain.com.
         handle_error('[DMARC]', domain, error)
 
 
