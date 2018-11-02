@@ -251,7 +251,7 @@ def get_spf_record_text(resolver, domain_name, domain, follow_redirect=False):
                 # Not an spf record, ignore it.
                 continue
 
-            match = re.search('v=spf1\s*redirect=(\S*)', record_text)
+            match = re.search(r'v=spf1\s*redirect=(\S*)', record_text)
             if follow_redirect and match:
                 redirect_domain_name = match.group(1)
                 record_to_return = get_spf_record_text(resolver, redirect_domain_name, domain)
@@ -312,8 +312,8 @@ def parse_dmarc_report_uri(uri):
     """
     Parses a DMARC Reporting (i.e. ``rua``/``ruf)`` URI
 
-   Notes
-   -----
+    Notes
+    -----
         ``mailto:`` is the only reporting URI supported in `DMARC1`
 
     Arguments
@@ -518,13 +518,13 @@ def dmarc_scan(resolver, domain):
 
         domain.dmarc_has_aggregate_uri = len(domain.dmarc_aggregate_uris) > 0
         domain.dmarc_has_forensic_uri = len(domain.dmarc_forensic_uris) > 0
-    except dns.resolver.NoNameservers as error:
-        # The NoNameservers exception means that we got a SERVFAIL response.
-        # These responses are almost always permanent, not temporary, so let's
-        # treat the domain as not live.
-        domain.is_live = False
-        handle_error('[DMARC]', domain, error)
-    except (dns.resolver.NXDOMAIN, dns.resolver.NoAnswer, dns.exception.Timeout) as error:
+    except (dns.resolver.NoNameservers, dns.resolver.NXDOMAIN,
+            dns.resolver.NoAnswer, dns.exception.Timeout) as error:
+        # Normally we count a NoNameservers exception as indicating
+        # that a domain is "not live".  In this case we don't, though,
+        # since the DMARC DNS check doesn't query for the domain name
+        # itself.  If the domain name is domain.com, the DMARC DNS
+        # check queries for _dmarc.domain.com.
         handle_error('[DMARC]', domain, error)
 
 
