@@ -169,7 +169,7 @@ def starttls_scan(domain, smtp_timeout, smtp_localhost, smtp_ports, smtp_cache):
                 domain.starttls_results[server_and_port] = _SMTP_CACHE[server_and_port]
 
 
-def check_spf_record(record_text, expected_result, domain):
+def check_spf_record(record_text, expected_result, domain, strict=2):
     """Test to see if an SPF record is valid and correct.
 
     The record is tested by checking the response when we query if it
@@ -187,6 +187,11 @@ def check_spf_record(record_text, expected_result, domain):
     domain : trustymail.Domain
         The Domain object corresponding to the SPF record being
         tested.  Any errors will be logged to this object.
+
+    strict : bool or int
+        The level of strictness to use when verifying an SPF record.
+        Valid values are True, False, and 2.  The last value is the
+        most harsh.
     """
     try:
         # Here I am using the IP address for c1b1.ncats.cyber.dhs.gov
@@ -196,21 +201,36 @@ def check_spf_record(record_text, expected_result, domain):
         # I'm actually temporarily using an IP that virginia.edu resolves to
         # until we resolve why Google DNS does not return the same PTR records
         # as the CAL DNS does for 64.69.57.18.
-        query = spf.query('128.143.22.36', 'email_wizard@' + domain.domain_name, domain.domain_name, strict=2)
+        query = spf.query('128.143.22.36',
+                          'email_wizard@' + domain.domain_name,
+                          domain.domain_name, strict=strict)
         response = query.check()
 
         response_type = response[0]
-        if response_type == 'temperror' or response_type == 'permerror' or response_type == 'ambiguous':
-            handle_error('[SPF]', domain, 'SPF query returned {}: {}'.format(response_type, response[2]))
+        if response_type == 'temperror' or response_type == 'permerror':
+            handle_error('[SPF]', domain,
+                         'SPF query returned {}: {}'.format(response_type,
+                                                            response[2]))
+        elif response_type == 'ambiguous':
+            # Log the ambiguity so it appears in the results CSV
+            handle_error('[SPF]', domain,
+                         'SPF query returned {}: {}'.format(response_type,
+                                                            response[2]))
+            # Rerun the check with less strictness to get an actual
+            # result.  (With strict=2, the SPF library stops
+            # processing once it encounters an AmbiguityWarning.)
+            check_spf_record(record_text, expected_result,
+                             domain, True)
         elif response_type == expected_result:
             # Everything checks out.  The SPF syntax seems valid
             domain.valid_spf = True
         else:
             domain.valid_spf = False
-            msg = 'Result unexpectedly differs: Expected [{}] - actual [{}]'.format(expected_result, response_type)
+            msg = 'Result unexpectedly differs: Expected [{}] - actual [{}]'.format(expected_result,
+                                                                                    response_type)
             handle_error('[SPF]', domain, msg)
     except spf.AmbiguityWarning as error:
-        handle_syntax_error('[SPF]', domain, error)
+        handle_error('[SPF]', domain, error)
 
 
 def get_spf_record_text(resolver, domain_name, domain, follow_redirect=False):
