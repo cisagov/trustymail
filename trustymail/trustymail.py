@@ -204,7 +204,7 @@ def check_spf_record(record_text, expected_result, domain, strict=2):
         query = spf.query('128.143.22.36',
                           'email_wizard@' + domain.domain_name,
                           domain.domain_name, strict=strict)
-        response = query.check()
+        response = query.check(spf=record_text)
 
         response_type = response[0]
         if response_type == 'temperror' or response_type == 'permerror':
@@ -325,7 +325,7 @@ def spf_scan(resolver, domain):
         else:
             result = 'neutral'
 
-        check_spf_record(record_text_not_following_redirect, result, domain)
+        check_spf_record(record_text_following_redirect, result, domain)
 
 
 def parse_dmarc_report_uri(uri):
