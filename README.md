@@ -61,29 +61,29 @@ output will always be written to disk, defaulting to `results.csv`.
   -h --help                   Show this message.
   -o --output=OUTFILE         Name of output file. (Default results)
   -t --timeout=TIMEOUT        The DNS lookup timeout in seconds. (Default is 5.)
-  --smtp-timeout=TIMEOUT      The SMTP connection timeout in seconds. (Default 
+  --smtp-timeout=TIMEOUT      The SMTP connection timeout in seconds. (Default
                               is 5.)
-  --smtp-localhost=HOSTNAME   The hostname to use when connecting to SMTP 
+  --smtp-localhost=HOSTNAME   The hostname to use when connecting to SMTP
                               servers.  (Default is the FQDN of the host from
                               which trustymail is being run.)
-  --smtp-ports=PORTS          A comma-delimited list of ports at which to look 
+  --smtp-ports=PORTS          A comma-delimited list of ports at which to look
                               for SMTP servers.  (Default is '25,465,587'.)
-  --no-smtp-cache             Do not cache SMTP results during the run.  This 
-                              may results in slower scans due to testing the 
+  --no-smtp-cache             Do not cache SMTP results during the run.  This
+                              may results in slower scans due to testing the
                               same mail servers multiple times.
   --mx                        Only check mx records
-  --starttls                  Only check mx records and STARTTLS support. 
+  --starttls                  Only check mx records and STARTTLS support.
                               (Implies --mx.)
   --spf                       Only check spf records
   --dmarc                     Only check dmarc records
   --debug                     Output should include error messages.
-  --dns=HOSTNAMES             A comma-delimited list of DNS servers to query 
-                              against.  For example, if you want to use 
-                              Google's DNS then you would use the 
-                              value --dns-hostnames='8.8.8.8,8.8.4.4'.  By 
-                              default the DNS configuration of the host OS 
-                              (/etc/resolv.conf) is used.  Note that 
-                              the host's DNS configuration is not used at all 
+  --dns=HOSTNAMES             A comma-delimited list of DNS servers to query
+                              against.  For example, if you want to use
+                              Google's DNS then you would use the
+                              value --dns-hostnames='8.8.8.8,8.8.4.4'.  By
+                              default the DNS configuration of the host OS
+                              (/etc/resolv.conf) is used.  Note that
+                              the host's DNS configuration is not used at all
                               if this option is used.
   --psl-filename=FILENAME     The name of the file where the public suffix list
                               (PSL) cache will be saved.  If set to the name of
@@ -91,8 +91,8 @@ output will always be written to disk, defaulting to `results.csv`.
                               the PSL.  If not present then the PSL cache will
                               be saved to a file in the current directory called
                               public_suffix_list.dat.
-  --psl-read-only             If present, then the public suffix list (PSL) 
-                              cache will be read but never overwritten.  This 
+  --psl-read-only             If present, then the public suffix list (PSL)
+                              cache will be read but never overwritten.  This
                               is useful when running in AWS Lambda, for
                               instance, where the local filesystem is read-only.
 ```
@@ -160,7 +160,7 @@ The following values are returned in `results.csv`:
 * `DMARC Aggregate Report URIs` - A list of the DMARC aggregate report
   URIs specified by the domain.
 * `DMARC Forensic Report URIs` - A list of the DMARC forensic report
-  URIs specified by the domain. 
+  URIs specified by the domain.
 * `DMARC Has Aggregate Report URI` - A boolean value that indicates if
   `DMARC Results` included `rua` URIs that tell recipients where to
   send DMARC aggregate reports.
