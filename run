@@ -7,5 +7,5 @@ docker build -t trustymail/cli .
 
 docker run --rm -it \
   --name trustymail \
-  -v $(pwd):/home/trustymail \
+  -v $(pwd):/app \
   trustymail/cli $@
