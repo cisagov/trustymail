@@ -6,4 +6,4 @@ COPY . .
 RUN pip install --no-cache-dir .
 
 ENTRYPOINT ["trustymail"]
-
+CMD ["--help"]

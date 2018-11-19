@@ -42,6 +42,14 @@ Then run the CLI:
 python scripts/trustymail [options] example.com
 ```
 
+### Using Docker (optional)
+
+```bash
+./run [opts]
+```
+
+`opts` are the same arguments that would get passed to `trustymail`.
+
 ### Usage and examples ###
 
 ```bash

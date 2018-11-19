@@ -1,0 +1,11 @@
+#!/bin/bash
+
+set -e
+set -x
+
+docker build -t trustymail/cli .
+
+docker run --rm -it \
+  --name trustymail \
+  -v $(pwd):/home/trustymail \
+  trustymail/cli $@
