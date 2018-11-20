@@ -15,6 +15,14 @@ def readme():
         return f.read()
 
 
+with open('requirements.txt') as fp:
+    reqs = [line.strip() for line in fp.readlines() if line]
+
+with open('requirements-dev.txt') as fp:
+    lines = [line.strip() for line in fp.readlines() if line]
+    dev_reqs = [line for line in lines if line and '-r requirements.txt' not in line]
+
+
 setup(
     name='trustymail',
     version=__version__,
@@ -61,23 +69,10 @@ setup(
 
     packages=['trustymail'],
 
-    install_requires=[
-        'dnspython>=1.15.0',
-        'docopt>=0.6.2',
-        'publicsuffix>=1.1.0',
-        'py3dns>=3.1.0',
-        'pyspf==2.0.11',
-        'requests>=2.18.4'
-    ],
+    install_requires=reqs,
 
     extras_require={
-        'dev': [
-            'check-manifest>=0.36',
-            'pytest>=3.5.0',
-            'semver>=2.7.9',
-            'tox>=3.0.0',
-            'wheel>=0.31.0'
-        ],
+        'dev': dev_reqs,
     },
 
     scripts=['scripts/trustymail']
