@@ -20,14 +20,14 @@ Options:
   --no-smtp-cache             Do not cache SMTP results during the run.  This
                               may results in slower scans due to testing the
                               same mail servers multiple times.
-  --mx                        Only check mx records
-  --starttls                  Only check mx records and STARTTLS support.
+  --mx                        Only check MX records
+  --starttls                  Only check MX records and STARTTLS support.
                               (Implies --mx.)
-  --spf                       Only check spf records
-  --dmarc                     Only check dmarc records
+  --spf                       Only check SPF records
+  --dmarc                     Only check DMARC records
   --json                      Output is in json format (default csv)
   --debug                     Output should include more verbose logging.
-  --dns-hostnames=HOSTNAMES   A comma-delimited list of DNS servers to query
+  --dns=HOSTNAMES             A comma-delimited list of DNS servers to query
                               against.  For example, if you want to use
                               Google's DNS then you would use the
                               value --dns-hostnames='8.8.8.8,8.8.4.4'.  By
@@ -41,8 +41,8 @@ Options:
                               the PSL.  If not present then the PSL cache will
                               be saved to a file in the current directory called
                               public_suffix_list.dat.
-  --psl-read-only             If present, then the public suffix list (PSL) 
-                              cache will be read but never overwritten.  This 
+  --psl-read-only             If present, then the public suffix list (PSL)
+                              cache will be read but never overwritten.  This
                               is useful when running in AWS Lambda, for
                               instance, where the local filesystem is read-only.
 
