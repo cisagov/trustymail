@@ -201,9 +201,13 @@ def check_spf_record(record_text, expected_result, domain, strict=2):
         # I'm actually temporarily using an IP that virginia.edu resolves to
         # until we resolve why Google DNS does not return the same PTR records
         # as the CAL DNS does for 64.69.57.18.
+        #
+        # Passing verbose=True causes the SPF library being used to
+        # print out the SPF records encountered as include and
+        # redirect cause other SPF records to be looked up.
         query = spf.query('128.143.22.36',
                           'email_wizard@' + domain.domain_name,
-                          domain.domain_name, strict=strict)
+                          domain.domain_name, strict=strict, verbose=True)
         response = query.check(spf=record_text)
 
         response_type = response[0]
