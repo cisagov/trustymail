@@ -1,6 +1,6 @@
 from __future__ import unicode_literals, absolute_import, print_function
 
-__version__ = '0.6.7'
+__version__ = '0.6.8'
 
 PublicSuffixListFilename = 'public_suffix_list.dat'
 PublicSuffixListReadOnly = False

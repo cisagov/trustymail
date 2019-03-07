@@ -257,6 +257,7 @@ class Domain:
             ('Valid DMARC Record on Base Domain', self.parent_has_dmarc() and self.parent_valid_dmarc()),
             ('DMARC Results on Base Domain', self.parent_dmarc_results()),
             ('DMARC Policy', self.get_dmarc_policy()),
+            ('DMARC Subdomain Policy', self.get_dmarc_subdomain_policy()),
             ('DMARC Policy Percentage', self.get_dmarc_pct()),
 
             ("DMARC Aggregate Report URIs", format_list(self.get_dmarc_aggregate_uris())),
