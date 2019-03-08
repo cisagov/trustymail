@@ -1,8 +1,8 @@
 # Trustworthy Mail #
 
 [![Latest Version](https://img.shields.io/pypi/v/trustymail.svg)](https://pypi.org/project/trustymail/)
-[![Build Status](https://travis-ci.org/cisagov/trustymail.svg?branch=master)](https://travis-ci.org/cisagov/trustymail)
-[![Coverage Status](https://coveralls.io/repos/github/cisagov/trustymail/badge.svg?branch=master)](https://coveralls.io/github/cisagov/trustymail?branch=master)
+[![Build Status](https://travis-ci.com/cisagov/trustymail.svg?branch=develop)](https://travis-ci.com/cisagov/trustymail)
+[![Coverage Status](https://coveralls.io/repos/github/cisagov/trustymail/badge.svg?branch=develop)](https://coveralls.io/github/cisagov/trustymail?branch=develop)
 
 `trustymail` is a tool that evaluates SPF/DMARC records set in a
 domain's DNS. It also checks the mail servers listed in a domain's MX
