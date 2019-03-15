@@ -51,7 +51,7 @@ def format_list(record_list):
     # anything else.  Thus this if clause handles only empty
     # lists.  This makes a "null" appear in the JSON output for
     # empty lists, as expected.
-    if not record_list:
+    if not record_list or len(record_list) is 0:
         return None
 
     return ', '.join(record_list)
@@ -78,9 +78,12 @@ class Domain:
         self.is_live = True
 
         # Keep entire record for potential future use.
-        self.mx_records = []
-        self.spf = []
-        self.dmarc = []
+        self.mx_records = None
+        self.mx_records_dnssec = None
+        self.spf = None
+        self.spf_dnssec = None
+        self.dmarc = None
+        self.dmarc_dnssec = False
         self.dmarc_policy = None
         self.dmarc_subdomain_policy = None
         self.dmarc_pct = None
@@ -88,6 +91,7 @@ class Domain:
         self.dmarc_forensic_uris = []
         self.dmarc_has_aggregate_uri = False
         self.dmarc_has_forensic_uri = False
+        self.dmarc_reports_address_error = False
 
         # Syntax validity - default spf to false as the lack of an SPF is a bad thing.
         self.valid_spf = False
@@ -95,7 +99,7 @@ class Domain:
         self.syntax_errors = []
 
         # Mail Info
-        self.mail_servers = []
+        self.mail_servers = None
 
         # A dictionary for each port for each entry in mail_servers.
         # The dictionary's values indicate:
@@ -111,40 +115,62 @@ class Domain:
         self.ports_tested = set()
 
     def has_mail(self):
-        return len(self.mail_servers) > 0
+        if(self.mail_servers is not None):
+            return len(self.mail_servers) > 0
+        return "Unknown"
 
     def has_supports_smtp(self):
         """
         Returns True if any of the mail servers associated with this
         domain are listening and support SMTP.
         """
-        return len(filter(lambda x: self.starttls_results[x]['supports_smtp'],
+        result = None
+        if(len(self.starttls_results) > 0):
+            result = len(filter(lambda x: self.starttls_results[x]['supports_smtp'],
                           self.starttls_results.keys())) > 0
+        return result
 
     def has_starttls(self):
         """
         Returns True if any of the mail servers associated with this
         domain are listening and support STARTTLS.
         """
-        return len(filter(lambda x: self.starttls_results[x]['starttls'],
+        result = None
+        if(len(self.starttls_results) > 0):
+            result = len(filter(lambda x: self.starttls_results[x]['starttls'],
                           self.starttls_results.keys())) > 0
+        return result
 
     def has_spf(self):
-        return len(self.spf) > 0
+        if(self.spf is not None):
+            return len(self.spf) > 0
+        return None
 
     def has_dmarc(self):
-        return len(self.dmarc) > 0
+        if(self.dmarc is not None):
+            return len(self.dmarc) > 0
+        return None
 
     def add_mx_record(self, record):
+        if(self.mx_records is None):
+            self.mx_records = []
         self.mx_records.append(record)
         # The rstrip is because dnspython's string representation of
         # the record will contain a trailing period if it is a FQDN.
+        if(self.mail_servers is None):
+            self.mail_servers = []
         self.mail_servers.append(record.exchange.to_text().rstrip('.').lower())
 
     def parent_has_dmarc(self):
         ans = self.has_dmarc()
         if self.base_domain:
             ans = self.base_domain.has_dmarc()
+        return ans
+
+    def parent_dmarc_dnssec(self):
+        ans = self.dmarc_dnssec
+        if self.base_domain:
+            ans = self.base_domain.dmarc_dnssec
         return ans
 
     def parent_valid_dmarc(self):
@@ -223,18 +249,26 @@ class Domain:
         return ans
 
     def generate_results(self):
-        mail_servers_that_support_smtp = [x for x in self.starttls_results.keys() if self.starttls_results[x][
-            'supports_smtp']]
-        mail_servers_that_support_starttls = [x for x in self.starttls_results.keys() if self.starttls_results[x][
-            'starttls']]
-        domain_supports_smtp = bool(mail_servers_that_support_smtp)
-
+        if len(self.starttls_results.keys()) is 0:
+            domain_supports_smtp = None
+            domain_supports_starttls = None
+            mail_servers_that_support_smtp = None
+            mail_servers_that_support_starttls = None
+        else: 
+            mail_servers_that_support_smtp = [x for x in self.starttls_results.keys() if self.starttls_results[x][
+                'supports_smtp']]
+            mail_servers_that_support_starttls = [x for x in self.starttls_results.keys() if self.starttls_results[x][
+                'starttls']]
+            domain_supports_smtp = bool(mail_servers_that_support_smtp)
+            domain_supports_starttls = domain_supports_smtp and all([self.starttls_results[x]['starttls'] for x in mail_servers_that_support_smtp])
+        
         results = OrderedDict([
             ('Domain', self.domain_name),
             ('Base Domain', self.base_domain_name),
             ('Live', self.is_live),
 
             ('MX Record', self.has_mail()),
+            ('MX Record DNSSEC', self.mx_records_dnssec),
             ('Mail Servers', format_list(self.mail_servers)),
             ('Mail Server Ports Tested', format_list([str(port) for port in self.ports_tested])),
             ('Domain Supports SMTP Results', format_list(mail_servers_that_support_smtp)),
@@ -243,17 +277,20 @@ class Domain:
             ('Domain Supports STARTTLS Results', format_list(mail_servers_that_support_starttls)),
             # True if and only if all mail servers that speak SMTP
             # also support STARTTLS
-            ('Domain Supports STARTTLS', domain_supports_smtp and all([self.starttls_results[x]['starttls'] for x in mail_servers_that_support_smtp])),
+            ('Domain Supports STARTTLS', domain_supports_starttls), 
 
             ('SPF Record', self.has_spf()),
+            ('SPF Record DNSSEC', self.spf_dnssec),
             ('Valid SPF', self.valid_spf),
             ('SPF Results', format_list(self.spf)),
 
             ('DMARC Record', self.has_dmarc()),
+            ('DMARC Record DNSSEC', self.dmarc_dnssec),
             ('Valid DMARC', self.has_dmarc() and self.valid_dmarc),
             ('DMARC Results', format_list(self.dmarc)),
 
             ('DMARC Record on Base Domain', self.parent_has_dmarc()),
+            ('DMARC Record on Base Domain DNSSEC', self.parent_dmarc_dnssec()),
             ('Valid DMARC Record on Base Domain', self.parent_has_dmarc() and self.parent_valid_dmarc()),
             ('DMARC Results on Base Domain', self.parent_dmarc_results()),
             ('DMARC Policy', self.get_dmarc_policy()),
@@ -265,9 +302,19 @@ class Domain:
 
             ('DMARC Has Aggregate Report URI', self.get_dmarc_has_aggregate_uri()),
             ('DMARC Has Forensic Report URI', self.get_dmarc_has_forensic_uri()),
+            ('DMARC Reporting Address Acceptance Error', self.dmarc_reports_address_error),
 
             ('Syntax Errors', format_list(self.syntax_errors)),
             ('Debug Info', format_list(self.debug_info))
         ])
+
+        for field in results.keys():
+            if results[field] is None:
+                if field in ('MX Record', 'MX Record DNSSEC', 'Domain Supports SMTP',  
+                'Domain Supports STARTTLS', 'SPF Record', 'SPF Record DNSSEC', 
+                'Valid SPF', 'DMARC Record', 'DMARC Record', 'Valid DMARC',  
+                'DMARC Record on Base Domain', 'DMARC Record on Base Domain DNSSEC', 
+                'Valid DMARC Record on Base Domain'):
+                    results[field] = "Unknown"
 
         return results
