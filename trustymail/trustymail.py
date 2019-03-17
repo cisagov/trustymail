@@ -54,12 +54,13 @@ def domain_list_from_csv(csv_file):
 
     return domains
 
-def check_dnssec(domain, domain_name, record_type):
-    """
-    Checks whether the domain has a record of type that is protected by DNSSEC 
-    or NXDOMAIN or NoAnswer that is protected by DNSSEC.
 
-    TODO: Probably does not follow redirects (CNAMEs).  Should work on that in the future.
+def check_dnssec(domain, domain_name, record_type):
+    """Checks whether the domain has a record of type that is protected
+    by DNSSEC or NXDOMAIN or NoAnswer that is protected by DNSSEC.
+
+    TODO: Probably does not follow redirects (CNAMEs).  Should work on
+    that in the future.
     """
     try:
         query = dns.message.make_query(domain_name, record_type, want_dnssec=True)
@@ -73,6 +74,7 @@ def check_dnssec(domain, domain_name, record_type):
     except Exception as error:
         handle_error('[MX DNSSEC]', domain, error)
         return None
+
 
 def mx_scan(resolver, domain):
     try:
@@ -103,6 +105,7 @@ def mx_scan(resolver, domain):
     except dns.exception.Timeout as error:
         domain.mx_records_dnssec = check_dnssec(domain, domain.domain_name, 'MX')
         handle_error('[MX]', domain, error)
+
 
 def starttls_scan(domain, smtp_timeout, smtp_localhost, smtp_ports, smtp_cache):
     """Scan a domain to see if it supports SMTP and supports STARTTLS.
@@ -601,6 +604,7 @@ def dmarc_scan(resolver, domain):
         # itself.  If the domain name is domain.com, the DMARC DNS
         # check queries for _dmarc.domain.com.
         handle_error('[DMARC]', domain, error)
+
 
 def find_host_from_ip(resolver, ip_addr):
     # Use TCP, since we care about the content and correctness of the records

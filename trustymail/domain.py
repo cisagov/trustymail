@@ -127,7 +127,7 @@ class Domain:
         result = None
         if(len(self.starttls_results) > 0):
             result = len(filter(lambda x: self.starttls_results[x]['supports_smtp'],
-                          self.starttls_results.keys())) > 0
+                                self.starttls_results.keys())) > 0
         return result
 
     def has_starttls(self):
@@ -138,7 +138,7 @@ class Domain:
         result = None
         if(len(self.starttls_results) > 0):
             result = len(filter(lambda x: self.starttls_results[x]['starttls'],
-                          self.starttls_results.keys())) > 0
+                                self.starttls_results.keys())) > 0
         return result
 
     def has_spf(self):
@@ -254,14 +254,14 @@ class Domain:
             domain_supports_starttls = None
             mail_servers_that_support_smtp = None
             mail_servers_that_support_starttls = None
-        else: 
+        else:
             mail_servers_that_support_smtp = [x for x in self.starttls_results.keys() if self.starttls_results[x][
                 'supports_smtp']]
             mail_servers_that_support_starttls = [x for x in self.starttls_results.keys() if self.starttls_results[x][
                 'starttls']]
             domain_supports_smtp = bool(mail_servers_that_support_smtp)
             domain_supports_starttls = domain_supports_smtp and all([self.starttls_results[x]['starttls'] for x in mail_servers_that_support_smtp])
-        
+
         results = OrderedDict([
             ('Domain', self.domain_name),
             ('Base Domain', self.base_domain_name),
@@ -277,7 +277,7 @@ class Domain:
             ('Domain Supports STARTTLS Results', format_list(mail_servers_that_support_starttls)),
             # True if and only if all mail servers that speak SMTP
             # also support STARTTLS
-            ('Domain Supports STARTTLS', domain_supports_starttls), 
+            ('Domain Supports STARTTLS', domain_supports_starttls),
 
             ('SPF Record', self.has_spf()),
             ('SPF Record DNSSEC', self.spf_dnssec),
@@ -310,11 +310,11 @@ class Domain:
 
         for field in results.keys():
             if results[field] is None:
-                if field in ('MX Record', 'MX Record DNSSEC', 'Domain Supports SMTP',  
-                'Domain Supports STARTTLS', 'SPF Record', 'SPF Record DNSSEC', 
-                'Valid SPF', 'DMARC Record', 'DMARC Record', 'Valid DMARC',  
-                'DMARC Record on Base Domain', 'DMARC Record on Base Domain DNSSEC', 
-                'Valid DMARC Record on Base Domain'):
+                if field in ('MX Record', 'MX Record DNSSEC', 'Domain Supports SMTP',
+                             'Domain Supports STARTTLS', 'SPF Record', 'SPF Record DNSSEC',
+                             'Valid SPF', 'DMARC Record', 'DMARC Record', 'Valid DMARC',
+                             'DMARC Record on Base Domain', 'DMARC Record on Base Domain DNSSEC',
+                             'Valid DMARC Record on Base Domain'):
                     results[field] = "Unknown"
 
         return results
