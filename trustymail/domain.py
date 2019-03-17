@@ -51,7 +51,7 @@ def format_list(record_list):
     # anything else.  Thus this if clause handles only empty
     # lists.  This makes a "null" appear in the JSON output for
     # empty lists, as expected.
-    if not record_list or len(record_list) is 0:
+    if not record_list or len(record_list) == 0:
         return None
 
     return ', '.join(record_list)
@@ -249,7 +249,7 @@ class Domain:
         return ans
 
     def generate_results(self):
-        if len(self.starttls_results.keys()) is 0:
+        if len(self.starttls_results.keys()) == 0:
             domain_supports_smtp = None
             domain_supports_starttls = None
             mail_servers_that_support_smtp = None
