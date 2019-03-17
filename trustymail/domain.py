@@ -308,13 +308,4 @@ class Domain:
             ('Debug Info', format_list(self.debug_info))
         ])
 
-        for field in results.keys():
-            if results[field] is None:
-                if field in ('MX Record', 'MX Record DNSSEC', 'Domain Supports SMTP',  
-                'Domain Supports STARTTLS', 'SPF Record', 'SPF Record DNSSEC', 
-                'Valid SPF', 'DMARC Record', 'DMARC Record', 'Valid DMARC',  
-                'DMARC Record on Base Domain', 'DMARC Record on Base Domain DNSSEC', 
-                'Valid DMARC Record on Base Domain'):
-                    results[field] = "Unknown"
-
         return results
