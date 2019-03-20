@@ -117,7 +117,7 @@ class Domain:
     def has_mail(self):
         if(self.mail_servers is not None):
             return len(self.mail_servers) > 0
-        return "Unknown"
+        return None
 
     def has_supports_smtp(self):
         """
