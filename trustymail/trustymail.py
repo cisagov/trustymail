@@ -152,7 +152,9 @@ def starttls_scan(domain, smtp_timeout, smtp_localhost, smtp_ports, smtp_cache):
                 try:
                     smtp_connection.connect(mail_server, port)
                     domain.starttls_results[server_and_port]['is_listening'] = True
-                except (socket.timeout, smtplib.SMTPConnectError, smtplib.SMTPServerDisconnected, ConnectionRefusedError, OSError) as error:
+                except (socket.timeout, smtplib.SMTPConnectError,
+                        smtplib.SMTPServerDisconnected,
+                        ConnectionRefusedError, OSError) as error:
                     handle_error('[STARTTLS]', domain, error)
                     domain.starttls_results[server_and_port]['is_listening'] = False
                     domain.starttls_results[server_and_port]['supports_smtp'] = False
@@ -316,9 +318,12 @@ def get_spf_record_text(resolver, domain_name, domain, follow_redirect=False):
             match = re.search(r'v=spf1\s*redirect=(\S*)', record_text)
             if follow_redirect and match:
                 redirect_domain_name = match.group(1)
-                record_to_return = get_spf_record_text(resolver, redirect_domain_name, domain)
+                record_to_return = get_spf_record_text(resolver,
+                                                       redirect_domain_name,
+                                                       domain)
             else:
                 record_to_return = record_text
+
         domain.spf_dnssec = check_dnssec(domain, domain.domain_name, 'TXT')
     except (dns.resolver.NoNameservers) as error:
         # The NoNameservers exception means that we got a SERVFAIL response.
@@ -341,8 +346,8 @@ def get_spf_record_text(resolver, domain_name, domain, follow_redirect=False):
 
 def spf_scan(resolver, domain):
     """Scan a domain to see if it supports SPF.  If the domain has an SPF
-    record, verify that it properly rejects mail sent from an IP known
-    to be disallowed.
+    record, verify that it properly handles mail sent from an IP known
+    not to be listed in an MX record for ANY domain.
 
     Parameters
     ----------
