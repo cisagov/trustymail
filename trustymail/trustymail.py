@@ -14,6 +14,7 @@ import DNS
 import dns.resolver
 import dns.reversename
 
+
 from trustymail.domain import get_public_suffix, Domain
 
 # A cache for SMTP scanning results
@@ -48,24 +49,61 @@ def domain_list_from_csv(csv_file):
 
     domains = []
     for row in domain_list:
-        domains.append(row[domain_column])
+        if row is not None and len(row) > 0:
+            domains.append(row[domain_column])
 
     return domains
 
 
+def check_dnssec(domain, domain_name, record_type):
+    """Checks whether the domain has a record of type that is protected
+    by DNSSEC or NXDOMAIN or NoAnswer that is protected by DNSSEC.
+
+    TODO: Probably does not follow redirects (CNAMEs).  Should work on
+    that in the future.
+    """
+    try:
+        query = dns.message.make_query(domain_name, record_type, want_dnssec=True)
+        for nameserver in DNS_RESOLVERS:
+            response = dns.query.tcp(query, nameserver, timeout=DNS_TIMEOUT)
+            if response is not None:
+                if response.flags & dns.flags.AD:
+                    return True
+                else:
+                    return False
+    except Exception as error:
+        handle_error('[MX DNSSEC]', domain, error)
+        return None
+
+
 def mx_scan(resolver, domain):
     try:
+        if domain.mx_records is None:
+            domain.mx_records = []
+        if domain.mail_servers is None:
+            domain.mail_servers = []
         # Use TCP, since we care about the content and correctness of the
         # records more than whether their records fit in a single UDP packet.
         for record in resolver.query(domain.domain_name, 'MX', tcp=True):
             domain.add_mx_record(record)
-    except (dns.resolver.NoNameservers, dns.resolver.NXDOMAIN) as error:
+        domain.mx_records_dnssec = check_dnssec(domain, domain.domain_name, 'MX')
+    except (dns.resolver.NoNameservers) as error:
         # The NoNameServers exception means that we got a SERVFAIL response.
         # These responses are almost always permanent, not temporary, so let's
         # treat the domain as not live.
         domain.is_live = False
         handle_error('[MX]', domain, error)
-    except (dns.resolver.NoAnswer, dns.exception.Timeout) as error:
+    except dns.resolver.NXDOMAIN as error:
+        domain.is_live = False
+        # NXDOMAIN can still have DNSSEC
+        domain.mx_records_dnssec = check_dnssec(domain, domain.domain_name, 'MX')
+        handle_error('[MX]', domain, error)
+    except (dns.resolver.NoAnswer) as error:
+        # NoAnswer can still have DNSSEC
+        domain.mx_records_dnssec = check_dnssec(domain, domain.domain_name, 'MX')
+        handle_error('[MX]', domain, error)
+    except dns.exception.Timeout as error:
+        domain.mx_records_dnssec = check_dnssec(domain, domain.domain_name, 'MX')
         handle_error('[MX]', domain, error)
 
 
@@ -281,15 +319,23 @@ def get_spf_record_text(resolver, domain_name, domain, follow_redirect=False):
                 record_to_return = get_spf_record_text(resolver, redirect_domain_name, domain)
             else:
                 record_to_return = record_text
-    except (dns.resolver.NoNameservers, dns.resolver.NXDOMAIN) as error:
+        domain.spf_dnssec = check_dnssec(domain, domain.domain_name, 'TXT')
+    except (dns.resolver.NoNameservers) as error:
         # The NoNameservers exception means that we got a SERVFAIL response.
         # These responses are almost always permanent, not temporary, so let's
         # treat the domain as not live.
         domain.is_live = False
         handle_error('[SPF]', domain, error)
-    except (dns.resolver.NoAnswer, dns.exception.Timeout) as error:
+    except (dns.resolver.NXDOMAIN) as error:
+        domain.is_live = False
+        domain.spf_dnssec = check_dnssec(domain, domain.domain_name, 'TXT')
         handle_error('[SPF]', domain, error)
-
+    except (dns.resolver.NoAnswer) as error:
+        domain.spf_dnssec = check_dnssec(domain, domain.domain_name, 'TXT')
+        handle_error('[SPF]', domain, error)
+    except (dns.exception.Timeout) as error:
+        domain.spf_dnssec = check_dnssec(domain, domain.domain_name, 'TXT')
+        handle_error('[SPF]', domain, error)
     return record_to_return
 
 
@@ -309,6 +355,8 @@ def spf_scan(resolver, domain):
     """
     # If an SPF record exists, record the raw SPF record text in the
     # Domain object
+    if domain.spf is None:
+        domain.spf = []
     record_text_not_following_redirect = get_spf_record_text(resolver, domain.domain_name, domain)
     if record_text_not_following_redirect:
         domain.spf.append(record_text_not_following_redirect)
@@ -366,11 +414,13 @@ def parse_dmarc_report_uri(uri):
 def dmarc_scan(resolver, domain):
     # dmarc records are kept in TXT records for _dmarc.domain_name.
     try:
+        if domain.dmarc is None:
+            domain.dmarc = []
         dmarc_domain = '_dmarc.%s' % domain.domain_name
         # Use TCP, since we care about the content and correctness of the
         # records more than whether their records fit in a single UDP packet.
         all_records = resolver.query(dmarc_domain, 'TXT', tcp=True)
-
+        domain.dmarc_dnssec = check_dnssec(domain, dmarc_domain, 'TXT')
         # According to step 4 in section 6.6.3 of the RFC
         # (https://tools.ietf.org/html/rfc7489#section-6.6.3), "Records that do
         # not start with a "v=" tag that identifies the current version of
@@ -521,9 +571,11 @@ def dmarc_scan(resolver, domain):
                                     answer = remove_quotes(resolver.query(target, 'TXT', tcp=True)[0].to_text())
                                     if not answer.startswith('v=DMARC1'):
                                         handle_error('[DMARC]', domain, '{0}'.format(error_message))
+                                        domain.dmarc_reports_address_error = True
                                         domain.valid_dmarc = False
                                 except (dns.resolver.NXDOMAIN, dns.resolver.NoAnswer, dns.resolver.NoNameservers, dns.exception.Timeout):
                                     handle_syntax_error('[DMARC]', domain, '{0}'.format(error_message))
+                                    domain.dmarc_reports_address_error = True
                                     domain.valid_dmarc = False
                                 try:
                                     # Ensure ruf/rua/email domains have MX records
@@ -538,12 +590,14 @@ def dmarc_scan(resolver, domain):
             # specify any ruf or rua URIs, since this greatly reduces the
             # usefulness of DMARC.
             if 'p' in tag_dict and 'rua' not in tag_dict and 'ruf' not in tag_dict:
-                handle_syntax_error('[DMARC]', domain, 'Warning: A DMARC policy is specified but no reporting URIs.  This makes the DMARC implementation considerably less useful that it could be.  See https://tools.ietf.org/html/rfc7489#section-6.5 for more details.')
+                handle_syntax_error('[DMARC]', domain, 'Warning: A DMARC policy is specified but no reporting URIs.  This makes the DMARC implementation considerably less useful than it could be.  See https://tools.ietf.org/html/rfc7489#section-6.5 for more details.')
 
         domain.dmarc_has_aggregate_uri = len(domain.dmarc_aggregate_uris) > 0
         domain.dmarc_has_forensic_uri = len(domain.dmarc_forensic_uris) > 0
-    except (dns.resolver.NoNameservers, dns.resolver.NXDOMAIN,
-            dns.resolver.NoAnswer, dns.exception.Timeout) as error:
+    except (dns.resolver.NoAnswer, dns.resolver.NXDOMAIN, dns.exception.Timeout) as error:
+        domain.dmarc_dnssec = check_dnssec(domain, dmarc_domain, 'TXT')
+        handle_error('[DMARC]', domain, error)
+    except (dns.resolver.NoNameservers) as error:
         # Normally we count a NoNameservers exception as indicating
         # that a domain is "not live".  In this case we don't, though,
         # since the DMARC DNS check doesn't query for the domain name
@@ -563,6 +617,7 @@ def scan(domain_name, timeout, smtp_timeout, smtp_localhost, smtp_ports, smtp_ca
     #
     # Configure the dnspython library
     #
+    global DNS_TIMEOUT, DNS_RESOLVERS
 
     # Our resolver
     #
@@ -587,9 +642,13 @@ def scan(domain_name, timeout, smtp_timeout, smtp_localhost, smtp_ports, smtp_ca
     # http://www.dnspython.org/docs/1.14.0/dns.resolver-pysrc.html#Resolver._compute_timeout.
     resolver.timeout = float(timeout)
     resolver.lifetime = float(timeout)
+    DNS_TIMEOUT = timeout
     # If the user passed in DNS hostnames to query against then use them
     if dns_hostnames:
         resolver.nameservers = dns_hostnames
+        DNS_RESOLVERS = dns_hostnames
+    else:
+        DNS_RESOLVERS = resolver.nameservers
 
     #
     # The spf library uses py3dns behind the scenes, so we need to configure
