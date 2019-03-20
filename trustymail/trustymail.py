@@ -232,20 +232,22 @@ def check_spf_record(record_text, expected_result, domain, strict=2):
         The level of strictness to use when verifying an SPF record.
         Valid values are True, False, and 2.  The last value is the
         most harsh.
+
     """
     try:
-        # Here I am using the IP address for c1b1.ncats.cyber.dhs.gov
-        # (64.69.57.18) since it (1) has a valid PTR record and (2) is not
-        # listed by anyone as a valid mail server.
-        #
-        # I'm actually temporarily using an IP that virginia.edu resolves to
-        # until we resolve why Google DNS does not return the same PTR records
-        # as the CAL DNS does for 64.69.57.18.
+        # Here I am using the IP address for
+        # ec2-100-27-42-254.compute-1.amazonaws.com (100.27.42.254)
+        # since it (1) has a valid PTR record and (2) is not listed by
+        # anyone as a valid mail server.  (The second item follows
+        # from the fact that AWS has semi-permanently assigned this IP
+        # to NCATS as part of our contiguous netblock, and we are not
+        # using it as a mail server or including it as an MX record
+        # for any domain.)
         #
         # Passing verbose=True causes the SPF library being used to
         # print out the SPF records encountered as include and
         # redirect cause other SPF records to be looked up.
-        query = spf.query('128.143.22.36',
+        query = spf.query('100.27.42.254',
                           'email_wizard@' + domain.domain_name,
                           domain.domain_name, strict=strict, verbose=True)
         response = query.check(spf=record_text)
