@@ -49,7 +49,7 @@ def domain_list_from_csv(csv_file):
 
     domains = []
     for row in domain_list:
-        if(row is not None and len(row) > 0):
+        if row is not None and len(row) > 0:
             domains.append(row[domain_column])
 
     return domains
@@ -66,8 +66,8 @@ def check_dnssec(domain, domain_name, record_type):
         query = dns.message.make_query(domain_name, record_type, want_dnssec=True)
         for nameserver in DNS_RESOLVERS:
             response = dns.query.tcp(query, nameserver, timeout=DNS_TIMEOUT)
-            if(response is not None):
-                if(response.flags & dns.flags.AD):
+            if response is not None:
+                if response.flags & dns.flags.AD:
                     return True
                 else:
                     return False
@@ -78,9 +78,9 @@ def check_dnssec(domain, domain_name, record_type):
 
 def mx_scan(resolver, domain):
     try:
-        if(domain.mx_records is None):
+        if domain.mx_records is None:
             domain.mx_records = []
-        if(domain.mail_servers is None):
+        if domain.mail_servers is None:
             domain.mail_servers = []
         # Use TCP, since we care about the content and correctness of the
         # records more than whether their records fit in a single UDP packet.
@@ -355,7 +355,7 @@ def spf_scan(resolver, domain):
     """
     # If an SPF record exists, record the raw SPF record text in the
     # Domain object
-    if(domain.spf is None):
+    if domain.spf is None:
         domain.spf = []
     record_text_not_following_redirect = get_spf_record_text(resolver, domain.domain_name, domain)
     if record_text_not_following_redirect:
@@ -414,7 +414,7 @@ def parse_dmarc_report_uri(uri):
 def dmarc_scan(resolver, domain):
     # dmarc records are kept in TXT records for _dmarc.domain_name.
     try:
-        if(domain.dmarc is None):
+        if domain.dmarc is None:
             domain.dmarc = []
         dmarc_domain = '_dmarc.%s' % domain.domain_name
         # Use TCP, since we care about the content and correctness of the

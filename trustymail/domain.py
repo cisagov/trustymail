@@ -115,7 +115,7 @@ class Domain:
         self.ports_tested = set()
 
     def has_mail(self):
-        if(self.mail_servers is not None):
+        if self.mail_servers is not None:
             return len(self.mail_servers) > 0
         return None
 
@@ -125,7 +125,7 @@ class Domain:
         domain are listening and support SMTP.
         """
         result = None
-        if(len(self.starttls_results) > 0):
+        if len(self.starttls_results) > 0:
             result = len(filter(lambda x: self.starttls_results[x]['supports_smtp'],
                                 self.starttls_results.keys())) > 0
         return result
@@ -136,28 +136,28 @@ class Domain:
         domain are listening and support STARTTLS.
         """
         result = None
-        if(len(self.starttls_results) > 0):
+        if len(self.starttls_results) > 0:
             result = len(filter(lambda x: self.starttls_results[x]['starttls'],
                                 self.starttls_results.keys())) > 0
         return result
 
     def has_spf(self):
-        if(self.spf is not None):
+        if self.spf is not None:
             return len(self.spf) > 0
         return None
 
     def has_dmarc(self):
-        if(self.dmarc is not None):
+        if self.dmarc is not None:
             return len(self.dmarc) > 0
         return None
 
     def add_mx_record(self, record):
-        if(self.mx_records is None):
+        if self.mx_records is None:
             self.mx_records = []
         self.mx_records.append(record)
         # The rstrip is because dnspython's string representation of
         # the record will contain a trailing period if it is a FQDN.
-        if(self.mail_servers is None):
+        if self.mail_servers is None:
             self.mail_servers = []
         self.mail_servers.append(record.exchange.to_text().rstrip('.').lower())
 
