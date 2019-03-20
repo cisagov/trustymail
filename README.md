@@ -126,6 +126,8 @@ The following values are returned in `results.csv`:
 
 * `MX Record` - If an MX record was found that contains at least a
   single mail server.
+* `MX Record DNSSEC` - A boolean value indicating whether or not the
+  DNS record is protected by DNSSEC.
 * `Mail Servers` - The list of hosts found in the MX record.
 * `Mail Server Ports Tested` - A list of the ports tested for SMTP and
   STARTTLS support.
@@ -141,6 +143,8 @@ The following values are returned in `results.csv`:
 ### SPF ###
 
 * `SPF Record` - Whether or not a SPF record was found.
+* `SPF Record DNSSEC` - A boolean value indicating whether or not the
+  DNS record is protected by DNSSEC.
 * `Valid SPF` - Whether the SPF record found is syntactically correct,
   per RFC 4408.
 * `SPF Results` - The textual representation of any SPF record found
@@ -149,20 +153,26 @@ The following values are returned in `results.csv`:
 ### DMARC ###
 
 * `DMARC Record` - True/False whether or not a DMARC record was found.
+* `DMARC Record DNSSEC` - A boolean value indicating whether or not
+  the DNS record is protected by DNSSEC.
 * `Valid DMARC` - Whether the DMARC record found is syntactically
   correct.
 * `DMARC Results` - The DMARC record that was discovered when querying
   DNS.
-* `DMARC Record on Base Domain`, `Valid DMARC Record on Base Domain`,
-  `DMARC Results on Base Domain` - Same definition as above, but
-  returns the result for the Base Domain. This is important in DMARC
-  because if there isn't a DMARC record at the domain, the base domain
-  (or "Organizational Domain", per [RFC
+* `DMARC Record on Base Domain`, `DMARC Record on Base Domain DNSSEC`,
+  `Valid DMARC Record on Base Domain`, `DMARC Results on Base
+  Domain` - Same definition as above, but returns the result for the
+  Base Domain. This is important in DMARC because if there isn't a
+  DMARC record at the domain, the base domain (or "Organizational
+  Domain", per [RFC
   7489](https://tools.ietf.org/html/rfc7489#section-6.6.3)), is
   checked and applied.
 * `DMARC Policy` - An adjudication, based on any policies found in
   `DMARC Results` and `DMARC Results on Base Domain`, of the relevant
   DMARC policy that applies.
+* `DMARC Subdomain Policy` - An adjudication, based on any policies
+  found in `DMARC Results` and `DMARC Results on Base Domain`, of the
+  relevant DMARC subdomain policy that applies.
 * `DMARC Policy Percentage` - The percentage of mail that should be
   subjected to the `DMARC Policy` according to the `DMARC Results`.
 * `DMARC Aggregate Report URIs` - A list of the DMARC aggregate report
@@ -174,14 +184,18 @@ The following values are returned in `results.csv`:
   send DMARC aggregate reports.
 * `DMARC Has Forensic Report URI` - A boolean value that indicates if
   `DMARC Results` included `ruf` URIs that tell recipients where to
-  send DMARC forensic reports .
+  send DMARC forensic reports.
+* `DMARC Reporting Address Acceptance Error` - A boolean value that is
+  True if one or more of the domains listed in the aggregate and
+  forensic report URIs does not indicate that it accepts DMARC reports
+  from the domain being tested.
 
 ### Etc. ###
 
 * `Syntax Errors` - A list of syntax errors that were encountered when
   analyzing SPF records.
-* `Debug` - A list of any other warnings or errors encountered, such
-  as DNS failures.  These can be helpful when determining how
+* `Debug Info` - A list of any other warnings or errors encountered,
+  such as DNS failures.  These can be helpful when determining how
   `trustymail` reached its conclusions, and are indispensible for bug
   reports.
 
