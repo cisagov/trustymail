@@ -51,7 +51,7 @@ def format_list(record_list):
     # anything else.  Thus this if clause handles only empty
     # lists.  This makes a "null" appear in the JSON output for
     # empty lists, as expected.
-    if not record_list or len(record_list) == 0:
+    if not record_list:
         return None
 
     return ', '.join(record_list)
