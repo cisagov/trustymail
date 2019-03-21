@@ -58,7 +58,7 @@ python scripts/trustymail [options] example.com
 trustymail [options] INPUT
 
 trustymail dhs.gov
-trustymail --output=homeland.csv --debug dhs.gov us-cert.gov usss.gov
+trustymail --output=homeland.csv --debug cisa.gov dhs.gov us-cert.gov usss.gov
 trustymail agencies.csv
 ```
 
@@ -110,7 +110,7 @@ output will always be written to disk, defaulting to `results.csv`.
 ## What's Checked? ##
 
 For a given domain, MX records, SPF records (TXT), DMARC (TXT, at
-\_dmarc.<domain>), and support for STARTTLS are checked.
+\_dmarc.<domain>), and support for STARTTLS are checked. Resource records can also be checked for DNSSEC if the resolver used is DNSSEC-aware.
 
 The following values are returned in `results.csv`:
 
