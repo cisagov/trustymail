@@ -152,7 +152,9 @@ def starttls_scan(domain, smtp_timeout, smtp_localhost, smtp_ports, smtp_cache):
                 try:
                     smtp_connection.connect(mail_server, port)
                     domain.starttls_results[server_and_port]['is_listening'] = True
-                except (socket.timeout, smtplib.SMTPConnectError, smtplib.SMTPServerDisconnected, ConnectionRefusedError, OSError) as error:
+                except (socket.timeout, smtplib.SMTPConnectError,
+                        smtplib.SMTPServerDisconnected,
+                        ConnectionRefusedError, OSError) as error:
                     handle_error('[STARTTLS]', domain, error)
                     domain.starttls_results[server_and_port]['is_listening'] = False
                     domain.starttls_results[server_and_port]['supports_smtp'] = False
@@ -207,20 +209,17 @@ def starttls_scan(domain, smtp_timeout, smtp_localhost, smtp_ports, smtp_cache):
                 domain.starttls_results[server_and_port] = _SMTP_CACHE[server_and_port]
 
 
-def check_spf_record(record_text, expected_result, domain, strict=2):
+def check_spf_record(record_text, domain, strict=2):
     """Test to see if an SPF record is valid and correct.
 
-    The record is tested by checking the response when we query if it
-    allows us to send mail from an IP that is known not to be a mail
-    server that appears in the MX records for ANY domain.
+    The record is tested by evaluating the response when we query
+    using an IP that is known not to be a mail server that appears in
+    the MX records for ANY domain.
 
     Parameters
     ----------
     record_text : str
         The text of the SPF record to be tested.
-
-    expected_result : str
-        The expected result of the test.
 
     domain : trustymail.Domain
         The Domain object corresponding to the SPF record being
@@ -230,26 +229,34 @@ def check_spf_record(record_text, expected_result, domain, strict=2):
         The level of strictness to use when verifying an SPF record.
         Valid values are True, False, and 2.  The last value is the
         most harsh.
+
     """
     try:
-        # Here I am using the IP address for c1b1.ncats.cyber.dhs.gov
-        # (64.69.57.18) since it (1) has a valid PTR record and (2) is not
-        # listed by anyone as a valid mail server.
-        #
-        # I'm actually temporarily using an IP that virginia.edu resolves to
-        # until we resolve why Google DNS does not return the same PTR records
-        # as the CAL DNS does for 64.69.57.18.
+        # Here I am using the IP address for
+        # ec2-100-27-42-254.compute-1.amazonaws.com (100.27.42.254)
+        # since it (1) has a valid PTR record and (2) is not listed by
+        # anyone as a valid mail server.  (The second item follows
+        # from the fact that AWS has semi-permanently assigned this IP
+        # to NCATS as part of our contiguous netblock, and we are not
+        # using it as a mail server or including it as an MX record
+        # for any domain.)
         #
         # Passing verbose=True causes the SPF library being used to
         # print out the SPF records encountered as include and
         # redirect cause other SPF records to be looked up.
-        query = spf.query('128.143.22.36',
+        query = spf.query('100.27.42.254',
                           'email_wizard@' + domain.domain_name,
                           domain.domain_name, strict=strict, verbose=True)
         response = query.check(spf=record_text)
 
         response_type = response[0]
-        if response_type == 'temperror' or response_type == 'permerror':
+        # A value of none means that no valid SPF record was obtained
+        # from DNS.  We get this result when we get an ambiguous
+        # result because of an SPF record with incorrect syntax, then
+        # rerun check_spf_record() with strict=True (instead of 2).
+        if response_type == 'temperror' or response_type == 'permerror' \
+           or response_type == 'none':
+            domain.valid_spf = False
             handle_error('[SPF]', domain,
                          'SPF query returned {}: {}'.format(response_type,
                                                             response[2]))
@@ -258,20 +265,16 @@ def check_spf_record(record_text, expected_result, domain, strict=2):
             handle_error('[SPF]', domain,
                          'SPF query returned {}: {}'.format(response_type,
                                                             response[2]))
-            # Rerun the check with less strictness to get an actual
-            # result.  (With strict=2, the SPF library stops
+
+            # Now rerun the check with less strictness to get an
+            # actual result.  (With strict=2, the SPF library stops
             # processing once it encounters an AmbiguityWarning.)
-            check_spf_record(record_text, expected_result,
-                             domain, True)
-        elif response_type == expected_result:
-            # Everything checks out.  The SPF syntax seems valid
-            domain.valid_spf = True
+            check_spf_record(record_text, domain, True)
         else:
-            domain.valid_spf = False
-            msg = 'Result unexpectedly differs: Expected [{}] - actual [{}]'.format(expected_result,
-                                                                                    response_type)
-            handle_error('[SPF]', domain, msg)
+            # Everything checks out.  The SPF syntax seems valid.
+            domain.valid_spf = True
     except spf.AmbiguityWarning as error:
+        domain.valid_spf = False
         handle_error('[SPF]', domain, error)
 
 
@@ -316,9 +319,12 @@ def get_spf_record_text(resolver, domain_name, domain, follow_redirect=False):
             match = re.search(r'v=spf1\s*redirect=(\S*)', record_text)
             if follow_redirect and match:
                 redirect_domain_name = match.group(1)
-                record_to_return = get_spf_record_text(resolver, redirect_domain_name, domain)
+                record_to_return = get_spf_record_text(resolver,
+                                                       redirect_domain_name,
+                                                       domain)
             else:
                 record_to_return = record_text
+
         domain.spf_dnssec = check_dnssec(domain, domain.domain_name, 'TXT')
     except (dns.resolver.NoNameservers) as error:
         # The NoNameservers exception means that we got a SERVFAIL response.
@@ -341,8 +347,8 @@ def get_spf_record_text(resolver, domain_name, domain, follow_redirect=False):
 
 def spf_scan(resolver, domain):
     """Scan a domain to see if it supports SPF.  If the domain has an SPF
-    record, verify that it properly rejects mail sent from an IP known
-    to be disallowed.
+    record, verify that it properly handles mail sent from an IP known
+    not to be listed in an MX record for ANY domain.
 
     Parameters
     ----------
@@ -352,32 +358,25 @@ def spf_scan(resolver, domain):
     domain : trustymail.Domain
         The Domain object being scanned for SPF support.  Any errors
         will be logged to this object.
+
     """
-    # If an SPF record exists, record the raw SPF record text in the
-    # Domain object
     if domain.spf is None:
         domain.spf = []
-    record_text_not_following_redirect = get_spf_record_text(resolver, domain.domain_name, domain)
+
+    # If an SPF record exists, record the raw SPF record text in the
+    # Domain object
+    record_text_not_following_redirect = get_spf_record_text(resolver,
+                                                             domain.domain_name,
+                                                             domain)
     if record_text_not_following_redirect:
         domain.spf.append(record_text_not_following_redirect)
 
-    record_text_following_redirect = get_spf_record_text(resolver, domain.domain_name, domain, True)
+    record_text_following_redirect = get_spf_record_text(resolver,
+                                                         domain.domain_name,
+                                                         domain,
+                                                         True)
     if record_text_following_redirect:
-        # From the found record grab the specific result when something
-        # doesn't match.  Definitions of result come from
-        # https://www.ietf.org/rfc/rfc4408.txt
-        if record_text_following_redirect.endswith('-all'):
-            result = 'fail'
-        elif record_text_following_redirect.endswith('?all'):
-            result = 'neutral'
-        elif record_text_following_redirect.endswith('~all'):
-            result = 'softfail'
-        elif record_text_following_redirect.endswith('all') or record_text_following_redirect.endswith('+all'):
-            result = 'pass'
-        else:
-            result = 'neutral'
-
-        check_spf_record(record_text_following_redirect, result, domain)
+        check_spf_record(record_text_following_redirect, domain)
 
 
 def parse_dmarc_report_uri(uri):
