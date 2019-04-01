@@ -99,6 +99,16 @@ def mx_scan(resolver, domain):
         domain.mx_records_dnssec = check_dnssec(domain, domain.domain_name, 'MX')
         handle_error('[MX]', domain, error)
     except (dns.resolver.NoAnswer) as error:
+        # The NoAnswer exception means that the domain does exist in
+        # DNS, but it does not have any MX records.  It sort of makes
+        # sense to treat this case as "not live", but @h-m-f-t
+        # (Cameron Dixon) points out that "a domain not NXDOMAINing
+        # or SERVFAILing is a reasonable proxy for existence. It's
+        # functionally "live" if the domain resolves in public DNS,
+        # and therefore can benefit from DMARC action."
+        #
+        # See also https://github.com/cisagov/trustymail/pull/91
+
         # NoAnswer can still have DNSSEC
         domain.mx_records_dnssec = check_dnssec(domain, domain.domain_name, 'MX')
         handle_error('[MX]', domain, error)
