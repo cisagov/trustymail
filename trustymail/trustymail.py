@@ -157,10 +157,33 @@ def starttls_scan(domain, smtp_timeout, smtp_localhost, smtp_ports, smtp_cache):
                 # traffic sent to and from the SMTP server.
                 smtp_connection.set_debuglevel(1)
                 logging.debug('Testing ' + server_and_port + ' for STARTTLS support')
+
+                # Look up the IPv4 address for mail_server.
+                #
+                # By default, smtplib looks for A and AAAA records
+                # from DNS and uses the first one that it can connect
+                # to.  What I find when running in Lambda (at least in
+                # my VPC that doesn't support IPv6) is that when DNS
+                # returns IPv6 an address I get a low level "errno 97
+                # - Address family not supported by protocol" error
+                # and the other addresses returned by DNS are not
+                # tried.  Therefore the hostname is not scanned at
+                # all.
+                #
+                # To get around this I look up the A record and use
+                # that instead of the hostname in DNS when I call
+                # smtp_connection.connect().
+                ans = socket.getaddrinfo(
+                    mail_server, port, socket.AF_INET, socket.SOCK_STREAM
+                )
+                print(ans)
+                sa = ans[0][4]
+                mail_server_ip_address = sa[0]
+
                 # Try to connect.  This will tell us if something is
                 # listening.
                 try:
-                    smtp_connection.connect(mail_server, port)
+                    smtp_connection.connect(mail_server_ip_address, port)
                     domain.starttls_results[server_and_port]['is_listening'] = True
                 except (socket.timeout, smtplib.SMTPConnectError,
                         smtplib.SMTPServerDisconnected,
