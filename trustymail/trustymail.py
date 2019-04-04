@@ -176,7 +176,6 @@ def starttls_scan(domain, smtp_timeout, smtp_localhost, smtp_ports, smtp_cache):
                 ans = socket.getaddrinfo(
                     mail_server, port, socket.AF_INET, socket.SOCK_STREAM
                 )
-                print(ans)
                 sa = ans[0][4]
                 mail_server_ip_address = sa[0]
 
