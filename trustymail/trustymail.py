@@ -173,11 +173,11 @@ def starttls_scan(domain, smtp_timeout, smtp_localhost, smtp_ports, smtp_cache):
                 # To get around this I look up the A record and use
                 # that instead of the hostname in DNS when I call
                 # smtp_connection.connect().
-                ans = socket.getaddrinfo(
+                addr_info = socket.getaddrinfo(
                     mail_server, port, socket.AF_INET, socket.SOCK_STREAM
                 )
-                sa = ans[0][4]
-                mail_server_ip_address = sa[0]
+                socket_address = addr_info[0][4]
+                mail_server_ip_address = socket_address[0]
 
                 # Try to connect.  This will tell us if something is
                 # listening.
