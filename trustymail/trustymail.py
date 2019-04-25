@@ -505,7 +505,7 @@ def dmarc_scan(resolver, domain):
                 tag_dict['pct'] = 100
             if 'adkim' not in tag_dict:
                 tag_dict['adkim'] = 'r'
-            if 'aspf'not in tag_dict:
+            if 'aspf' not in tag_dict:
                 tag_dict['aspf'] = 'r'
             if 'fo' not in tag_dict:
                 tag_dict['fo'] = '0'
