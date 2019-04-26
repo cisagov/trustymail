@@ -493,6 +493,11 @@ def dmarc_scan(resolver, domain):
                 value = options.split('=')[1].strip()
                 tag_dict[tag] = value
 
+            # Before we set sp=p if it is not explicitly contained in
+            # the DMARC record, log a warning if it is explicitly set
+            # for a subdomain of an organizational domain.
+            if 'sp' in tag_dict and not domain.is_base_domain:
+                handle_error('[DMARC]', domain, 'Warning: The sp tag will be ignored for DMARC records published on subdomains. See here for details:  https://tools.ietf.org/html/rfc7489#section-6.3.', syntax_error=False)
             if 'p' not in tag_dict:
                 msg = 'Record missing required policy (p) tag'
                 handle_syntax_error('[DMARC]', domain, '{0}'.format(msg))
@@ -505,7 +510,7 @@ def dmarc_scan(resolver, domain):
                 tag_dict['pct'] = 100
             if 'adkim' not in tag_dict:
                 tag_dict['adkim'] = 'r'
-            if 'aspf'not in tag_dict:
+            if 'aspf' not in tag_dict:
                 tag_dict['aspf'] = 'r'
             if 'fo' not in tag_dict:
                 tag_dict['fo'] = '0'

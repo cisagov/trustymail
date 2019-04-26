@@ -65,14 +65,15 @@ class Domain:
 
         self.base_domain_name = get_public_suffix(self.domain_name)
 
+        self.is_base_domain = True
+        self.base_domain = None
         if self.base_domain_name != self.domain_name:
+            self.is_base_domain = False
             if self.base_domain_name not in Domain.base_domains:
                 # Populate DMARC for parent.
                 domain = trustymail.scan(self.base_domain_name, timeout, smtp_timeout, smtp_localhost, smtp_ports, smtp_cache, {'mx': False, 'starttls': False, 'spf': False, 'dmarc': True}, dns_hostnames)
                 Domain.base_domains[self.base_domain_name] = domain
             self.base_domain = Domain.base_domains[self.base_domain_name]
-        else:
-            self.base_domain = None
 
         # Start off assuming the host is live unless an error tells us otherwise.
         self.is_live = True
