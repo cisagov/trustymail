@@ -12,12 +12,6 @@ env:
 # Matrix approach here due to: https://github.com/travis-ci/travis-ci/issues/9815
 matrix:
   include:
-    - python: 3.4
-      dist: xenial
-      sudo: true
-    - python: 3.5
-      dist: xenial
-      sudo: true
     - python: 3.6
       dist: xenial
       sudo: true
