@@ -173,9 +173,28 @@ def starttls_scan(domain, smtp_timeout, smtp_localhost, smtp_ports, smtp_cache):
                 # To get around this I look up the A record and use
                 # that instead of the hostname in DNS when I call
                 # smtp_connection.connect().
-                addr_info = socket.getaddrinfo(
-                    mail_server, port, socket.AF_INET, socket.SOCK_STREAM
-                )
+                try:
+                    addr_info = socket.getaddrinfo(
+                        mail_server, port, socket.AF_INET, socket.SOCK_STREAM
+                    )
+                except socket.gaierror as error:
+                    # We get this exception if there is no A record
+                    # for the given mail server.  This does happen,
+                    # since among their MX records some domains do
+                    # list some IPv6-only mail servers.
+                    #
+                    # Since we can't evaluate such cases we will
+                    # simply log this and give them credit.  One of
+                    # the other mail servers will support IPv4.
+                    error_str = f'The mail server {mail_server} does not have an IPv4 address.'
+                    handle_error('[STARTTLS]', domain, error_str)
+                    logging.warn(error_str)
+                    domain.starttls_results[server_and_port]['is_listening'] = True
+                    domain.starttls_results[server_and_port]['supports_smtp'] = True
+                    domain.starttls_results[server_and_port]['starttls'] = True
+                    continue
+
+                # Extract the IP address from the socket addrinfo
                 socket_address = addr_info[0][4]
                 mail_server_ip_address = socket_address[0]
 
