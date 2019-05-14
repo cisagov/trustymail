@@ -177,7 +177,7 @@ def starttls_scan(domain, smtp_timeout, smtp_localhost, smtp_ports, smtp_cache):
                     addr_info = socket.getaddrinfo(
                         mail_server, port, socket.AF_INET, socket.SOCK_STREAM
                     )
-                except socket.gaierror as error:
+                except socket.gaierror:
                     # We get this exception if there is no A record
                     # for the given mail server.  This does happen,
                     # since among their MX records some domains do
