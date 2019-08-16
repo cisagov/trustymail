@@ -12,6 +12,8 @@ records for STARTTLS support. It saves its results to CSV or JSON.
 
 ## Getting Started ##
 
+`trustymail` requires **Python 3.6+**. Python 2 is not supported.
+
 `trustymail` can be installed as a module or run directly from the
 repository.
 
@@ -19,13 +21,13 @@ repository.
 
 `trustymail` can be installed directly via pip:
 
-```bash
+```console
 pip install trustymail
 ```
 
 It can then be run directly:
 
-```bash
+```console
 trustymail [options] example.com
 ```
 
@@ -34,19 +36,19 @@ trustymail [options] example.com
 To run the tool locally from the repository, without installing, first
 install the requirements:
 
-```bash
+```console
 pip install -r requirements.txt
 ```
 
 Then run the CLI:
 
-```bash
+```console
 python scripts/trustymail [options] example.com
 ```
 
 ### Using Docker (optional)
 
-```bash
+```console
 ./run [opts]
 ```
 
@@ -54,7 +56,7 @@ python scripts/trustymail [options] example.com
 
 ### Usage and examples ###
 
-```bash
+```console
 trustymail [options] INPUT
 
 trustymail dhs.gov
@@ -67,7 +69,7 @@ output will always be written to disk, defaulting to `results.csv`.
 
 #### Options ####
 
-```bash
+```console
   -h --help                   Show this message.
   -o --output=OUTFILE         Name of output file. (Default results)
   -t --timeout=TIMEOUT        The DNS lookup timeout in seconds. (Default is 5.)
