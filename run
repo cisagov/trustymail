@@ -7,6 +7,7 @@ docker build -t trustymail/cli .
 
 docker run --rm -it \
   --name trustymail \
-  --volume $(pwd):/workspace \
+  --volume "$(pwd)":/workspace \
   --workdir="/workspace" \
-  trustymail/cli $@
+  --user "$(id -u)" \
+  trustymail/cli "$@"
