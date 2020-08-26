@@ -1,5 +1,7 @@
 language: python
 
+dist: xenial
+
 services:
   - docker
 
@@ -9,22 +11,17 @@ env:
     - DOCKER_USER=jsf9k
     - secure: "IAbtmubLq2hL71aollQEfoV+t9Zbqn4rNVqi5YNerqxvXr6WiDzwmYUujOCnQiHli8xkIU0J8OSPX0aA4cOTxPGiZeNguGuVWmR2ZCB8SMyjbKJOEIpLZv/jG1Be6dVXiJwKwQM3yX4pqPfLIuYkE6S1GAodudPzcJ8xM/h1qzJijknJEqsCJQw43zSHZ/epYulgWcmnCAmaoehZTCjVcW4l8iyVHSNfgO7gu5iWC9y4AIIX96E9TZkSDeud1yqUcORMwfdOl2pHhDh3KnF8HZSOCetTHP7JacLUMJiiCpKN34Xn9RQgjbVKOrF/rcC8WEDrWKn14SFfgUP0dl6lCr6P9HE4aHKvrH/nCyflFOANbEKMywE8DzNA3zd7MC0HQkyb40LAiBSbTD58myUsc+WlmaZyvpJ7akukbmVjVPQWNvs1laz/bqyLdPh4WMqgOTbP7BrgDeIrCVedwdvhqq9KEaoak8RBs/Wb8LisI6j+vAY/HKlVnuIXRL0RNGTko96kBluEpAsWDjls39Hmu5hl1glbqCWDW9+dE0/Zx4MuSt4OVAywMW+lzxA16SdqDLCZqGv00vnPpxuBAvEEQbVtsmQ6lR+fwTYKFEDZM7axRwBlLzIDEzSoz4K0fSq3EuU4mkoVZKcHGnuHuRqaNhce0zzZx3lHdNTm7oa7b0U="
 
-# Matrix approach here due to: https://github.com/travis-ci/travis-ci/issues/9815
-matrix:
-  include:
-    - python: 3.6
-      dist: xenial
-      sudo: true
-    - python: 3.7
-      dist: xenial
-      sudo: true
+python:
+  - 3.6
+  - 3.7
+  - 3.8
 
 before_install:
   - sudo apt-get install -y shellcheck
 
 install:
   - pip install flake8 pytest-cov pytest coveralls
-  - pip install -e .
+  - pip install --editable .
 
 script:
   - shellcheck bump_version.sh tag.sh travis_scripts/*.sh
@@ -43,7 +40,7 @@ deploy:
     distributions: sdist bdist_wheel
     on:
       tags: true
-      python: '3.7'
+      python: '3.8'
   # - provider: script
   #   script: bash travis_scripts/deploy_to_docker_hub.sh
   #   on:
