@@ -89,7 +89,7 @@ def mx_scan(resolver, domain):
         if domain.mail_servers is None:
             domain.mail_servers = []
         # Use UDP to hopefully avoid triggering DNS throttling in AWS.
-        for record in resolver.query(domain.domain_name, "MX", tcp=False):
+        for record in resolver.resolve(domain.domain_name, "MX", tcp=False):
             domain.add_mx_record(record)
         domain.mx_records_dnssec = check_dnssec(domain, domain.domain_name, "MX")
     except (dns.resolver.NoNameservers) as error:
@@ -388,7 +388,7 @@ def get_spf_record_text(resolver, domain_name, domain, follow_redirect=False):
     record_to_return = None
     try:
         # Use UDP to hopefully avoid triggering DNS throttling in AWS.
-        for record in resolver.query(domain_name, "TXT", tcp=False):
+        for record in resolver.resolve(domain_name, "TXT", tcp=False):
             record_text = remove_quotes(record.to_text())
 
             if not record_text.startswith("v=spf1"):
@@ -497,7 +497,7 @@ def dmarc_scan(resolver, domain):
             domain.dmarc = []
         dmarc_domain = "_dmarc.%s" % domain.domain_name
         # Use UDP to hopefully avoid triggering DNS throttling in AWS.
-        all_records = resolver.query(dmarc_domain, "TXT", tcp=False)
+        all_records = resolver.resolve(dmarc_domain, "TXT", tcp=False)
         domain.dmarc_dnssec = check_dnssec(domain, dmarc_domain, "TXT")
         # According to step 4 in section 6.6.3 of the RFC
         # (https://tools.ietf.org/html/rfc7489#section-6.6.3), "Records that do
@@ -704,7 +704,7 @@ def dmarc_scan(resolver, domain):
                                     # triggering DNS throttling in
                                     # AWS.
                                     answer = remove_quotes(
-                                        resolver.query(target, "TXT", tcp=False)[
+                                        resolver.resolve(target, "TXT", tcp=False)[
                                             0
                                         ].to_text()
                                     )
@@ -734,7 +734,7 @@ def dmarc_scan(resolver, domain):
                                     # Use UDP to hopefully avoid
                                     # triggering DNS throttling in
                                     # AWS.
-                                    resolver.query(email_domain, "MX", tcp=False)
+                                    resolver.resolve(email_domain, "MX", tcp=False)
                                 except (
                                     dns.resolver.NXDOMAIN,
                                     dns.resolver.NoAnswer,
@@ -780,7 +780,7 @@ def dmarc_scan(resolver, domain):
 
 def find_host_from_ip(resolver, ip_addr):
     # Use UDP to hopefully avoid triggering DNS throttling in AWS.
-    hostname, _ = resolver.query(dns.reversename.from_address(ip_addr), "PTR", tcp=False)
+    hostname, _ = resolver.resolve(dns.reversename.from_address(ip_addr), "PTR", tcp=False)
     return str(hostname)
 
 
@@ -809,8 +809,8 @@ def scan(
     # because, unless the reason for the SERVFAIL is truly temporary
     # and resolves before trustymail finishes scanning the domain,
     # this can obscure the potentially informative SERVFAIL error as a
-    # DNS timeout because of the way dns.resolver.query() is written.
-    # See
+    # DNS timeout because of the way dns.resolver.resolve() is
+    # written.  See
     # http://www.dnspython.org/docs/1.14.0/dns.resolver-pysrc.html#Resolver.query.
     resolver.retry_servfail = False
     # Set some timeouts.  The timeout should be less than or equal to
