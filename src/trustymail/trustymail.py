@@ -1,3 +1,5 @@
+"""Functions to check a domain's configuration for trustworthy mail."""
+
 # Standard Python Libraries
 from collections import OrderedDict
 import csv
@@ -27,6 +29,7 @@ MAILTO_REGEX = re.compile(
 
 
 def domain_list_from_url(url):
+    """Get a list of domains from a provided URL."""
     if not url:
         return []
 
@@ -38,6 +41,7 @@ def domain_list_from_url(url):
 
 
 def domain_list_from_csv(csv_file):
+    """Get a list of domains from a provided CSV file."""
     domain_list = list(csv.reader(csv_file, delimiter=","))
 
     # Check the headers for the word domain - use that column.
@@ -61,7 +65,9 @@ def domain_list_from_csv(csv_file):
 
 
 def check_dnssec(domain, domain_name, record_type):
-    """Checks whether the domain has a record of type that is protected
+    """Test to see if a DNSSEC record is valid and correct.
+
+    Checks a domain for DNSSEC whether the domain has a record of type that is protected
     by DNSSEC or NXDOMAIN or NoAnswer that is protected by DNSSEC.
 
     TODO: Probably does not follow redirects (CNAMEs).  Should work on
@@ -82,6 +88,7 @@ def check_dnssec(domain, domain_name, record_type):
 
 
 def mx_scan(resolver, domain):
+    """Scan a domain to see if it has any mail servers."""
     try:
         if domain.mx_records is None:
             domain.mx_records = []
@@ -426,9 +433,10 @@ def get_spf_record_text(resolver, domain_name, domain, follow_redirect=False):
 
 
 def spf_scan(resolver, domain):
-    """Scan a domain to see if it supports SPF.  If the domain has an SPF
-    record, verify that it properly handles mail sent from an IP known
-    not to be listed in an MX record for ANY domain.
+    """Scan a domain to see if it supports SPF.
+
+    If the domain has an SPF record, verify that it properly handles mail sent from
+    an IP known not to be listed in an MX record for ANY domain.
 
     Parameters
     ----------
@@ -460,7 +468,7 @@ def spf_scan(resolver, domain):
 
 def parse_dmarc_report_uri(uri):
     """
-    Parses a DMARC Reporting (i.e. ``rua``/``ruf)`` URI
+    Parse a DMARC Reporting (i.e. ``rua``/``ruf)`` URI.
 
     Notes
     -----
@@ -492,6 +500,7 @@ def parse_dmarc_report_uri(uri):
 
 
 def dmarc_scan(resolver, domain):
+    """Scan a domain to see if it supports DMARC."""
     # dmarc records are kept in TXT records for _dmarc.domain_name.
     try:
         if domain.dmarc is None:
@@ -773,6 +782,7 @@ def dmarc_scan(resolver, domain):
 
 
 def find_host_from_ip(resolver, ip_addr):
+    """Find the host name for a given IP address."""
     # Use TCP, since we care about the content and correctness of the records
     # more than whether their records fit in a single UDP packet.
     hostname, _ = resolver.query(dns.reversename.from_address(ip_addr), "PTR", tcp=True)
@@ -789,6 +799,7 @@ def scan(
     scan_types,
     dns_hostnames,
 ):
+    """Parse a domain's DNS information for mail related records."""
     #
     # Configure the dnspython library
     #
@@ -878,9 +889,10 @@ def scan(
 
 
 def handle_error(prefix, domain, error, syntax_error=False):
-    """Handle an error by logging via the Python logging library and
-    recording it in the debug_info or syntax_error members of the
-    trustymail.Domain object.
+    """Handle the provided error by logging a message and storing it in the Domain object.
+
+    Logging is performed via the Python logging library and recording it in the
+    debug_info or syntax_error members of the trustymail.Domain object.
 
     Since the "Debug Info" and "Syntax Error" fields in the CSV output
     of trustymail come directly from the debug_info and syntax_error
@@ -946,11 +958,12 @@ def handle_error(prefix, domain, error, syntax_error=False):
 
 
 def handle_syntax_error(prefix, domain, error):
-    """Convenience method for handle_error"""
+    """Handle a syntax error by passing it to handle_error()."""
     handle_error(prefix, domain, error, syntax_error=True)
 
 
 def generate_csv(domains, file_name):
+    """Generate a CSV file with the given domain information."""
     with open(file_name, "w", encoding="utf-8", newline="\n") as output_file:
         writer = csv.DictWriter(
             output_file, fieldnames=domains[0].generate_results().keys()
@@ -965,6 +978,7 @@ def generate_csv(domains, file_name):
 
 
 def generate_json(domains):
+    """Generate a JSON string with the given domain information."""
     output = []
     for domain in domains:
         output.append(domain.generate_results())
@@ -974,6 +988,7 @@ def generate_json(domains):
 
 # Taken from pshtt to keep formatting similar
 def format_datetime(obj):
+    """Format the provided datetime information."""
     if isinstance(obj, datetime.date):
         return obj.isoformat()
     elif isinstance(obj, str):
@@ -983,7 +998,7 @@ def format_datetime(obj):
 
 
 def remove_quotes(txt_record):
-    """Remove double quotes and contatenate strings in a DNS TXT record
+    """Remove double quotes and contatenate strings in a DNS TXT record.
 
     A DNS TXT record can contain multiple double-quoted strings, and
     in that case the client has to remove the quotes and concatenate the

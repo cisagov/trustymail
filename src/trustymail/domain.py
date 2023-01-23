@@ -1,3 +1,5 @@
+"""Provide a data model for domains and some utility functions."""
+
 # Standard Python Libraries
 from collections import OrderedDict
 from datetime import datetime, timedelta
@@ -12,7 +14,7 @@ from . import PublicSuffixListFilename, PublicSuffixListReadOnly, trustymail
 
 def get_psl():
     """
-    Gets the Public Suffix List - either new, or cached in the CWD for 24 hours
+    Get the Public Suffix List - either new, or cached in the CWD for 24 hours.
 
     Returns
     -------
@@ -42,14 +44,14 @@ def get_psl():
 
 
 def get_public_suffix(domain):
-    """Returns the public suffix of a given domain"""
+    """Return the public suffix of a given domain."""
     public_list = get_psl()
 
     return public_list.get_public_suffix(domain)
 
 
 def format_list(record_list):
-    """Format a list into a string to increase readability in CSV"""
+    """Format a list into a string to increase readability in CSV."""
     # record_list should only be a list, not an integer, None, or
     # anything else.  Thus this if clause handles only empty
     # lists.  This makes a "null" appear in the JSON output for
@@ -61,7 +63,9 @@ def format_list(record_list):
 
 
 class Domain:
-    base_domains: Dict[str, Domain] = {}
+    """Store information about a domain."""
+
+    base_domains: Dict[str, "Domain"] = {}
 
     def __init__(
         self,
@@ -73,6 +77,7 @@ class Domain:
         smtp_cache,
         dns_hostnames,
     ):
+        """Retrieve information about a given domain name."""
         self.domain_name = domain_name.lower()
 
         self.base_domain_name = get_public_suffix(self.domain_name)
@@ -137,15 +142,13 @@ class Domain:
         self.ports_tested = set()
 
     def has_mail(self):
+        """Check if there are any mail servers associated with this domain."""
         if self.mail_servers is not None:
             return len(self.mail_servers) > 0
         return None
 
     def has_supports_smtp(self):
-        """
-        Returns True if any of the mail servers associated with this
-        domain are listening and support SMTP.
-        """
+        """Check if any of the mail servers associated with this domain are listening and support SMTP."""
         result = None
         if len(self.starttls_results) > 0:
             result = (
@@ -160,10 +163,7 @@ class Domain:
         return result
 
     def has_starttls(self):
-        """
-        Returns True if any of the mail servers associated with this
-        domain are listening and support STARTTLS.
-        """
+        """Check if any of the mail servers associated with this domain are listening and support STARTTLS."""
         result = None
         if len(self.starttls_results) > 0:
             result = (
@@ -178,16 +178,19 @@ class Domain:
         return result
 
     def has_spf(self):
+        """Check if this domain has any Sender Policy Framework records."""
         if self.spf is not None:
             return len(self.spf) > 0
         return None
 
     def has_dmarc(self):
+        """Check if this domain has a Domain-based Message Authentication, Reporting, and Conformance record."""
         if self.dmarc is not None:
             return len(self.dmarc) > 0
         return None
 
     def add_mx_record(self, record):
+        """Add a mail server record for this domain."""
         if self.mx_records is None:
             self.mx_records = []
         self.mx_records.append(record)
@@ -198,30 +201,35 @@ class Domain:
         self.mail_servers.append(record.exchange.to_text().rstrip(".").lower())
 
     def parent_has_dmarc(self):
+        """Check if a domain or its parent has a Domain-based Message Authentication, Reporting, and Conformance record."""
         ans = self.has_dmarc()
         if self.base_domain:
             ans = self.base_domain.has_dmarc()
         return ans
 
     def parent_dmarc_dnssec(self):
+        """Get this domain or its parent's DMARC DNSSEC information."""
         ans = self.dmarc_dnssec
         if self.base_domain:
             ans = self.base_domain.dmarc_dnssec
         return ans
 
     def parent_valid_dmarc(self):
+        """Check if this domain or its parent have a valid DMARC record."""
         ans = self.valid_dmarc
         if self.base_domain:
             return self.base_domain.valid_dmarc
         return ans
 
     def parent_dmarc_results(self):
+        """Get this domain or its parent's DMARC information."""
         ans = format_list(self.dmarc)
         if self.base_domain:
             ans = format_list(self.base_domain.dmarc)
         return ans
 
     def get_dmarc_policy(self):
+        """Get this domain or its parent's DMARC policy."""
         ans = self.dmarc_policy
         # If the policy was never set, or isn't in the list of valid
         # policies, check the parents.
@@ -239,6 +247,7 @@ class Domain:
         return ans
 
     def get_dmarc_subdomain_policy(self):
+        """Get this domain or its parent's DMARC subdomain policy."""
         ans = self.dmarc_subdomain_policy
         # If the policy was never set, or isn't in the list of valid
         # policies, check the parents.
@@ -250,6 +259,7 @@ class Domain:
         return ans
 
     def get_dmarc_pct(self):
+        """Get this domain or its parent's DMARC percentage information."""
         ans = self.dmarc_pct
         if not ans and self.base_domain:
             # Check the parents
@@ -257,6 +267,7 @@ class Domain:
         return ans
 
     def get_dmarc_has_aggregate_uri(self):
+        """Get this domain or its parent's DMARC aggregate URI."""
         ans = self.dmarc_has_aggregate_uri
         # If there are no aggregate URIs then check the parents.
         if not ans and self.base_domain:
@@ -264,6 +275,7 @@ class Domain:
         return ans
 
     def get_dmarc_has_forensic_uri(self):
+        """Check if this domain or its parent have a DMARC forensic URI."""
         ans = self.dmarc_has_forensic_uri
         # If there are no forensic URIs then check the parents.
         if not ans and self.base_domain:
@@ -271,6 +283,7 @@ class Domain:
         return ans
 
     def get_dmarc_aggregate_uris(self):
+        """Get this domain or its parent's DMARC aggregate URIs."""
         ans = self.dmarc_aggregate_uris
         # If there are no aggregate URIs then check the parents.
         if not ans and self.base_domain:
@@ -278,6 +291,7 @@ class Domain:
         return ans
 
     def get_dmarc_forensic_uris(self):
+        """Get this domain or its parent's DMARC forensic URIs."""
         ans = self.dmarc_forensic_uris
         # If there are no forensic URIs then check the parents.
         if not ans and self.base_domain:
@@ -285,6 +299,7 @@ class Domain:
         return ans
 
     def generate_results(self):
+        """Generate the results for this domain."""
         if len(self.starttls_results.keys()) == 0:
             domain_supports_smtp = None
             domain_supports_starttls = None

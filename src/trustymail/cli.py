@@ -1,4 +1,5 @@
 """trustymail: A tool for scanning DNS mail records for evaluating security.
+
 Usage:
   trustymail (INPUT ...) [options]
   trustymail (INPUT ...) [--output=OUTFILE] [--timeout=TIMEOUT] [--smtp-timeout=TIMEOUT] [--smtp-localhost=HOSTNAME] [--smtp-ports=PORTS] [--no-smtp-cache] [--mx] [--starttls] [--spf] [--dmarc] [--debug] [--json] [--dns=HOSTNAMES] [--psl-filename=FILENAME] [--psl-read-only]
@@ -65,6 +66,7 @@ _DEFAULT_SMTP_PORTS = {25, 465, 587}
 
 
 def main():
+    """Perform a trustymail scan using the provided options."""
     args = docopt.docopt(__doc__, version=__version__)
 
     # Monkey patching trustymail to make it cache the PSL where we want
@@ -163,6 +165,7 @@ def main():
 
 
 def write(content, out_file):
+    """Write the provided content to a file after ensuring all intermediate directories exist."""
     parent = os.path.dirname(out_file)
     if parent != "":
         mkdir_p(parent)
@@ -175,6 +178,7 @@ def write(content, out_file):
 # mkdir -p in python, from:
 # http://stackoverflow.com/questions/600268/mkdir-p-functionality-in-python
 def mkdir_p(path):
+    """Make a directory and all intermediate directories in its path."""
     try:
         os.makedirs(path)
     except OSError as exc:  # Python >2.5
