@@ -59,9 +59,9 @@ output will always be written to disk, defaulting to `results.csv`.
 
 ```console
   -h --help                   Show this message.
-  -o --output=OUTFILE         Name of output file. (Default results)
-  -t --timeout=TIMEOUT        The DNS lookup timeout in seconds. (Default is 5.)
-  --smtp-timeout=TIMEOUT      The SMTP connection timeout in seconds. (Default is 5.)
+  -o --output=OUTFILE         Name of output file.  (Default results)
+  -t --timeout=TIMEOUT        The DNS lookup timeout in seconds.  (Default is 5.)
+  --smtp-timeout=TIMEOUT      The SMTP connection timeout in seconds.  (Default is 5.)
   --smtp-localhost=HOSTNAME   The hostname to use when connecting to SMTP
                               servers.  (Default is the FQDN of the host from
                               which trustymail is being run.)
@@ -70,12 +70,12 @@ output will always be written to disk, defaulting to `results.csv`.
   --no-smtp-cache             Do not cache SMTP results during the run.  This
                               may results in slower scans due to testing the
                               same mail servers multiple times.
-  --mx                        Only check MX records
+  --mx                        Only check MX records.
   --starttls                  Only check MX records and STARTTLS support.
                               (Implies --mx.)
-  --spf                       Only check SPF records
-  --dmarc                     Only check DMARC records
-  --json                      Output is in JSON format (default CSV)
+  --spf                       Only check SPF records.
+  --dmarc                     Only check DMARC records.
+  --json                      Output is in JSON format.  (Default is CSV.)
   --debug                     Output should include more verbose logging.
   --dns=HOSTNAMES             A comma-delimited list of DNS servers to query
                               against.  For example, if you want to use
