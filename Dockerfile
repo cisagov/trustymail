@@ -6,11 +6,7 @@ RUN pip install --no-cache-dir --upgrade pip setuptools wheel
 
 COPY requirements.txt .
 
-RUN pip install --no-cache-dir --requirement requirements.txt
-
-COPY scripts/ scripts/
-
-COPY trustymail/ trustymail/
+COPY src/trustymail/ src/trustymail/
 
 COPY README.md .
 
@@ -18,7 +14,7 @@ COPY requirements-dev.txt .
 
 COPY setup.py .
 
-RUN pip install --editable .
+RUN pip install --no-cache-dir --requirement requirements.txt
 
 ENTRYPOINT ["trustymail"]
 CMD ["--help"]
