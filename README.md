@@ -14,10 +14,7 @@ records for STARTTLS support. It saves its results to CSV or JSON.
 
 `trustymail` requires **Python 3.6+**. Python 2 is not supported.
 
-`trustymail` can be installed as a module or run directly from the
-repository.
-
-### Installed as a module ###
+### Local installation ###
 
 `trustymail` can be installed directly via pip:
 
@@ -31,19 +28,10 @@ It can then be run directly:
 trustymail [options] example.com
 ```
 
-### Running directly ###
-
-To run the tool locally from the repository, without installing, first
-install the requirements:
+or
 
 ```console
-pip install -r requirements.txt
-```
-
-Then run the CLI:
-
-```console
-python scripts/trustymail [options] example.com
+python3 -m trustymail [options] example.com
 ```
 
 ### Using Docker (optional) ###
