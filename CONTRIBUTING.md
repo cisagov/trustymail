@@ -15,7 +15,7 @@ all of which should be in this repository.
 
 If you want to report a bug or request a new feature, the most direct
 method is to [create an
-issue](https://github.com/cisagov/skeleton-python-library/issues) in
+issue](https://github.com/cisagov/trustymail/issues) in
 this repository.  We recommend that you first search through existing
 issues (both open and closed) to check if your particular issue has
 already been reported.  If it has then you might want to add a comment
@@ -25,7 +25,7 @@ one.
 ## Pull requests ##
 
 If you choose to [submit a pull
-request](https://github.com/cisagov/skeleton-python-library/pulls),
+request](https://github.com/cisagov/trustymail/pulls),
 you will notice that our continuous integration (CI) system runs a
 fairly extensive set of linters, syntax checkers, system, and unit tests.
 Your pull request may fail these checks, and that's OK.  If you want
@@ -135,9 +135,9 @@ can create and configure the Python virtual environment with these
 commands:
 
 ```console
-cd skeleton-python-library
-pyenv virtualenv <python_version_to_use> skeleton-python-library
-pyenv local skeleton-python-library
+cd trustymail
+pyenv virtualenv <python_version_to_use> trustymail
+pyenv local trustymail
 pip install --requirement requirements-dev.txt
 ```
 
