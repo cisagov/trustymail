@@ -1,6 +1,3 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
 """trustymail: A tool for scanning DNS mail records for evaluating security.
 Usage:
   trustymail (INPUT ...) [options]
@@ -58,14 +55,15 @@ import os
 import docopt
 
 # Local imports
-import trustymail
+from . import trustymail
+from ._version import __version__
 
 # The default ports to be checked to see if an SMTP server is listening.
 _DEFAULT_SMTP_PORTS = {25, 465, 587}
 
 
 def main():
-    args = docopt.docopt(__doc__, version=trustymail.__version__)
+    args = docopt.docopt(__doc__, version=__version__)
 
     # Monkey patching trustymail to make it cache the PSL where we want
     if args["--psl-filename"] is not None:
@@ -181,7 +179,3 @@ def mkdir_p(path):
             pass
         else:
             raise
-
-
-if __name__ == "__main__":
-    main()

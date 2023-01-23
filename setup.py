@@ -113,7 +113,6 @@ setup(
             "pytest",
         ]
     },
-    scripts=["scripts/trustymail"],
-    # Conveniently allows one to run the CLI tool as `example`
-    # entry_points={"console_scripts": ["example = example.example:main"]},
+    # Conveniently allows one to run the CLI tool as `trustymail`
+    entry_points={"console_scripts": ["trustymail = trustymail.cli:main"]},
 )

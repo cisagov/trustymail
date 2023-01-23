@@ -15,7 +15,7 @@ import dns.resolver
 import dns.reversename
 
 
-from trustymail.domain import get_public_suffix, Domain
+from .domain import get_public_suffix, Domain
 
 # A cache for SMTP scanning results
 _SMTP_CACHE = {}

@@ -4,9 +4,8 @@ from os import path, stat
 
 import publicsuffix
 
-from trustymail import PublicSuffixListReadOnly
-from trustymail import PublicSuffixListFilename
-from trustymail import trustymail
+from . import PublicSuffixListReadOnly, PublicSuffixListFilename
+from . import trustymail
 
 
 def get_psl():
