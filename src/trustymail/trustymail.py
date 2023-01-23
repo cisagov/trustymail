@@ -1,21 +1,22 @@
+# Standard Python Libraries
+from collections import OrderedDict
 import csv
 import datetime
 import inspect
 import json
 import logging
 import re
-from collections import OrderedDict
-import requests
 import smtplib
 import socket
-import spf
 
+# Third-Party Libraries
 import DNS
 import dns.resolver
 import dns.reversename
+import requests
+import spf
 
-
-from .domain import get_public_suffix, Domain
+from .domain import Domain, get_public_suffix
 
 # A cache for SMTP scanning results
 _SMTP_CACHE = {}

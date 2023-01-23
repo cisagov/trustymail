@@ -1,11 +1,12 @@
-from datetime import datetime, timedelta
+# Standard Python Libraries
 from collections import OrderedDict
+from datetime import datetime, timedelta
 from os import path, stat
 
+# Third-Party Libraries
 import publicsuffix
 
-from . import PublicSuffixListReadOnly, PublicSuffixListFilename
-from . import trustymail
+from . import PublicSuffixListFilename, PublicSuffixListReadOnly, trustymail
 
 
 def get_psl():

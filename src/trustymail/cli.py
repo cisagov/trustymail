@@ -46,11 +46,13 @@ Options:
 Notes:
    If no scan type options are specified, all are run against a given domain/input.
 """
+# Standard Python Libraries
 # Built-in imports
 import errno
 import logging
 import os
 
+# Third-Party Libraries
 # Dependency imports
 import docopt
 
@@ -71,6 +73,7 @@ def main():
     # Monkey patching trustymail to make the PSL cache read-only
     if args["--psl-read-only"]:
         trustymail.PublicSuffixListReadOnly = True
+    # cisagov Libraries
     import trustymail.trustymail as tmail
 
     log_level = logging.WARN
