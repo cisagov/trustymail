@@ -2,6 +2,7 @@
 from collections import OrderedDict
 from datetime import datetime, timedelta
 from os import path, stat
+from typing import Dict
 
 # Third-Party Libraries
 import publicsuffix
@@ -60,7 +61,7 @@ def format_list(record_list):
 
 
 class Domain:
-    base_domains = {}
+    base_domains: Dict[str, Domain] = {}
 
     def __init__(
         self,

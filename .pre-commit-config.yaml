@@ -116,6 +116,8 @@ repos:
     hooks:
       - id: mypy
         additional_dependencies:
+          - types-docopt
+          - types-requests
           - types-setuptools
   - repo: https://github.com/asottile/pyupgrade
     rev: v3.2.0
