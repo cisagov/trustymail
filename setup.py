@@ -92,7 +92,7 @@ setup(
     install_requires=[
         "dnspython",
         "docopt",
-        "publicsuffix",
+        "publicsuffixlist[update]",
         "py3dns",
         "pyspf",
         "requests",
