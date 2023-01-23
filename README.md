@@ -1,10 +1,10 @@
 # Trustworthy Mail #
 
 [![Latest Version](https://img.shields.io/pypi/v/trustymail.svg)](https://pypi.org/project/trustymail/)
-[![Build Status](https://travis-ci.com/cisagov/trustymail.svg?branch=develop)](https://travis-ci.com/cisagov/trustymail)
+[![GitHub Build Status](https://github.com/cisagov/trustymail/workflows/build/badge.svg)](https://github.com/cisagov/trustymail/actions)
+[![CodeQL](https://github.com/cisagov/trustymail/workflows/CodeQL/badge.svg)](https://github.com/cisagov/trustymail/actions/workflows/codeql-analysis.yml)
 [![Coverage Status](https://coveralls.io/repos/github/cisagov/trustymail/badge.svg?branch=develop)](https://coveralls.io/github/cisagov/trustymail?branch=develop)
-[![Total alerts](https://img.shields.io/lgtm/alerts/g/cisagov/trustymail.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/cisagov/trustymail/alerts/)
-[![Language grade: Python](https://img.shields.io/lgtm/grade/python/g/cisagov/trustymail.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/cisagov/trustymail/context:python)
+[![Known Vulnerabilities](https://snyk.io/test/github/cisagov/trustymail/develop/badge.svg)](https://snyk.io/test/github/cisagov/trustymail)
 
 `trustymail` is a tool that evaluates SPF/DMARC records set in a
 domain's DNS. It also checks the mail servers listed in a domain's MX
@@ -203,15 +203,11 @@ The following values are returned in `results.csv`:
   `trustymail` reached its conclusions, and are indispensible for bug
   reports.
 
-## Public domain ##
+## Contributing ##
 
-This project is in the worldwide [public domain](LICENSE.md).
+We welcome contributions!  Please see [`CONTRIBUTING.md`](CONTRIBUTING.md) for
+details.
 
-This project is in the public domain within the United States, and
-copyright and related rights in the work worldwide are waived through
-the [CC0 1.0 Universal public domain
-dedication](https://creativecommons.org/publicdomain/zero/1.0/).
+## License ##
 
-All contributions to this project will be released under the CC0
-dedication. By submitting a pull request, you are agreeing to comply
-with this waiver of copyright interest.
+This project is in the worldwide [public domain](LICENSE).

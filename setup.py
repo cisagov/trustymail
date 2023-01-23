@@ -1,41 +1,64 @@
 """
-setup module for trustymail
+This is the setup module for the trustymail project.
 
 Based on:
 
-- https://github.com/cisagov/pshtt
+- https://packaging.python.org/distributing/
+- https://github.com/pypa/sampleproject/blob/master/setup.py
+- https://blog.ionelmc.ro/2014/05/25/python-packaging/#the-structure
 """
 
-from setuptools import setup
-from trustymail import __version__
+# Standard Python Libraries
+import codecs
+from glob import glob
+from os.path import abspath, basename, dirname, join, splitext
+
+# Third-Party Libraries
+from setuptools import find_packages, setup
 
 
 def readme():
-    with open("README.md") as f:
+    """Read in and return the contents of the project's README.md file."""
+    with open("README.md", encoding="utf-8") as f:
         return f.read()
 
 
-with open("requirements.txt") as fp:
-    reqs = [line.strip() for line in fp.readlines() if line]
+# Below two methods were pulled from:
+# https://packaging.python.org/guides/single-sourcing-package-version/
+def read(rel_path):
+    """Open a file for reading from a given relative path."""
+    here = abspath(dirname(__file__))
+    with codecs.open(join(here, rel_path), "r") as fp:
+        return fp.read()
 
-with open("requirements-dev.txt") as fp:
-    lines = [line.strip() for line in fp.readlines() if line]
-    dev_reqs = [line for line in lines if line and "-r requirements.txt" not in line]
+
+def get_version(version_file):
+    """Extract a version number from the given file path."""
+    for line in read(version_file).splitlines():
+        if line.startswith("__version__"):
+            delim = '"' if '"' in line else "'"
+            return line.split(delim)[1]
+    raise RuntimeError("Unable to find version string.")
 
 
 setup(
     name="trustymail",
-    version=__version__,
+    # Versions should comply with PEP440
+    version=get_version("src/trustymail/_version.py"),
     description="Scan domains and return data based on trustworthy email best practices",
     long_description=readme(),
     long_description_content_type="text/markdown",
-    # NCATS "homepage"
-    url="https://www.us-cert.gov/resources/ncats",
-    # The project's main homepage
-    download_url="https://github.com/cisagov/trustymail",
+    # Landing page for CISA's cybersecurity mission
+    url="https://www.cisa.gov/cybersecurity",
+    # Additional URLs for this project per
+    # https://packaging.python.org/guides/distributing-packages-using-setuptools/#project-urls
+    project_urls={
+        "Source": "https://github.com/cisagov/trustymail",
+        "Tracker": "https://github.com/cisagov/trustymail/issues",
+    },
     # Author details
-    author="Cyber and Infrastructure Security Agency",
-    author_email="ncats@hq.dhs.gov",
+    author="Cybersecurity and Infrastructure Security Agency",
+    author_email="github@cisa.dhs.gov",
     license="License :: CC0 1.0 Universal (CC0 1.0) Public Domain Dedication",
     # See https://pypi.python.org/pypi?%3Aaction=list_classifiers
     classifiers=[
@@ -51,15 +74,46 @@ setup(
         # Specify the Python versions you support here. In particular, ensure
         # that you indicate whether you support Python 2, Python 3 or both.
         "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3 :: Only",
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: Implementation :: CPython",
     ],
     python_requires=">=3.6",
     # What does your project relate to?
-    keywords="email authentication, STARTTLS",
-    packages=["trustymail"],
-    install_requires=reqs,
-    extras_require={"dev": dev_reqs},
+    keywords="email authentication STARTTLS",
+    packages=find_packages(where="src"),
+    package_dir={"": "src"},
+    py_modules=[splitext(basename(path))[0] for path in glob("src/*.py")],
+    install_requires=[
+        "dnspython",
+        "docopt",
+        "publicsuffix",
+        "py3dns",
+        "pyspf",
+        "requests",
+        "setuptools >= 24.2.0",
+    ],
+    extras_require={
+        "test": [
+            "coverage",
+            # coveralls 1.11.0 added a service number for calls from
+            # GitHub Actions. This caused a regression which resulted in a 422
+            # response from the coveralls API with the message:
+            # Unprocessable Entity for url: https://coveralls.io/api/v1/jobs
+            # 1.11.1 fixed this issue, but to ensure expected behavior we'll pin
+            # to never grab the regression version.
+            "coveralls != 1.11.0",
+            "pre-commit",
+            "pytest-cov",
+            "pytest",
+        ]
+    },
     scripts=["scripts/trustymail"],
+    # Conveniently allows one to run the CLI tool as `example`
+    # entry_points={"console_scripts": ["example = example.example:main"]},
 )
