@@ -14,10 +14,7 @@ records for STARTTLS support. It saves its results to CSV or JSON.
 
 `trustymail` requires **Python 3.6+**. Python 2 is not supported.
 
-`trustymail` can be installed as a module or run directly from the
-repository.
-
-### Installed as a module ###
+### Local installation ###
 
 `trustymail` can be installed directly via pip:
 
@@ -31,19 +28,10 @@ It can then be run directly:
 trustymail [options] example.com
 ```
 
-### Running directly ###
-
-To run the tool locally from the repository, without installing, first
-install the requirements:
+or
 
 ```console
-pip install -r requirements.txt
-```
-
-Then run the CLI:
-
-```console
-python scripts/trustymail [options] example.com
+python3 -m trustymail [options] example.com
 ```
 
 ### Using Docker (optional) ###
@@ -71,10 +59,9 @@ output will always be written to disk, defaulting to `results.csv`.
 
 ```console
   -h --help                   Show this message.
-  -o --output=OUTFILE         Name of output file. (Default results)
-  -t --timeout=TIMEOUT        The DNS lookup timeout in seconds. (Default is 5.)
-  --smtp-timeout=TIMEOUT      The SMTP connection timeout in seconds. (Default
-                              is 5.)
+  -o --output=OUTFILE         Name of output file.  (Default results)
+  -t --timeout=TIMEOUT        The DNS lookup timeout in seconds.  (Default is 5.)
+  --smtp-timeout=TIMEOUT      The SMTP connection timeout in seconds.  (Default is 5.)
   --smtp-localhost=HOSTNAME   The hostname to use when connecting to SMTP
                               servers.  (Default is the FQDN of the host from
                               which trustymail is being run.)
@@ -83,12 +70,13 @@ output will always be written to disk, defaulting to `results.csv`.
   --no-smtp-cache             Do not cache SMTP results during the run.  This
                               may results in slower scans due to testing the
                               same mail servers multiple times.
-  --mx                        Only check mx records
-  --starttls                  Only check mx records and STARTTLS support.
+  --mx                        Only check MX records.
+  --starttls                  Only check MX records and STARTTLS support.
                               (Implies --mx.)
-  --spf                       Only check spf records
-  --dmarc                     Only check dmarc records
-  --debug                     Output should include error messages.
+  --spf                       Only check SPF records.
+  --dmarc                     Only check DMARC records.
+  --json                      Output is in JSON format.  (Default is CSV.)
+  --debug                     Output should include more verbose logging.
   --dns=HOSTNAMES             A comma-delimited list of DNS servers to query
                               against.  For example, if you want to use
                               Google's DNS then you would use the
@@ -109,7 +97,7 @@ output will always be written to disk, defaulting to `results.csv`.
                               instance, where the local filesystem is read-only.
 ```
 
-## What's Checked? ##
+## What's checked? ##
 
 For a given domain, MX records, SPF records (TXT), DMARC (TXT, at
 `_dmarc.<domain>`), and support for STARTTLS are checked. Resource records can
@@ -145,7 +133,7 @@ The following values are returned in `results.csv`:
 - `Domain Supports STARTTLS Results` - A list of the mail server and
   port combinations that support STARTTLS.
 
-### SPF ###
+### Sender Policy Framework (SPF) ###
 
 - `SPF Record` - Whether or not a SPF record was found.
 - `SPF Record DNSSEC` - A boolean value indicating whether or not the
@@ -155,7 +143,7 @@ The following values are returned in `results.csv`:
 - `SPF Results` - The textual representation of any SPF record found
   for the domain.
 
-### DMARC ###
+### Domain-based Message Authentication, Reporting, and Conformance (DMARC) ###
 
 - `DMARC Record` - True/False whether or not a DMARC record was found.
 - `DMARC Record DNSSEC` - A boolean value indicating whether or not
