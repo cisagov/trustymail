@@ -10,7 +10,7 @@
 domain's DNS. It also checks the mail servers listed in a domain's MX
 records for STARTTLS support. It saves its results to CSV or JSON.
 
-## Getting Started ##
+## Getting started ##
 
 `trustymail` requires **Python 3.6+**. Python 2 is not supported.
 
@@ -46,7 +46,7 @@ Then run the CLI:
 python scripts/trustymail [options] example.com
 ```
 
-### Using Docker (optional)
+### Using Docker (optional) ###
 
 ```console
 ./run [opts]
@@ -112,58 +112,59 @@ output will always be written to disk, defaulting to `results.csv`.
 ## What's Checked? ##
 
 For a given domain, MX records, SPF records (TXT), DMARC (TXT, at
-\_dmarc.<domain>), and support for STARTTLS are checked. Resource records can also be checked for DNSSEC if the resolver used is DNSSEC-aware.
+`_dmarc.<domain>`), and support for STARTTLS are checked. Resource records can
+also be checked for DNSSEC if the resolver used is DNSSEC-aware.
 
 The following values are returned in `results.csv`:
 
 ### Domain and redirect info ###
 
-* `Domain` - The domain you're scanning!
-* `Base Domain` - The base domain of `Domain`. For example, for a
+- `Domain` - The domain you're scanning!
+- `Base Domain` - The base domain of `Domain`. For example, for a
   Domain of `sub.example.gov`, the Base Domain will be
   `example.gov`. Usually this is the second-level domain, but
   `trustymail` will download and factor in the [Public Suffix
   List](https://publicsuffix.org) when calculating the base domain.
-* `Live` - The domain is actually published in the DNS.
+- `Live` - The domain is actually published in the DNS.
 
 ### Mail sending ###
 
-* `MX Record` - If an MX record was found that contains at least a
+- `MX Record` - If an MX record was found that contains at least a
   single mail server.
-* `MX Record DNSSEC` - A boolean value indicating whether or not the
+- `MX Record DNSSEC` - A boolean value indicating whether or not the
   DNS record is protected by DNSSEC.
-* `Mail Servers` - The list of hosts found in the MX record.
-* `Mail Server Ports Tested` - A list of the ports tested for SMTP and
+- `Mail Servers` - The list of hosts found in the MX record.
+- `Mail Server Ports Tested` - A list of the ports tested for SMTP and
   STARTTLS support.
-* `Domain Supports SMTP` - True if and only if __any__ mail servers
+- `Domain Supports SMTP` - True if and only if **any** mail servers
   specified in a MX record associated with the domain supports SMTP.
-* `Domain Supports SMTP Results` - A list of the mail server and port
+- `Domain Supports SMTP Results` - A list of the mail server and port
   combinations that support SMTP.
-* `Domain Supports STARTTLS` - True if and only if __all__ mail
+- `Domain Supports STARTTLS` - True if and only if **all** mail
   servers that support SMTP also support STARTTLS.
-* `Domain Supports STARTTLS Results` - A list of the mail server and
+- `Domain Supports STARTTLS Results` - A list of the mail server and
   port combinations that support STARTTLS.
 
 ### SPF ###
 
-* `SPF Record` - Whether or not a SPF record was found.
-* `SPF Record DNSSEC` - A boolean value indicating whether or not the
+- `SPF Record` - Whether or not a SPF record was found.
+- `SPF Record DNSSEC` - A boolean value indicating whether or not the
   DNS record is protected by DNSSEC.
-* `Valid SPF` - Whether the SPF record found is syntactically correct,
+- `Valid SPF` - Whether the SPF record found is syntactically correct,
   per RFC 4408.
-* `SPF Results` - The textual representation of any SPF record found
+- `SPF Results` - The textual representation of any SPF record found
   for the domain.
 
 ### DMARC ###
 
-* `DMARC Record` - True/False whether or not a DMARC record was found.
-* `DMARC Record DNSSEC` - A boolean value indicating whether or not
+- `DMARC Record` - True/False whether or not a DMARC record was found.
+- `DMARC Record DNSSEC` - A boolean value indicating whether or not
   the DNS record is protected by DNSSEC.
-* `Valid DMARC` - Whether the DMARC record found is syntactically
+- `Valid DMARC` - Whether the DMARC record found is syntactically
   correct.
-* `DMARC Results` - The DMARC record that was discovered when querying
+- `DMARC Results` - The DMARC record that was discovered when querying
   DNS.
-* `DMARC Record on Base Domain`, `DMARC Record on Base Domain DNSSEC`,
+- `DMARC Record on Base Domain`, `DMARC Record on Base Domain DNSSEC`,
   `Valid DMARC Record on Base Domain`, `DMARC Results on Base
   Domain` - Same definition as above, but returns the result for the
   Base Domain. This is important in DMARC because if there isn't a
@@ -171,34 +172,34 @@ The following values are returned in `results.csv`:
   Domain", per [RFC
   7489](https://tools.ietf.org/html/rfc7489#section-6.6.3)), is
   checked and applied.
-* `DMARC Policy` - An adjudication, based on any policies found in
+- `DMARC Policy` - An adjudication, based on any policies found in
   `DMARC Results` and `DMARC Results on Base Domain`, of the relevant
   DMARC policy that applies.
-* `DMARC Subdomain Policy` - An adjudication, based on any policies
+- `DMARC Subdomain Policy` - An adjudication, based on any policies
   found in `DMARC Results` and `DMARC Results on Base Domain`, of the
   relevant DMARC subdomain policy that applies.
-* `DMARC Policy Percentage` - The percentage of mail that should be
+- `DMARC Policy Percentage` - The percentage of mail that should be
   subjected to the `DMARC Policy` according to the `DMARC Results`.
-* `DMARC Aggregate Report URIs` - A list of the DMARC aggregate report
+- `DMARC Aggregate Report URIs` - A list of the DMARC aggregate report
   URIs specified by the domain.
-* `DMARC Forensic Report URIs` - A list of the DMARC forensic report
+- `DMARC Forensic Report URIs` - A list of the DMARC forensic report
   URIs specified by the domain.
-* `DMARC Has Aggregate Report URI` - A boolean value that indicates if
+- `DMARC Has Aggregate Report URI` - A boolean value that indicates if
   `DMARC Results` included `rua` URIs that tell recipients where to
   send DMARC aggregate reports.
-* `DMARC Has Forensic Report URI` - A boolean value that indicates if
+- `DMARC Has Forensic Report URI` - A boolean value that indicates if
   `DMARC Results` included `ruf` URIs that tell recipients where to
   send DMARC forensic reports.
-* `DMARC Reporting Address Acceptance Error` - A boolean value that is
+- `DMARC Reporting Address Acceptance Error` - A boolean value that is
   True if one or more of the domains listed in the aggregate and
   forensic report URIs does not indicate that it accepts DMARC reports
   from the domain being tested.
 
-### Etc. ###
+### Everything else ###
 
-* `Syntax Errors` - A list of syntax errors that were encountered when
+- `Syntax Errors` - A list of syntax errors that were encountered when
   analyzing SPF records.
-* `Debug Info` - A list of any other warnings or errors encountered,
+- `Debug Info` - A list of any other warnings or errors encountered,
   such as DNS failures.  These can be helpful when determining how
   `trustymail` reached its conclusions, and are indispensible for bug
   reports.
