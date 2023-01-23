@@ -97,7 +97,7 @@ output will always be written to disk, defaulting to `results.csv`.
                               instance, where the local filesystem is read-only.
 ```
 
-## What's Checked? ##
+## What's checked? ##
 
 For a given domain, MX records, SPF records (TXT), DMARC (TXT, at
 `_dmarc.<domain>`), and support for STARTTLS are checked. Resource records can
@@ -133,7 +133,7 @@ The following values are returned in `results.csv`:
 - `Domain Supports STARTTLS Results` - A list of the mail server and
   port combinations that support STARTTLS.
 
-### SPF ###
+### Sender Policy Framework (SPF) ###
 
 - `SPF Record` - Whether or not a SPF record was found.
 - `SPF Record DNSSEC` - A boolean value indicating whether or not the
@@ -143,7 +143,7 @@ The following values are returned in `results.csv`:
 - `SPF Results` - The textual representation of any SPF record found
   for the domain.
 
-### DMARC ###
+### Domain-based Message Authentication, Reporting, and Conformance (DMARC) ###
 
 - `DMARC Record` - True/False whether or not a DMARC record was found.
 - `DMARC Record DNSSEC` - A boolean value indicating whether or not
