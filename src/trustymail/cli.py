@@ -23,7 +23,7 @@ Options:
                               (Implies --mx.)
   --spf                       Only check SPF records
   --dmarc                     Only check DMARC records
-  --json                      Output is in json format (default csv)
+  --json                      Output is in JSON format (default CSV)
   --debug                     Output should include more verbose logging.
   --dns=HOSTNAMES             A comma-delimited list of DNS servers to query
                               against.  For example, if you want to use
