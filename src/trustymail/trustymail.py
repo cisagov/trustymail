@@ -1,21 +1,24 @@
+"""Functions to check a domain's configuration for trustworthy mail."""
+
+# Standard Python Libraries
+from collections import OrderedDict
 import csv
 import datetime
 import inspect
 import json
 import logging
 import re
-from collections import OrderedDict
-import requests
 import smtplib
 import socket
-import spf
 
+# Third-Party Libraries
 import DNS
 import dns.resolver
 import dns.reversename
+import requests
+import spf
 
-
-from trustymail.domain import get_public_suffix, Domain
+from .domain import Domain, get_public_suffix
 
 # A cache for SMTP scanning results
 _SMTP_CACHE = {}
@@ -26,6 +29,7 @@ MAILTO_REGEX = re.compile(
 
 
 def domain_list_from_url(url):
+    """Get a list of domains from a provided URL."""
     if not url:
         return []
 
@@ -37,6 +41,7 @@ def domain_list_from_url(url):
 
 
 def domain_list_from_csv(csv_file):
+    """Get a list of domains from a provided CSV file."""
     domain_list = list(csv.reader(csv_file, delimiter=","))
 
     # Check the headers for the word domain - use that column.
@@ -60,7 +65,9 @@ def domain_list_from_csv(csv_file):
 
 
 def check_dnssec(domain, domain_name, record_type):
-    """Checks whether the domain has a record of type that is protected
+    """Test to see if a DNSSEC record is valid and correct.
+
+    Checks a domain for DNSSEC whether the domain has a record of type that is protected
     by DNSSEC or NXDOMAIN or NoAnswer that is protected by DNSSEC.
 
     TODO: Probably does not follow redirects (CNAMEs).  Should work on
@@ -81,6 +88,7 @@ def check_dnssec(domain, domain_name, record_type):
 
 
 def mx_scan(resolver, domain):
+    """Scan a domain to see if it has any mail servers."""
     try:
         if domain.mx_records is None:
             domain.mx_records = []
@@ -425,9 +433,10 @@ def get_spf_record_text(resolver, domain_name, domain, follow_redirect=False):
 
 
 def spf_scan(resolver, domain):
-    """Scan a domain to see if it supports SPF.  If the domain has an SPF
-    record, verify that it properly handles mail sent from an IP known
-    not to be listed in an MX record for ANY domain.
+    """Scan a domain to see if it supports SPF.
+
+    If the domain has an SPF record, verify that it properly handles mail sent from
+    an IP known not to be listed in an MX record for ANY domain.
 
     Parameters
     ----------
@@ -459,7 +468,7 @@ def spf_scan(resolver, domain):
 
 def parse_dmarc_report_uri(uri):
     """
-    Parses a DMARC Reporting (i.e. ``rua``/``ruf)`` URI
+    Parse a DMARC Reporting (i.e. ``rua``/``ruf``) URI.
 
     Notes
     -----
@@ -491,6 +500,7 @@ def parse_dmarc_report_uri(uri):
 
 
 def dmarc_scan(resolver, domain):
+    """Scan a domain to see if it supports DMARC."""
     # dmarc records are kept in TXT records for _dmarc.domain_name.
     try:
         if domain.dmarc is None:
@@ -530,7 +540,7 @@ def dmarc_scan(resolver, domain):
                     "subdomain record does not actually exist, and the request for TXT records was "
                     "redirected to the base domain"
                 )
-                handle_syntax_error("[DMARC]", domain, "{0}".format(msg))
+                handle_syntax_error("[DMARC]", domain, "{}".format(msg))
                 domain.valid_dmarc = False
 
             # Remove excess whitespace
@@ -559,7 +569,7 @@ def dmarc_scan(resolver, domain):
                 )
             if "p" not in tag_dict:
                 msg = "Record missing required policy (p) tag"
-                handle_syntax_error("[DMARC]", domain, "{0}".format(msg))
+                handle_syntax_error("[DMARC]", domain, "{}".format(msg))
                 domain.valid_dmarc = False
             elif "sp" not in tag_dict:
                 tag_dict["sp"] = tag_dict["p"]
@@ -595,20 +605,20 @@ def dmarc_scan(resolver, domain):
                     "rua",
                     "ruf",
                 ]:
-                    msg = "Unknown DMARC tag {0}".format(tag)
-                    handle_syntax_error("[DMARC]", domain, "{0}".format(msg))
+                    msg = "Unknown DMARC tag {}".format(tag)
+                    handle_syntax_error("[DMARC]", domain, "{}".format(msg))
                     domain.valid_dmarc = False
                 elif tag == "p":
                     if tag_dict[tag] not in ["none", "quarantine", "reject"]:
-                        msg = "Unknown DMARC policy {0}".format(tag)
-                        handle_syntax_error("[DMARC]", domain, "{0}".format(msg))
+                        msg = "Unknown DMARC policy {}".format(tag)
+                        handle_syntax_error("[DMARC]", domain, "{}".format(msg))
                         domain.valid_dmarc = False
                     else:
                         domain.dmarc_policy = tag_dict[tag]
                 elif tag == "sp":
                     if tag_dict[tag] not in ["none", "quarantine", "reject"]:
-                        msg = "Unknown DMARC subdomain policy {0}".format(tag_dict[tag])
-                        handle_syntax_error("[DMARC]", domain, "{0}".format(msg))
+                        msg = "Unknown DMARC subdomain policy {}".format(tag_dict[tag])
+                        handle_syntax_error("[DMARC]", domain, "{}".format(msg))
                         domain.valid_dmarc = False
                     else:
                         domain.dmarc_subdomain_policy = tag_dict[tag]
@@ -616,37 +626,37 @@ def dmarc_scan(resolver, domain):
                     values = tag_dict[tag].split(":")
                     if "0" in values and "1" in values:
                         msg = "fo tag values 0 and 1 are mutually exclusive"
-                        handle_syntax_error("[DMARC]", domain, "{0}".format(msg))
+                        handle_syntax_error("[DMARC]", domain, "{}".format(msg))
                     for value in values:
                         if value not in ["0", "1", "d", "s"]:
-                            msg = "Unknown DMARC fo tag value {0}".format(value)
-                            handle_syntax_error("[DMARC]", domain, "{0}".format(msg))
+                            msg = "Unknown DMARC fo tag value {}".format(value)
+                            handle_syntax_error("[DMARC]", domain, "{}".format(msg))
                             domain.valid_dmarc = False
                 elif tag == "rf":
                     values = tag_dict[tag].split(":")
                     for value in values:
                         if value not in ["afrf"]:
-                            msg = "Unknown DMARC rf tag value {0}".format(value)
-                            handle_syntax_error("[DMARC]", domain, "{0}".format(msg))
+                            msg = "Unknown DMARC rf tag value {}".format(value)
+                            handle_syntax_error("[DMARC]", domain, "{}".format(msg))
                             domain.valid_dmarc = False
                 elif tag == "ri":
                     try:
                         int(tag_dict[tag])
                     except ValueError:
-                        msg = "Invalid DMARC ri tag value: {0} - must be an integer".format(
+                        msg = "Invalid DMARC ri tag value: {} - must be an integer".format(
                             tag_dict[tag]
                         )
-                        handle_syntax_error("[DMARC]", domain, "{0}".format(msg))
+                        handle_syntax_error("[DMARC]", domain, "{}".format(msg))
                         domain.valid_dmarc = False
                 elif tag == "pct":
                     try:
                         pct = int(tag_dict[tag])
                         if pct < 0 or pct > 100:
                             msg = (
-                                "Error: invalid DMARC pct tag value: {0} - must be an integer between "
+                                "Error: invalid DMARC pct tag value: {} - must be an integer between "
                                 "0 and 100".format(tag_dict[tag])
                             )
-                            handle_syntax_error("[DMARC]", domain, "{0}".format(msg))
+                            handle_syntax_error("[DMARC]", domain, "{}".format(msg))
                             domain.valid_dmarc = False
                         domain.dmarc_pct = pct
                         if pct < 100:
@@ -656,10 +666,10 @@ def dmarc_scan(resolver, domain):
                                 "Warning: The DMARC pct tag value may be less than 100 (the implicit default) during deployment, but should be removed or set to 100 upon full deployment",
                             )
                     except ValueError:
-                        msg = "invalid DMARC pct tag value: {0} - must be an integer".format(
+                        msg = "invalid DMARC pct tag value: {} - must be an integer".format(
                             tag_dict[tag]
                         )
-                        handle_syntax_error("[DMARC]", domain, "{0}".format(msg))
+                        handle_syntax_error("[DMARC]", domain, "{}".format(msg))
                         domain.valid_dmarc = False
                 elif tag == "rua" or tag == "ruf":
                     uris = tag_dict[tag].split(",")
@@ -676,8 +686,8 @@ def dmarc_scan(resolver, domain):
                         # mailto: is currently the only type of DMARC URI
                         parsed_uri = parse_dmarc_report_uri(uri)
                         if parsed_uri is None:
-                            msg = "Error: {0} is an invalid DMARC URI".format(uri)
-                            handle_syntax_error("[DMARC]", domain, "{0}".format(msg))
+                            msg = "Error: {} is an invalid DMARC URI".format(uri)
+                            handle_syntax_error("[DMARC]", domain, "{}".format(msg))
                             domain.valid_dmarc = False
                         else:
                             if tag == "rua":
@@ -690,11 +700,11 @@ def dmarc_scan(resolver, domain):
                                 get_public_suffix(email_domain).lower()
                                 != domain.base_domain_name.lower()
                             ):
-                                target = "{0}._report._dmarc.{1}".format(
+                                target = "{}._report._dmarc.{}".format(
                                     domain.domain_name, email_domain
                                 )
                                 error_message = (
-                                    "{0} does not indicate that it accepts DMARC reports about {1} - "
+                                    "{} does not indicate that it accepts DMARC reports about {} - "
                                     "https://tools.ietf.org"
                                     "/html/rfc7489#section-7.1".format(
                                         email_domain, domain.domain_name
@@ -710,7 +720,7 @@ def dmarc_scan(resolver, domain):
                                         handle_error(
                                             "[DMARC]",
                                             domain,
-                                            "{0}".format(error_message),
+                                            "{}".format(error_message),
                                         )
                                         domain.dmarc_reports_address_error = True
                                         domain.valid_dmarc = False
@@ -721,7 +731,7 @@ def dmarc_scan(resolver, domain):
                                     dns.exception.Timeout,
                                 ):
                                     handle_syntax_error(
-                                        "[DMARC]", domain, "{0}".format(error_message)
+                                        "[DMARC]", domain, "{}".format(error_message)
                                     )
                                     domain.dmarc_reports_address_error = True
                                     domain.valid_dmarc = False
@@ -738,7 +748,7 @@ def dmarc_scan(resolver, domain):
                                         "[DMARC]",
                                         domain,
                                         "The domain for reporting "
-                                        "address {0} does not have any "
+                                        "address {} does not have any "
                                         "MX records".format(email_address),
                                     )
                                     domain.valid_dmarc = False
@@ -772,6 +782,7 @@ def dmarc_scan(resolver, domain):
 
 
 def find_host_from_ip(resolver, ip_addr):
+    """Find the host name for a given IP address."""
     # Use TCP, since we care about the content and correctness of the records
     # more than whether their records fit in a single UDP packet.
     hostname, _ = resolver.query(dns.reversename.from_address(ip_addr), "PTR", tcp=True)
@@ -788,6 +799,7 @@ def scan(
     scan_types,
     dns_hostnames,
 ):
+    """Parse a domain's DNS information for mail related records."""
     #
     # Configure the dnspython library
     #
@@ -847,7 +859,7 @@ def scan(
         dns_hostnames,
     )
 
-    logging.debug("[{0}]".format(domain_name.lower()))
+    logging.debug("[{}]".format(domain_name.lower()))
 
     if scan_types["mx"] and domain.is_live:
         mx_scan(resolver, domain)
@@ -877,9 +889,10 @@ def scan(
 
 
 def handle_error(prefix, domain, error, syntax_error=False):
-    """Handle an error by logging via the Python logging library and
-    recording it in the debug_info or syntax_error members of the
-    trustymail.Domain object.
+    """Handle the provided error by logging a message and storing it in the Domain object.
+
+    Logging is performed via the Python logging library and recording it in the
+    debug_info or syntax_error members of the trustymail.Domain object.
 
     Since the "Debug Info" and "Syntax Error" fields in the CSV output
     of trustymail come directly from the debug_info and syntax_error
@@ -945,11 +958,12 @@ def handle_error(prefix, domain, error, syntax_error=False):
 
 
 def handle_syntax_error(prefix, domain, error):
-    """Convenience method for handle_error"""
+    """Handle a syntax error by passing it to handle_error()."""
     handle_error(prefix, domain, error, syntax_error=True)
 
 
 def generate_csv(domains, file_name):
+    """Generate a CSV file with the given domain information."""
     with open(file_name, "w", encoding="utf-8", newline="\n") as output_file:
         writer = csv.DictWriter(
             output_file, fieldnames=domains[0].generate_results().keys()
@@ -964,6 +978,7 @@ def generate_csv(domains, file_name):
 
 
 def generate_json(domains):
+    """Generate a JSON string with the given domain information."""
     output = []
     for domain in domains:
         output.append(domain.generate_results())
@@ -973,6 +988,7 @@ def generate_json(domains):
 
 # Taken from pshtt to keep formatting similar
 def format_datetime(obj):
+    """Format the provided datetime information."""
     if isinstance(obj, datetime.date):
         return obj.isoformat()
     elif isinstance(obj, str):
@@ -982,7 +998,7 @@ def format_datetime(obj):
 
 
 def remove_quotes(txt_record):
-    """Remove double quotes and contatenate strings in a DNS TXT record
+    """Remove double quotes and contatenate strings in a DNS TXT record.
 
     A DNS TXT record can contain multiple double-quoted strings, and
     in that case the client has to remove the quotes and concatenate the
