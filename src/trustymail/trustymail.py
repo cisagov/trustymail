@@ -468,7 +468,7 @@ def spf_scan(resolver, domain):
 
 def parse_dmarc_report_uri(uri):
     """
-    Parse a DMARC Reporting (i.e. ``rua``/``ruf)`` URI.
+    Parse a DMARC Reporting (i.e. ``rua``/``ruf``) URI.
 
     Notes
     -----
