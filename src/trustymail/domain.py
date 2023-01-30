@@ -7,38 +7,32 @@ from os import path, stat
 from typing import Dict
 
 # Third-Party Libraries
-import publicsuffix
+from publicsuffixlist.compat import PublicSuffixList
+from publicsuffixlist.update import updatePSL
 
 from . import PublicSuffixListFilename, PublicSuffixListReadOnly, trustymail
 
 
 def get_psl():
-    """
-    Get the Public Suffix List - either new, or cached in the CWD for 24 hours.
+    """Get the Public Suffix List - either new, or cached in the CWD for 24 hours.
 
     Returns
     -------
     PublicSuffixList: An instance of PublicSuffixList loaded with a cached or updated list
     """
-
-    def download_psl():
-        fresh_psl = publicsuffix.fetch()
-        with open(PublicSuffixListFilename, "w", encoding="utf-8") as fresh_psl_file:
-            fresh_psl_file.write(fresh_psl.read())
-
-    # Download the psl if necessary
+    # Download the PSL if necessary
     if not PublicSuffixListReadOnly:
         if not path.exists(PublicSuffixListFilename):
-            download_psl()
+            updatePSL(PublicSuffixListFilename)
         else:
             psl_age = datetime.now() - datetime.fromtimestamp(
                 stat(PublicSuffixListFilename).st_mtime
             )
             if psl_age > timedelta(hours=24):
-                download_psl()
+                updatePSL(PublicSuffixListFilename)
 
     with open(PublicSuffixListFilename, encoding="utf-8") as psl_file:
-        psl = publicsuffix.PublicSuffixList(psl_file)
+        psl = PublicSuffixList(psl_file)
 
     return psl
 
