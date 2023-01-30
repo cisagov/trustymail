@@ -20,7 +20,7 @@ def get_psl():
     -------
     PublicSuffixList: An instance of PublicSuffixList loaded with a cached or updated list
     """
-    # Download the psl if necessary
+    # Download the PSL if necessary
     if not PublicSuffixListReadOnly:
         if not path.exists(PublicSuffixListFilename):
             updatePSL(PublicSuffixListFilename)
