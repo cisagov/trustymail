@@ -3,7 +3,7 @@
 # Standard Python Libraries
 from collections import OrderedDict
 from datetime import datetime, timedelta
-from os import path, stat
+from os import path, stat, utime
 from typing import Dict
 
 # Third-Party Libraries
@@ -24,12 +24,15 @@ def get_psl():
     if not PublicSuffixListReadOnly:
         if not path.exists(PublicSuffixListFilename):
             updatePSL(PublicSuffixListFilename)
+            utime(PublicSuffixListFilename, None) # Set mtime to now
         else:
             psl_age = datetime.now() - datetime.fromtimestamp(
                 stat(PublicSuffixListFilename).st_mtime
             )
             if psl_age > timedelta(hours=24):
                 updatePSL(PublicSuffixListFilename)
+                utime(PublicSuffixListFilename, None) # Set mtime to now
+
 
     with open(PublicSuffixListFilename, encoding="utf-8") as psl_file:
         psl = PublicSuffixList(psl_file)
