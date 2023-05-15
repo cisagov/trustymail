@@ -33,7 +33,6 @@ def get_psl():
                 updatePSL(PublicSuffixListFilename)
                 utime(PublicSuffixListFilename, None) # Set mtime to now
 
-
     with open(PublicSuffixListFilename, encoding="utf-8") as psl_file:
         psl = PublicSuffixList(psl_file)
 
