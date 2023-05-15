@@ -24,14 +24,14 @@ def get_psl():
     if not PublicSuffixListReadOnly:
         if not path.exists(PublicSuffixListFilename):
             updatePSL(PublicSuffixListFilename)
-            utime(PublicSuffixListFilename, None) # Set mtime to now
+            utime(PublicSuffixListFilename, None)  # Set mtime to now
         else:
             psl_age = datetime.now() - datetime.fromtimestamp(
                 stat(PublicSuffixListFilename).st_mtime
             )
             if psl_age > timedelta(hours=24):
                 updatePSL(PublicSuffixListFilename)
-                utime(PublicSuffixListFilename, None) # Set mtime to now
+                utime(PublicSuffixListFilename, None)  # Set mtime to now
 
     with open(PublicSuffixListFilename, encoding="utf-8") as psl_file:
         psl = PublicSuffixList(psl_file)
