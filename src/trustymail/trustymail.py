@@ -99,7 +99,7 @@ def mx_scan(resolver, domain):
         for record in resolver.query(domain.domain_name, "MX", tcp=True):
             domain.add_mx_record(record)
         domain.mx_records_dnssec = check_dnssec(domain, domain.domain_name, "MX")
-    except (dns.resolver.NoNameservers) as error:
+    except dns.resolver.NoNameservers as error:
         # The NoNameServers exception means that we got a SERVFAIL response.
         # These responses are almost always permanent, not temporary, so let's
         # treat the domain as not live.
@@ -110,7 +110,7 @@ def mx_scan(resolver, domain):
         # NXDOMAIN can still have DNSSEC
         domain.mx_records_dnssec = check_dnssec(domain, domain.domain_name, "MX")
         handle_error("[MX]", domain, error)
-    except (dns.resolver.NoAnswer) as error:
+    except dns.resolver.NoAnswer as error:
         # The NoAnswer exception means that the domain does exist in
         # DNS, but it does not have any MX records.  It sort of makes
         # sense to treat this case as "not live", but @h-m-f-t
@@ -413,20 +413,20 @@ def get_spf_record_text(resolver, domain_name, domain, follow_redirect=False):
                 record_to_return = record_text
 
         domain.spf_dnssec = check_dnssec(domain, domain.domain_name, "TXT")
-    except (dns.resolver.NoNameservers) as error:
+    except dns.resolver.NoNameservers as error:
         # The NoNameservers exception means that we got a SERVFAIL response.
         # These responses are almost always permanent, not temporary, so let's
         # treat the domain as not live.
         domain.is_live = False
         handle_error("[SPF]", domain, error)
-    except (dns.resolver.NXDOMAIN) as error:
+    except dns.resolver.NXDOMAIN as error:
         domain.is_live = False
         domain.spf_dnssec = check_dnssec(domain, domain.domain_name, "TXT")
         handle_error("[SPF]", domain, error)
-    except (dns.resolver.NoAnswer) as error:
+    except dns.resolver.NoAnswer as error:
         domain.spf_dnssec = check_dnssec(domain, domain.domain_name, "TXT")
         handle_error("[SPF]", domain, error)
-    except (dns.exception.Timeout) as error:
+    except dns.exception.Timeout as error:
         domain.spf_dnssec = check_dnssec(domain, domain.domain_name, "TXT")
         handle_error("[SPF]", domain, error)
     return record_to_return
@@ -772,7 +772,7 @@ def dmarc_scan(resolver, domain):
     ) as error:
         domain.dmarc_dnssec = check_dnssec(domain, dmarc_domain, "TXT")
         handle_error("[DMARC]", domain, error)
-    except (dns.resolver.NoNameservers) as error:
+    except dns.resolver.NoNameservers as error:
         # Normally we count a NoNameservers exception as indicating
         # that a domain is "not live".  In this case we don't, though,
         # since the DMARC DNS check doesn't query for the domain name
