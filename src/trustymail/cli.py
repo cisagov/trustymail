@@ -36,9 +36,7 @@ Options:
   --psl-filename=FILENAME     The name of the file where the public suffix list
                               (PSL) cache will be saved.  If set to the name of
                               an existing file then that file will be used as
-                              the PSL.  If not present then the PSL cache will
-                              be saved to a file in the current directory called
-                              public_suffix_list.dat.
+                              the PSL [default: psl.dat].
   --psl-read-only             If present, then the public suffix list (PSL)
                               cache will be read but never overwritten.  This
                               is useful when running in AWS Lambda, for
@@ -70,11 +68,9 @@ def main():
     args = docopt.docopt(__doc__, version=__version__)
 
     # Monkey patching trustymail to make it cache the PSL where we want
-    if args["--psl-filename"] is not None:
-        trustymail.PublicSuffixListFilename = args["--psl-filename"]
+    trustymail.PublicSuffixListFilename = args["--psl-filename"]
     # Monkey patching trustymail to make the PSL cache read-only
-    if args["--psl-read-only"]:
-        trustymail.PublicSuffixListReadOnly = True
+    trustymail.PublicSuffixListReadOnly = True if args["--psl-read-only"] else False
     # cisagov Libraries
     import trustymail.trustymail as tmail
 
