@@ -7,14 +7,14 @@ Usage:
 
 Options:
   -h --help                   Show this message.
-  -o --output=OUTFILE         Name of output file.  [default: trustymail-results]
-  -t --timeout=TIMEOUT        The DNS lookup timeout in seconds.  (Default is 5.)
-  --smtp-timeout=TIMEOUT      The SMTP connection timeout in seconds.  (Default is 5.)
+  -o --output=OUTFILE         Name of output file  [default: results].
+  -t --timeout=TIMEOUT        The DNS lookup timeout in seconds [default: 5].
+  --smtp-timeout=TIMEOUT      The SMTP connection timeout in seconds [default: 5].
   --smtp-localhost=HOSTNAME   The hostname to use when connecting to SMTP
                               servers.  (Default is the FQDN of the host from
                               which trustymail is being run.)
   --smtp-ports=PORTS          A comma-delimited list of ports at which to look
-                              for SMTP servers.  (Default is '25,465,587'.)
+                              for SMTP servers [default: 25,465,587].
   --no-smtp-cache             Do not cache SMTP results during the run.  This
                               may results in slower scans due to testing the
                               same mail servers multiple times.
@@ -62,9 +62,6 @@ import docopt
 from . import trustymail
 from ._version import __version__
 
-# The default ports to be checked to see if an SMTP server is listening.
-_DEFAULT_SMTP_PORTS = {25, 465, 587}
-
 
 def main():
     """Perform a trustymail scan using the provided options."""
@@ -74,12 +71,7 @@ def main():
     # Write the arguments to a file for use by the trustymail library
     with open('env.json', 'w') as env:
         json.dump(args, env)
-    # # Monkey patching trustymail to make it cache the PSL where we want
-    # if args["--psl-filename"] is not None:
-    #     trustymail.PublicSuffixListFilename = args["--psl-filename"]
-    # # Monkey patching trustymail to make the PSL cache read-only
-    # if args["--psl-read-only"]:
-    #     trustymail.PublicSuffixListReadOnly = True
+
     # cisagov Libraries
     import trustymail.trustymail as tmail
 
@@ -94,25 +86,7 @@ def main():
     else:
         domains = args["INPUT"]
 
-    if args["--timeout"] is not None:
-        timeout = int(args["--timeout"])
-    else:
-        timeout = 5
-
-    if args["--smtp-timeout"] is not None:
-        smtp_timeout = int(args["--smtp-timeout"])
-    else:
-        smtp_timeout = 5
-
-    if args["--smtp-localhost"] is not None:
-        smtp_localhost = args["--smtp-localhost"]
-    else:
-        smtp_localhost = None
-
-    if args["--smtp-ports"] is not None:
-        smtp_ports = {int(port) for port in args["--smtp-ports"].split(",")}
-    else:
-        smtp_ports = _DEFAULT_SMTP_PORTS
+    smtp_ports = {int(port) for port in args["--smtp-ports"].split(",")}
 
     if args["--dns"] is not None:
         dns_hostnames = args["--dns"].split(",")
@@ -136,9 +110,9 @@ def main():
         domain_scans.append(
             tmail.scan(
                 domain_name,
-                timeout,
-                smtp_timeout,
-                smtp_localhost,
+                int(args["--timeout"]),
+                int(args["--smtp-timeout"]),
+                args["--smtp-localhost"],
                 smtp_ports,
                 not args["--no-smtp-cache"],
                 scan_types,
@@ -146,11 +120,7 @@ def main():
             )
         )
 
-    # Default output file name is results.
-    if args["--output"] is None:
-        output_file_name = "results"
-    else:
-        output_file_name = args["--output"]
+    output_file_name = args["--output"]
 
     # Ensure file extension is present in filename.
     if args["--json"] and ".json" not in output_file_name:
@@ -167,6 +137,7 @@ def main():
             logging.warn("Wrote results to %s." % output_file_name)
     else:
         tmail.generate_csv(domain_scans, output_file_name)
+
 
 def write(content, out_file):
     """Write the provided content to a file after ensuring all intermediate directories exist."""
