@@ -7,7 +7,7 @@ Usage:
 
 Options:
   -h --help                   Show this message.
-  -o --output=OUTFILE         Name of output file.  (Default results)
+  -o --output=OUTFILE         Name of output file.  [default: trustymail-results]
   -t --timeout=TIMEOUT        The DNS lookup timeout in seconds.  (Default is 5.)
   --smtp-timeout=TIMEOUT      The SMTP connection timeout in seconds.  (Default is 5.)
   --smtp-localhost=HOSTNAME   The hostname to use when connecting to SMTP
@@ -36,7 +36,9 @@ Options:
   --psl-filename=FILENAME     The name of the file where the public suffix list
                               (PSL) cache will be saved.  If set to the name of
                               an existing file then that file will be used as
-                              the PSL [default: psl.dat].
+                              the PSL.  If not present then the PSL cache will
+                              be saved to a file in the current directory called
+                              public_suffix_list.dat. [default: public_suffix_list.dat]
   --psl-read-only             If present, then the public suffix list (PSL)
                               cache will be read but never overwritten.  This
                               is useful when running in AWS Lambda, for
@@ -48,6 +50,7 @@ Notes:
 # Standard Python Libraries
 # Built-in imports
 import errno
+import json
 import logging
 import os
 
@@ -66,11 +69,17 @@ _DEFAULT_SMTP_PORTS = {25, 465, 587}
 def main():
     """Perform a trustymail scan using the provided options."""
     args = docopt.docopt(__doc__, version=__version__)
+    print('args as interpreted by trustymail:', args)
 
-    # Monkey patching trustymail to make it cache the PSL where we want
-    trustymail.PublicSuffixListFilename = args["--psl-filename"]
-    # Monkey patching trustymail to make the PSL cache read-only
-    trustymail.PublicSuffixListReadOnly = True if args["--psl-read-only"] else False
+    # Write the arguments to a file for use by the trustymail library
+    with open('env.json', 'w') as env:
+        json.dump(args, env)
+    # # Monkey patching trustymail to make it cache the PSL where we want
+    # if args["--psl-filename"] is not None:
+    #     trustymail.PublicSuffixListFilename = args["--psl-filename"]
+    # # Monkey patching trustymail to make the PSL cache read-only
+    # if args["--psl-read-only"]:
+    #     trustymail.PublicSuffixListReadOnly = True
     # cisagov Libraries
     import trustymail.trustymail as tmail
 
@@ -158,7 +167,6 @@ def main():
             logging.warn("Wrote results to %s." % output_file_name)
     else:
         tmail.generate_csv(domain_scans, output_file_name)
-
 
 def write(content, out_file):
     """Write the provided content to a file after ensuring all intermediate directories exist."""
