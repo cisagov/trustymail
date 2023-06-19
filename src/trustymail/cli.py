@@ -72,9 +72,13 @@ def main():
     # Monkey patching trustymail to make it cache the PSL where we want
     if args["--psl-filename"] is not None:
         trustymail.PublicSuffixListFilename = args["--psl-filename"]
+    else:
+        trustymail.PublicSuffixListFilename = "public_suffix_list.dat"
     # Monkey patching trustymail to make the PSL cache read-only
     if args["--psl-read-only"]:
         trustymail.PublicSuffixListReadOnly = True
+    else:
+        trustymail.PublicSuffixListReadOnly = False
     # cisagov Libraries
     import trustymail.trustymail as tmail
 

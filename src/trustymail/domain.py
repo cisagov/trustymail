@@ -10,7 +10,7 @@ from typing import Dict
 from publicsuffixlist.compat import PublicSuffixList
 from publicsuffixlist.update import updatePSL
 
-from . import PublicSuffixListFilename, PublicSuffixListReadOnly, trustymail
+from . import trustymail
 
 
 def get_psl():
@@ -21,17 +21,17 @@ def get_psl():
     PublicSuffixList: An instance of PublicSuffixList loaded with a cached or updated list
     """
     # Download the PSL if necessary
-    if not PublicSuffixListReadOnly:
-        if not path.exists(PublicSuffixListFilename):
-            updatePSL(PublicSuffixListFilename)
+    if not trustymail.PublicSuffixListReadOnly:
+        if not path.exists(trustymail.PublicSuffixListFilename):
+            updatePSL(trustymail.PublicSuffixListFilename)
         else:
             psl_age = datetime.now() - datetime.fromtimestamp(
-                stat(PublicSuffixListFilename).st_mtime
+                stat(trustymail.PublicSuffixListFilename).st_mtime
             )
             if psl_age > timedelta(hours=24):
-                updatePSL(PublicSuffixListFilename)
+                updatePSL(trustymail.PublicSuffixListFilename)
 
-    with open(PublicSuffixListFilename, encoding="utf-8") as psl_file:
+    with open(trustymail.PublicSuffixListFilename, encoding="utf-8") as psl_file:
         psl = PublicSuffixList(psl_file)
 
     return psl

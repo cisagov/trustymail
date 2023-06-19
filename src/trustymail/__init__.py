@@ -9,6 +9,3 @@ from typing import List
 from ._version import __version__  # noqa: F401
 
 __all__: List[str] = []
-
-PublicSuffixListFilename = "public_suffix_list.dat"
-PublicSuffixListReadOnly = False
