@@ -139,7 +139,7 @@ The following values are returned in `results.csv`:
 - `SPF Record DNSSEC` - A boolean value indicating whether or not the
   DNS record is protected by DNSSEC.
 - `Valid SPF` - Whether the SPF record found is syntactically correct,
-  per RFC 4408.
+  per [RFC 7208](https://datatracker.ietf.org/doc/html/rfc7208).
 - `SPF Results` - The textual representation of any SPF record found
   for the domain.
 
