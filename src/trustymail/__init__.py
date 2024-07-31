@@ -1,4 +1,5 @@
 """The trustymail library."""
+
 # Standard Python Libraries
 from typing import List
 
