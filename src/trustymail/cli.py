@@ -47,6 +47,7 @@ Options:
 Notes:
    If no scan type options are specified, all are run against a given domain/input.
 """
+
 # Standard Python Libraries
 # Built-in imports
 import errno

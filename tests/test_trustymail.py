@@ -1,4 +1,5 @@
 """Tests for the trustymail module."""
+
 # Standard Python Libraries
 import unittest
 

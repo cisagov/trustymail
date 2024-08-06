@@ -75,7 +75,6 @@ setup(
         # that you indicate whether you support Python 2, Python 3 or both.
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3 :: Only",
-        "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
@@ -84,7 +83,7 @@ setup(
         "Programming Language :: Python :: 3.12",
         "Programming Language :: Python :: Implementation :: CPython",
     ],
-    python_requires=">=3.6",
+    python_requires=">=3.7",
     # What does your project relate to?
     keywords="email authentication STARTTLS",
     packages=find_packages(where="src"),
