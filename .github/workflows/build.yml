@@ -179,12 +179,16 @@ jobs:
     permissions:
       # actions/checkout needs this to fetch code
       contents: read
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
+        include:
+          - os: ubuntu-22.04
+            python-version: "3.7"
+        os:
+          - ubuntu-latest
         python-version:
-          - "3.7"
           - "3.8"
           - "3.9"
           - "3.10"
@@ -300,12 +304,16 @@ jobs:
     permissions:
       # actions/checkout needs this to fetch code
       contents: read
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
+        include:
+          - os: ubuntu-22.04
+            python-version: "3.7"
+        os:
+          - ubuntu-latest
         python-version:
-          - "3.7"
           - "3.8"
           - "3.9"
           - "3.10"
@@ -363,12 +371,16 @@ jobs:
     permissions:
       # actions/checkout needs this to fetch code
       contents: read
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
+        include:
+          - os: ubuntu-22.04
+            python-version: "3.7"
+        os:
+          - ubuntu-latest
         python-version:
-          - "3.7"
           - "3.8"
           - "3.9"
           - "3.10"
