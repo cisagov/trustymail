@@ -83,7 +83,7 @@ setup(
         "Programming Language :: Python :: 3.13",
         "Programming Language :: Python :: Implementation :: CPython",
     ],
-    python_requires=">=3.8",
+    python_requires=">=3.7",
     # What does your project relate to?
     keywords="email authentication STARTTLS",
     packages=find_packages(where="src"),
