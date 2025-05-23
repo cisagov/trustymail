@@ -2,4 +2,5 @@
 --requirement requirements-test.txt
 ipython
 mypy
-semver
+# The bump-version script requires at least version 3 of semver.
+semver>=3
