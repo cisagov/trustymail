@@ -212,7 +212,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: ubuntu-22.04
+          - platform: ubuntu-22.04
             python-version: "3.7"
         # We test on all of the latest platforms available to use with GitHub-
         # hosted runners for public repositories.
@@ -434,7 +434,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: ubuntu-22.04
+          - platform: ubuntu-22.04
             python-version: "3.7"
         # We test on all of the latest platforms available to use with GitHub-
         # hosted runners for public repositories.
