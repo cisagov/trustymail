@@ -99,16 +99,16 @@ jobs:
           # this workflow.
           permissions_monitoring_config: ${{ vars.ACTIONS_PERMISSIONS_CONFIG }}
       - id: setup-env
-        uses: cisagov/setup-env-github-action@develop
-      - uses: actions/checkout@v4
+        uses: cisagov/setup-env-github-action@v1
+      - uses: actions/checkout@v5
       - id: setup-python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ steps.setup-env.outputs.python-version }}
       # We need the Go version and Go cache location for the actions/cache step,
       # so the Go installation must happen before that.
       - id: setup-go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           # There is no expectation for actual Go code so we disable caching as
           # it relies on the existence of a go.sum file.
@@ -228,6 +228,7 @@ jobs:
           - "3.11"
           - "3.12"
           - "3.13"
+          - "3.14"
     steps:
       - name: Apply standard cisagov job preamble
         uses: cisagov/action-job-preamble@v1
@@ -255,9 +256,9 @@ jobs:
           # monitoring configuration *does not* require you to modify
           # this workflow.
           permissions_monitoring_config: ${{ vars.ACTIONS_PERMISSIONS_CONFIG }}
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - id: setup-python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
       - uses: actions/cache@v4
@@ -287,7 +288,7 @@ jobs:
       - name: Upload coverage report
         uses: coverallsapp/github-action@v2
         with:
-          flag-name: py${{ matrix.python-version }}
+          flag-name: py${{ matrix.python-version }} - ${{ matrix.platform }}
           parallel: true
         if: success()
       - name: Setup tmate debug session
@@ -328,7 +329,7 @@ jobs:
           # monitoring configuration *does not* require you to modify
           # this workflow.
           permissions_monitoring_config: ${{ vars.ACTIONS_PERMISSIONS_CONFIG }}
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Finished coveralls reports
         uses: coverallsapp/github-action@v2
         with:
@@ -361,6 +362,7 @@ jobs:
           - "3.11"
           - "3.12"
           - "3.13"
+          - "3.14"
     steps:
       - name: Apply standard cisagov job preamble
         uses: cisagov/action-job-preamble@v1
@@ -388,9 +390,9 @@ jobs:
           # monitoring configuration *does not* require you to modify
           # this workflow.
           permissions_monitoring_config: ${{ vars.ACTIONS_PERMISSIONS_CONFIG }}
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - id: setup-python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
       - uses: actions/cache@v4
@@ -450,6 +452,7 @@ jobs:
           - "3.11"
           - "3.12"
           - "3.13"
+          - "3.14"
     steps:
       - name: Apply standard cisagov job preamble
         uses: cisagov/action-job-preamble@v1
@@ -477,9 +480,9 @@ jobs:
           # monitoring configuration *does not* require you to modify
           # this workflow.
           permissions_monitoring_config: ${{ vars.ACTIONS_PERMISSIONS_CONFIG }}
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - id: setup-python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
       - uses: actions/cache@v4
@@ -498,7 +501,7 @@ jobs:
           restore-keys: |
             ${{ env.BASE_CACHE_KEY }}
       - name: Retrieve the built wheel
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: dist-${{ matrix.python-version }}
           path: dist
