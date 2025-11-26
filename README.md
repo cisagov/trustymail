@@ -2,8 +2,10 @@
 
 [![Latest Version](https://img.shields.io/pypi/v/trustymail.svg)](https://pypi.org/project/trustymail/)
 [![GitHub Build Status](https://github.com/cisagov/trustymail/workflows/build/badge.svg)](https://github.com/cisagov/trustymail/actions)
+[![License](https://img.shields.io/github/license/cisagov/trustymail)](https://spdx.org/licenses/)
 [![CodeQL](https://github.com/cisagov/trustymail/workflows/CodeQL/badge.svg)](https://github.com/cisagov/trustymail/actions/workflows/codeql-analysis.yml)
 [![Coverage Status](https://coveralls.io/repos/github/cisagov/trustymail/badge.svg?branch=develop)](https://coveralls.io/github/cisagov/trustymail?branch=develop)
+[![Code Style](https://img.shields.io/badge/Code%20Style-black-black)](https://github.com/psf/black)
 
 `trustymail` is a tool that evaluates SPF/DMARC records set in a
 domain's DNS. It also checks the mail servers listed in a domain's MX
