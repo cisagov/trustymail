@@ -343,14 +343,14 @@ def check_spf_record(record_text, domain, strict=2):
             handle_error(
                 "[SPF]",
                 domain,
-                "SPF query returned {}: {}".format(response_type, response[2]),
+                f"SPF query returned {response_type}: {response[2]}",
             )
         elif response_type == "ambiguous":
             # Log the ambiguity so it appears in the results CSV
             handle_error(
                 "[SPF]",
                 domain,
-                "SPF query returned {}: {}".format(response_type, response[2]),
+                f"SPF query returned {response_type}: {response[2]}",
             )
 
             # Now rerun the check with less strictness to get an
@@ -540,7 +540,7 @@ def dmarc_scan(resolver, domain):
                     "subdomain record does not actually exist, and the request for TXT records was "
                     "redirected to the base domain"
                 )
-                handle_syntax_error("[DMARC]", domain, "{}".format(msg))
+                handle_syntax_error("[DMARC]", domain, f"{msg}")
                 domain.valid_dmarc = False
 
             # Remove excess whitespace
@@ -569,7 +569,7 @@ def dmarc_scan(resolver, domain):
                 )
             if "p" not in tag_dict:
                 msg = "Record missing required policy (p) tag"
-                handle_syntax_error("[DMARC]", domain, "{}".format(msg))
+                handle_syntax_error("[DMARC]", domain, f"{msg}")
                 domain.valid_dmarc = False
             elif "sp" not in tag_dict:
                 tag_dict["sp"] = tag_dict["p"]
@@ -605,20 +605,20 @@ def dmarc_scan(resolver, domain):
                     "rua",
                     "ruf",
                 ]:
-                    msg = "Unknown DMARC tag {}".format(tag)
-                    handle_syntax_error("[DMARC]", domain, "{}".format(msg))
+                    msg = f"Unknown DMARC tag {tag}"
+                    handle_syntax_error("[DMARC]", domain, f"{msg}")
                     domain.valid_dmarc = False
                 elif tag == "p":
                     if tag_dict[tag] not in ["none", "quarantine", "reject"]:
-                        msg = "Unknown DMARC policy {}".format(tag)
-                        handle_syntax_error("[DMARC]", domain, "{}".format(msg))
+                        msg = f"Unknown DMARC policy {tag}"
+                        handle_syntax_error("[DMARC]", domain, f"{msg}")
                         domain.valid_dmarc = False
                     else:
                         domain.dmarc_policy = tag_dict[tag]
                 elif tag == "sp":
                     if tag_dict[tag] not in ["none", "quarantine", "reject"]:
-                        msg = "Unknown DMARC subdomain policy {}".format(tag_dict[tag])
-                        handle_syntax_error("[DMARC]", domain, "{}".format(msg))
+                        msg = f"Unknown DMARC subdomain policy {tag_dict[tag]}"
+                        handle_syntax_error("[DMARC]", domain, f"{msg}")
                         domain.valid_dmarc = False
                     else:
                         domain.dmarc_subdomain_policy = tag_dict[tag]
@@ -626,18 +626,18 @@ def dmarc_scan(resolver, domain):
                     values = tag_dict[tag].split(":")
                     if "0" in values and "1" in values:
                         msg = "fo tag values 0 and 1 are mutually exclusive"
-                        handle_syntax_error("[DMARC]", domain, "{}".format(msg))
+                        handle_syntax_error("[DMARC]", domain, f"{msg}")
                     for value in values:
                         if value not in ["0", "1", "d", "s"]:
-                            msg = "Unknown DMARC fo tag value {}".format(value)
-                            handle_syntax_error("[DMARC]", domain, "{}".format(msg))
+                            msg = f"Unknown DMARC fo tag value {value}"
+                            handle_syntax_error("[DMARC]", domain, f"{msg}")
                             domain.valid_dmarc = False
                 elif tag == "rf":
                     values = tag_dict[tag].split(":")
                     for value in values:
                         if value not in ["afrf"]:
-                            msg = "Unknown DMARC rf tag value {}".format(value)
-                            handle_syntax_error("[DMARC]", domain, "{}".format(msg))
+                            msg = f"Unknown DMARC rf tag value {value}"
+                            handle_syntax_error("[DMARC]", domain, f"{msg}")
                             domain.valid_dmarc = False
                 elif tag == "ri":
                     try:
@@ -646,7 +646,7 @@ def dmarc_scan(resolver, domain):
                         msg = "Invalid DMARC ri tag value: {} - must be an integer".format(
                             tag_dict[tag]
                         )
-                        handle_syntax_error("[DMARC]", domain, "{}".format(msg))
+                        handle_syntax_error("[DMARC]", domain, f"{msg}")
                         domain.valid_dmarc = False
                 elif tag == "pct":
                     try:
@@ -656,7 +656,7 @@ def dmarc_scan(resolver, domain):
                                 "Error: invalid DMARC pct tag value: {} - must be an integer between "
                                 "0 and 100".format(tag_dict[tag])
                             )
-                            handle_syntax_error("[DMARC]", domain, "{}".format(msg))
+                            handle_syntax_error("[DMARC]", domain, f"{msg}")
                             domain.valid_dmarc = False
                         domain.dmarc_pct = pct
                         if pct < 100:
@@ -669,7 +669,7 @@ def dmarc_scan(resolver, domain):
                         msg = "invalid DMARC pct tag value: {} - must be an integer".format(
                             tag_dict[tag]
                         )
-                        handle_syntax_error("[DMARC]", domain, "{}".format(msg))
+                        handle_syntax_error("[DMARC]", domain, f"{msg}")
                         domain.valid_dmarc = False
                 elif tag == "rua" or tag == "ruf":
                     uris = tag_dict[tag].split(",")
@@ -686,8 +686,8 @@ def dmarc_scan(resolver, domain):
                         # mailto: is currently the only type of DMARC URI
                         parsed_uri = parse_dmarc_report_uri(uri)
                         if parsed_uri is None:
-                            msg = "Error: {} is an invalid DMARC URI".format(uri)
-                            handle_syntax_error("[DMARC]", domain, "{}".format(msg))
+                            msg = f"Error: {uri} is an invalid DMARC URI"
+                            handle_syntax_error("[DMARC]", domain, f"{msg}")
                             domain.valid_dmarc = False
                         else:
                             if tag == "rua":
@@ -720,7 +720,7 @@ def dmarc_scan(resolver, domain):
                                         handle_error(
                                             "[DMARC]",
                                             domain,
-                                            "{}".format(error_message),
+                                            f"{error_message}",
                                         )
                                         domain.dmarc_reports_address_error = True
                                         domain.valid_dmarc = False
@@ -731,7 +731,7 @@ def dmarc_scan(resolver, domain):
                                     dns.exception.Timeout,
                                 ):
                                     handle_syntax_error(
-                                        "[DMARC]", domain, "{}".format(error_message)
+                                        "[DMARC]", domain, f"{error_message}"
                                     )
                                     domain.dmarc_reports_address_error = True
                                     domain.valid_dmarc = False
@@ -859,7 +859,7 @@ def scan(
         dns_hostnames,
     )
 
-    logging.debug("[{}]".format(domain_name.lower()))
+    logging.debug(f"[{domain_name.lower()}]")
 
     if scan_types["mx"] and domain.is_live:
         mx_scan(resolver, domain)
