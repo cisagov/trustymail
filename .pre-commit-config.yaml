@@ -195,7 +195,10 @@ repos:
           # Python, so we want to apply all rules that apply to this
           # version or later.  See here for more details:
           # https://www.gyford.com/phil/writing/2025/08/26/how-to-use-pyupgrade/
-          - --py310-plus
+          #
+          # As this library must support Python 3.7, we do not want to
+          # apply any upgrades for Python versions beyond that.
+          - --py37-plus
 
   # Ansible hooks
   - repo: https://github.com/ansible/ansible-lint
