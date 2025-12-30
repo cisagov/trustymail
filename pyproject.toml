@@ -12,7 +12,13 @@ requires = [
     # 77.0.0 was the first version of setuptools to support license
     # expressions (in compliance with PEP 639):
     # https://setuptools.pypa.io/en/stable/history.html#v77-0-0
-    "setuptools>=77.0.0"
+    #
+    # setuptools>=68.0.0 was the last version to support Python 3.7.
+    #
+    # setuptools>=75.3.2 was the last version to support Python 3.8.
+    "setuptools>=68.0.0; python_version == '3.7'",
+    "setuptools>=75.3.2; python_version == '3.8'",
+    "setuptools>=77.0.0; python_version >= '3.9'",
 ]
 
 [project]
