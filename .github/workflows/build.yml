@@ -100,7 +100,7 @@ jobs:
           permissions_monitoring_config: ${{ vars.ACTIONS_PERMISSIONS_CONFIG }}
       - id: setup-env
         uses: cisagov/setup-env-github-action@v1
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - id: setup-python
         uses: actions/setup-python@v6
         with:
@@ -256,7 +256,7 @@ jobs:
           # monitoring configuration *does not* require you to modify
           # this workflow.
           permissions_monitoring_config: ${{ vars.ACTIONS_PERMISSIONS_CONFIG }}
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - id: setup-python
         uses: actions/setup-python@v6
         with:
@@ -329,7 +329,7 @@ jobs:
           # monitoring configuration *does not* require you to modify
           # this workflow.
           permissions_monitoring_config: ${{ vars.ACTIONS_PERMISSIONS_CONFIG }}
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Finished coveralls reports
         uses: coverallsapp/github-action@v2
         with:
@@ -390,7 +390,7 @@ jobs:
           # monitoring configuration *does not* require you to modify
           # this workflow.
           permissions_monitoring_config: ${{ vars.ACTIONS_PERMISSIONS_CONFIG }}
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - id: setup-python
         uses: actions/setup-python@v6
         with:
@@ -416,7 +416,7 @@ jobs:
       - name: Build artifacts
         run: python -m build
       - name: Upload artifacts
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: dist-${{ matrix.python-version }}
           path: dist
@@ -480,7 +480,7 @@ jobs:
           # monitoring configuration *does not* require you to modify
           # this workflow.
           permissions_monitoring_config: ${{ vars.ACTIONS_PERMISSIONS_CONFIG }}
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - id: setup-python
         uses: actions/setup-python@v6
         with:
@@ -501,7 +501,7 @@ jobs:
           restore-keys: |
             ${{ env.BASE_CACHE_KEY }}
       - name: Retrieve the built wheel
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           name: dist-${{ matrix.python-version }}
           path: dist
