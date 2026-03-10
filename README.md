@@ -80,12 +80,11 @@ output will always be written to disk, defaulting to `results.csv`.
   --debug                     Output should include more verbose logging.
   --dns=HOSTNAMES             A comma-delimited list of DNS servers to query
                               against.  For example, if you want to use
-                              Google's DNS then you would use the
-                              value --dns-hostnames='8.8.8.8,8.8.4.4'.  By
-                              default the DNS configuration of the host OS
-                              (/etc/resolv.conf) is used.  Note that
-                              the host's DNS configuration is not used at all
-                              if this option is used.
+                              Google's DNS then you would use the value
+                              --dns='8.8.8.8,8.8.4.4'.  By default the DNS
+                              configuration of the host OS (/etc/resolv.conf) is
+                              used.  Note that the host's DNS configuration is
+                              not used at all if this option is used.
   --psl-filename=FILENAME     The name of the file where the public suffix list
                               (PSL) cache will be saved.  If set to the name of
                               an existing file then that file will be used as
