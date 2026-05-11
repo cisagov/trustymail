@@ -222,7 +222,6 @@ def starttls_scan(domain, smtp_timeout, smtp_localhost, smtp_ports, smtp_cache):
                     socket.timeout,
                     smtplib.SMTPConnectError,
                     smtplib.SMTPServerDisconnected,
-                    ConnectionRefusedError,
                     OSError,
                 ) as error:
                     handle_error("[STARTTLS]", domain, error)
