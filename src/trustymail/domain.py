@@ -321,11 +321,12 @@ class Domain:
                 if self.starttls_results[x]["starttls"]
             ]
             domain_supports_smtp = bool(mail_servers_that_support_smtp)
+            # Note that we use a generator instead of a list
+            # comprehension here to allow for short-circuiting, as well
+            # as to avoid a C419 error from flake8.
             domain_supports_starttls = domain_supports_smtp and all(
-                [
-                    self.starttls_results[x]["starttls"]
-                    for x in mail_servers_that_support_smtp
-                ]
+                self.starttls_results[x]["starttls"]
+                for x in mail_servers_that_support_smtp
             )
 
         results = OrderedDict(
