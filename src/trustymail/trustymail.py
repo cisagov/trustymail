@@ -536,8 +536,9 @@ def dmarc_scan(resolver, domain):
                 domain.dmarc.append(record_text)
             elif record_text.startswith("v=spf1"):
                 msg = (
-                    "Found a SPF record where a DMARC record should be; most likely, the _dmarc "
-                    "subdomain record does not actually exist, and the request for TXT records was "
+                    "Found an SPF record where a DMARC record should be; "
+                    "most likely, the _dmarc subdomain record does not "
+                    "actually exist, and the request for TXT records was "
                     "redirected to the base domain"
                 )
                 handle_syntax_error("[DMARC]", domain, f"{msg}")
@@ -564,7 +565,9 @@ def dmarc_scan(resolver, domain):
                 handle_error(
                     "[DMARC]",
                     domain,
-                    "Warning: The sp tag will be ignored for DMARC records published on subdomains. See here for details:  https://tools.ietf.org/html/rfc7489#section-6.3.",
+                    "Warning: The sp tag will be ignored for DMARC records "
+                    "published on subdomains. See here for details:  "
+                    "https://tools.ietf.org/html/rfc7489#section-6.3.",
                     syntax_error=False,
                 )
             if "p" not in tag_dict:
@@ -643,9 +646,9 @@ def dmarc_scan(resolver, domain):
                     try:
                         int(tag_dict[tag])
                     except ValueError:
-                        msg = "Invalid DMARC ri tag value: {} - must be an integer".format(
-                            tag_dict[tag]
-                        )
+                        msg = (
+                            "Invalid DMARC ri tag value: " "{} - must be an integer"
+                        ).format(tag_dict[tag])
                         handle_syntax_error("[DMARC]", domain, f"{msg}")
                         domain.valid_dmarc = False
                 elif tag == "pct":
@@ -653,9 +656,9 @@ def dmarc_scan(resolver, domain):
                         pct = int(tag_dict[tag])
                         if pct < 0 or pct > 100:
                             msg = (
-                                "Error: invalid DMARC pct tag value: {} - must be an integer between "
-                                "0 and 100".format(tag_dict[tag])
-                            )
+                                "Error: invalid DMARC pct tag value: "
+                                "{} - must be an integer between 0 and 100"
+                            ).format(tag_dict[tag])
                             handle_syntax_error("[DMARC]", domain, f"{msg}")
                             domain.valid_dmarc = False
                         domain.dmarc_pct = pct
@@ -663,12 +666,15 @@ def dmarc_scan(resolver, domain):
                             handle_syntax_error(
                                 "[DMARC]",
                                 domain,
-                                "Warning: The DMARC pct tag value may be less than 100 (the implicit default) during deployment, but should be removed or set to 100 upon full deployment",
+                                "Warning: The DMARC pct tag value may be less "
+                                "than 100 (the implicit default) during "
+                                "deployment, but should be removed or set to "
+                                "100 upon full deployment",
                             )
                     except ValueError:
-                        msg = "invalid DMARC pct tag value: {} - must be an integer".format(
-                            tag_dict[tag]
-                        )
+                        msg = (
+                            "invalid DMARC pct tag value: " "{} - must be an integer"
+                        ).format(tag_dict[tag])
                         handle_syntax_error("[DMARC]", domain, f"{msg}")
                         domain.valid_dmarc = False
                 elif tag == "rua" or tag == "ruf":
@@ -677,9 +683,12 @@ def dmarc_scan(resolver, domain):
                         handle_error(
                             "[DMARC]",
                             domain,
-                            "Warning: The {} tag specifies {} URIs.  Receivers are not required to send reports to more than two URIs - https://tools.ietf.org/html/rfc7489#section-6.2.".format(
-                                tag, len(uris)
-                            ),
+                            (
+                                "Warning: The {} tag specifies {} URIs.  "
+                                "Receivers are not required to send reports to "
+                                "more than two URIs - "
+                                "https://tools.ietf.org/html/rfc7489#section-6.2."
+                            ).format(tag, len(uris)),
                             syntax_error=False,
                         )
                     for uri in uris:
@@ -704,12 +713,11 @@ def dmarc_scan(resolver, domain):
                                     domain.domain_name, email_domain
                                 )
                                 error_message = (
-                                    "{} does not indicate that it accepts DMARC reports about {} - "
+                                    "{} does not indicate that it accepts "
+                                    "DMARC reports about {} - "
                                     "https://tools.ietf.org"
-                                    "/html/rfc7489#section-7.1".format(
-                                        email_domain, domain.domain_name
-                                    )
-                                )
+                                    "/html/rfc7489#section-7.1"
+                                ).format(email_domain, domain.domain_name)
                                 try:
                                     answer = remove_quotes(
                                         resolver.query(target, "TXT", tcp=True)[
@@ -760,7 +768,11 @@ def dmarc_scan(resolver, domain):
                 handle_syntax_error(
                     "[DMARC]",
                     domain,
-                    "Warning: A DMARC policy is specified but no reporting URIs.  This makes the DMARC implementation considerably less useful than it could be.  See https://tools.ietf.org/html/rfc7489#section-6.5 for more details.",
+                    "Warning: A DMARC policy is specified but no reporting "
+                    "URIs.  This makes the DMARC implementation considerably "
+                    "less useful than it could be.  See "
+                    "https://tools.ietf.org/html/rfc7489#section-6.5 for "
+                    "more details.",
                 )
 
         domain.dmarc_has_aggregate_uri = len(domain.dmarc_aggregate_uris) > 0
@@ -889,10 +901,11 @@ def scan(
 
 
 def handle_error(prefix, domain, error, syntax_error=False):
-    """Handle the provided error by logging a message and storing it in the Domain object.
+    """Log a message and storing said message in the Domain object.
 
-    Logging is performed via the Python logging library and recording it in the
-    debug_info or syntax_error members of the trustymail.Domain object.
+    Logging is performed via the Python logging library and
+    recording it in the debug_info or syntax_error members of the
+    trustymail.Domain object.
 
     Since the "Debug Info" and "Syntax Error" fields in the CSV output
     of trustymail come directly from the debug_info and syntax_error

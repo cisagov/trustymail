@@ -2,7 +2,10 @@
 
 Usage:
   trustymail (INPUT ...) [options]
-  trustymail (INPUT ...) [--output=OUTFILE] [--timeout=TIMEOUT] [--smtp-timeout=TIMEOUT] [--smtp-localhost=HOSTNAME] [--smtp-ports=PORTS] [--no-smtp-cache] [--mx] [--starttls] [--spf] [--dmarc] [--debug] [--json] [--dns=HOSTNAMES] [--psl-filename=FILENAME] [--psl-read-only]
+  trustymail (INPUT ...) [--output=OUTFILE] [--timeout=TIMEOUT]
+  [--smtp-timeout=TIMEOUT] [--smtp-localhost=HOSTNAME] [--smtp-ports=PORTS]
+  [--no-smtp-cache] [--mx] [--starttls] [--spf] [--dmarc] [--debug] [--json]
+  [--dns=HOSTNAMES] [--psl-filename=FILENAME] [--psl-read-only]
   trustymail (-h | --help)
 
 Options:
@@ -165,7 +168,7 @@ def main():
 
 
 def write(content, out_file):
-    """Write the provided content to a file after ensuring all intermediate directories exist."""
+    """Write content to a file, ensuring all intermediate directories exist."""
     parent = os.path.dirname(out_file)
     if parent != "":
         mkdir_p(parent)
