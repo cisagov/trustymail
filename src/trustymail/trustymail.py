@@ -900,7 +900,7 @@ def scan(
 
 
 def handle_error(prefix, domain, error, syntax_error=False):
-    """Log a message and storing said message in the Domain object.
+    """Log a message and store it in the Domain object.
 
     Logging is performed via the Python logging library and
     recording it in the debug_info or syntax_error members of the
