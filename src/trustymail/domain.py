@@ -18,7 +18,7 @@ def get_psl():
 
     Returns
     -------
-    PublicSuffixList: An instance of PublicSuffixList loaded with a cached or updated list
+    PublicSuffixList: cached or updated public suffix list
     """
     # Download the PSL if necessary
     if not PublicSuffixListReadOnly:
@@ -144,7 +144,7 @@ class Domain:
         return None
 
     def has_supports_smtp(self):
-        """Check if any of the mail servers associated with this domain are listening and support SMTP."""
+        """Check if any mail servers are listening and support SMTP."""
         result = None
         if len(self.starttls_results) > 0:
             result = (
@@ -159,7 +159,7 @@ class Domain:
         return result
 
     def has_starttls(self):
-        """Check if any of the mail servers associated with this domain are listening and support STARTTLS."""
+        """Check if any mail servers are listening and support STARTTLS."""
         result = None
         if len(self.starttls_results) > 0:
             result = (
@@ -180,7 +180,11 @@ class Domain:
         return None
 
     def has_dmarc(self):
-        """Check if this domain has a Domain-based Message Authentication, Reporting, and Conformance record."""
+        """Check if this domain has a DMARC record.
+
+        Here DMARC stands for Domain-based Message
+        Authentication, Reporting, and Conformance.
+        """
         if self.dmarc is not None:
             return len(self.dmarc) > 0
         return None
@@ -197,7 +201,11 @@ class Domain:
         self.mail_servers.append(record.exchange.to_text().rstrip(".").lower())
 
     def parent_has_dmarc(self):
-        """Check if a domain or its parent has a Domain-based Message Authentication, Reporting, and Conformance record."""
+        """Check if a domain or its parent has a DMARC record.
+
+        Here DMARC stands for Domain-based Message
+        Authentication, Reporting, and Conformance.
+        """
         ans = self.has_dmarc()
         if self.base_domain:
             ans = self.base_domain.has_dmarc()
@@ -313,11 +321,12 @@ class Domain:
                 if self.starttls_results[x]["starttls"]
             ]
             domain_supports_smtp = bool(mail_servers_that_support_smtp)
+            # Note that we use a generator instead of a list
+            # comprehension here to allow for short-circuiting, as well
+            # as to avoid a C419 error from flake8.
             domain_supports_starttls = domain_supports_smtp and all(
-                [
-                    self.starttls_results[x]["starttls"]
-                    for x in mail_servers_that_support_smtp
-                ]
+                self.starttls_results[x]["starttls"]
+                for x in mail_servers_that_support_smtp
             )
 
         results = OrderedDict(
