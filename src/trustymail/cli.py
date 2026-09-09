@@ -61,7 +61,7 @@ import os
 import docopt
 
 # Local imports
-from . import trustymail
+from . import trustymail as tmail
 from ._version import __version__
 
 # The default ports to be checked to see if an SMTP server is listening.
@@ -72,14 +72,14 @@ def main():
     """Perform a trustymail scan using the provided options."""
     args = docopt.docopt(__doc__, version=__version__)
 
-    # Monkey patching trustymail to make it cache the PSL where we want
+    from . import domain
+
+    # Configure the module that reads the PSL cache.
     if args["--psl-filename"] is not None:
-        trustymail.PublicSuffixListFilename = args["--psl-filename"]
+        domain.PublicSuffixListFilename = args["--psl-filename"]
     # Monkey patching trustymail to make the PSL cache read-only
     if args["--psl-read-only"]:
-        trustymail.PublicSuffixListReadOnly = True
-    # cisagov Libraries
-    import trustymail.trustymail as tmail
+        domain.PublicSuffixListReadOnly = True
 
     log_level = logging.WARN
     if args["--debug"]:
