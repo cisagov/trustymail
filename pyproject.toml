@@ -55,8 +55,7 @@ dependencies = [
     "dnspython",
     "docopt",
     "publicsuffixlist[update]",
-    "py3dns",
-    "pyspf",
+    "pyspf>=2.0.13",
     "requests",
 ]
 description = "Scan domains and return data based on trustworthy email best practices"
