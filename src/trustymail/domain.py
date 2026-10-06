@@ -273,32 +273,32 @@ class Domain:
     def get_dmarc_has_aggregate_uri(self):
         """Get this domain or its parent's DMARC aggregate URI."""
         ans = self.dmarc_has_aggregate_uri
-        # If there are no aggregate URIs then check the parents.
-        if not ans and self.base_domain:
+        # Inherit only when no DMARC record is published on this domain.
+        if not self.has_dmarc() and self.base_domain:
             ans = self.base_domain.get_dmarc_has_aggregate_uri()
         return ans
 
     def get_dmarc_has_forensic_uri(self):
         """Check if this domain or its parent have a DMARC forensic URI."""
         ans = self.dmarc_has_forensic_uri
-        # If there are no forensic URIs then check the parents.
-        if not ans and self.base_domain:
+        # Inherit only when no DMARC record is published on this domain.
+        if not self.has_dmarc() and self.base_domain:
             ans = self.base_domain.get_dmarc_has_forensic_uri()
         return ans
 
     def get_dmarc_aggregate_uris(self):
         """Get this domain or its parent's DMARC aggregate URIs."""
         ans = self.dmarc_aggregate_uris
-        # If there are no aggregate URIs then check the parents.
-        if not ans and self.base_domain:
+        # Inherit only when no DMARC record is published on this domain.
+        if not self.has_dmarc() and self.base_domain:
             ans = self.base_domain.get_dmarc_aggregate_uris()
         return ans
 
     def get_dmarc_forensic_uris(self):
         """Get this domain or its parent's DMARC forensic URIs."""
         ans = self.dmarc_forensic_uris
-        # If there are no forensic URIs then check the parents.
-        if not ans and self.base_domain:
+        # Inherit only when no DMARC record is published on this domain.
+        if not self.has_dmarc() and self.base_domain:
             ans = self.base_domain.get_dmarc_forensic_uris()
         return ans
 
