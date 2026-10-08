@@ -846,8 +846,9 @@ def scan(
     else:
         DNS_RESOLVERS = resolver.nameservers
 
-    # pyspf selects dnspython, which is an explicit dependency. Configuring
-    # a second DNS backend would not affect that selected implementation.
+    # pyspf uses dnspython's default resolver for nested SPF policy lookups,
+    # not this scan's resolver or timeout (see #170). The old py3dns settings
+    # did not configure pyspf's selected backend.
 
     # Domain's constructor needs all these parameters because it does a DMARC
     # scan in its init

@@ -12,6 +12,8 @@ Options:
   -h --help                   Show this message.
   -o --output=OUTFILE         Name of output file.  (Default results)
   -t --timeout=TIMEOUT        The DNS lookup timeout in seconds.  (Default is 5.)
+                              SPF policy evaluation currently uses pyspf's own
+                              per-lookup timeout.
   --smtp-timeout=TIMEOUT      The SMTP connection timeout in seconds.  (Default is 5.)
   --smtp-localhost=HOSTNAME   The hostname to use when connecting to SMTP
                               servers.  (Default is the FQDN of the host from
@@ -33,8 +35,9 @@ Options:
                               Google's DNS then you would use the value
                               --dns='8.8.8.8,8.8.4.4'.  By default the DNS
                               configuration of the host OS (/etc/resolv.conf) is
-                              used.  Note that the host's DNS configuration is
-                              not used at all if this option is used.
+                              used.  SPF policy evaluation through pyspf still
+                              uses the host's DNS configuration, even when
+                              custom DNS servers are specified.
   --psl-filename=FILENAME     The name of the file where the public suffix list
                               (PSL) cache will be saved.  If set to the name of
                               an existing file then that file will be used as
