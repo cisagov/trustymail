@@ -32,8 +32,8 @@ Options:
   --debug                     Output should include more verbose logging.
   --dns=HOSTNAMES             A comma-delimited list of DNS servers to query
                               against.  For example, if you want to use
-                              Google's DNS then you would use the value
-                              --dns='8.8.8.8,8.8.4.4'.  By default the DNS
+                              Google's DNS then you would use the
+                              value --dns='8.8.8.8,8.8.4.4'.  By default the DNS
                               configuration of the host OS (/etc/resolv.conf) is
                               used.  SPF policy evaluation through pyspf still
                               uses the host's DNS configuration, even when
