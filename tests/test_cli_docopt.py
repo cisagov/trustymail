@@ -23,3 +23,14 @@ def test_cli_help_renders_without_option_collisions(capsys):
         docopt.docopt(cli.__doc__, argv=["--help"])
     assert exc_info.value.code in (None, 0)
     assert "  --dns=HOSTNAMES" in capsys.readouterr().out
+
+
+def test_cli_help_has_no_wrapped_option_definitions():
+    """Reject help text that accidentally defines a new command-line flag."""
+    assert cli.__doc__ is not None
+    stray = [
+        line
+        for line in cli.__doc__.splitlines()
+        if line.lstrip().startswith("-") and not line.startswith("  -")
+    ]
+    assert stray == []
