@@ -265,7 +265,7 @@ class Domain:
     def get_dmarc_pct(self):
         """Get this domain or its parent's DMARC percentage information."""
         ans = self.dmarc_pct
-        if not ans and self.base_domain:
+        if ans is None and self.base_domain:
             # Check the parents
             ans = self.base_domain.get_dmarc_pct()
         return ans

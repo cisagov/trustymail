@@ -12,7 +12,6 @@ import smtplib
 import socket
 
 # Third-Party Libraries
-import DNS
 import dns.resolver
 import dns.reversename
 import requests
@@ -847,16 +846,8 @@ def scan(
     else:
         DNS_RESOLVERS = resolver.nameservers
 
-    #
-    # The spf library uses py3dns behind the scenes, so we need to configure
-    # that too
-    #
-    DNS.defaults["timeout"] = timeout
-    # Use TCP instead of UDP
-    DNS.defaults["protocol"] = "tcp"
-    # If the user passed in DNS hostnames to query against then use them
-    if dns_hostnames:
-        DNS.defaults["server"] = dns_hostnames
+    # Every DNS lookup pyspf makes while evaluating a record uses dnspython's
+    # default resolver, not this scan's resolver or timeout (see #170).
 
     # Domain's constructor needs all these parameters because it does a DMARC
     # scan in its init
